@@ -1,0 +1,12 @@
+#summary Architecture differences in data-types.
+
+= Introduction =
+
+Do all modern CPU's store floating point information in IEEE 754 standard?
+What happens when a system when a 64-bit integer gets sent to a 32-bit platform?
+
+= Details =
+
+It _seems_ that systems do use IEEE 754. (Verification?)
+
+
