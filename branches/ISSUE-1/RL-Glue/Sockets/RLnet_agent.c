@@ -1,9 +1,7 @@
-#include "RLnet_agent.h"
+#include <stdio.h>
 
 #include "RLnet.h"
-
-char send_buffer[4] = {0};
-char recv_buffer[8] = {0};
+#include "RLnet_agent.h"
 
 unsigned int theTaskSpecLength = 0;
 char* theTaskSpecBuffer = 0;
@@ -12,12 +10,19 @@ Action action;
 Observation observation;
 Reward reward;
 
-//task_spec_struct theTaskSpec;
+extern void agent_init(Task_specification task_spec);
+extern Action agent_start(Observation o);
+extern Action agent_step(Reward r, Observation o);
+extern void agent_end(Reward r);
+extern void agent_cleanup();
 
 void on_agent_init(rlSocket theSocket)
 {
+  theTaskSpecLength = 0;
   rlRecvData(theSocket, theTaskSpecLength, sizeof(unsigned int));
-  rlRecvData(theSocket, theTaskSpecBuffer, 2048);
+
+  theTaskSpecBuffer = (char*)calloc(theTaskSpecLength, sizeof(char));
+  rlRecvData(theSocket, theTaskSpecBuffer, theTaskSpecLength);
  
   agent_init(theTaskSpecBuffer);
 
