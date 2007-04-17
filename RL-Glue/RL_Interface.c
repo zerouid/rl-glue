@@ -70,6 +70,7 @@ Reward_observation_action_terminal RL_step()
   return roa;
 }
 
+/*
 void RL_episode()
 {
   RL_start();
@@ -78,6 +79,7 @@ void RL_episode()
     RL_step();
   }
 }
+*/
 
 void RL_episode(int num_Steps)
 {

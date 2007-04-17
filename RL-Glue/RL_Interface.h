@@ -1,19 +1,8 @@
 #ifndef RL_Interface_h
 #define RL_Interface_h
 
+#include <stdarg.h>
 #include "RLcommon.h"
-
-typedef struct {
-  Reward r;
-  Observation o;
-  Action a;
-  int terminal;
-} Reward_observation_action_terminal;
-
-typedef struct {
-  Observation o;
-  Action a;
-} Observation_action;
 
 /* Glue */
 void RL_init();
@@ -24,8 +13,8 @@ Reward RL_average_reward();
 double RL_average_num_steps();
 int RL_num_steps();
 int RL_num_episodes();
-void RL_episode();
-void RL_episode(int num_Steps);
+/* void RL_episode(); */
+void RL_episode(int num_steps);
 char* RL_get_spec();
 void RL_set_state(State_key sk);
 void RL_set_random_seed(Random_seed_key rsk);
