@@ -53,7 +53,7 @@ void parse_type(char*& ts, int& dim, char*& types, float*& mins, float*& maxs)
 
 void parse_task_spec(char* ts, task_spec_struct* ps)
 {
-	int i,j;
+	int j;
 	int n = sscanf(ts," %f : %c : %n",&(ps->version),&(ps->episodic),&j);
 	if(n != 2)
 	{

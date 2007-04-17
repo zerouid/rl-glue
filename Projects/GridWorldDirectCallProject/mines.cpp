@@ -108,9 +108,7 @@ void getNextPosition(int a)
 
 Reward getReward()
 {
-    if (env_map[M.agentRow][M.agentColumn] == M.GOAL){
-        return 10;}
-    else if (env_map[M.agentRow][M.agentColumn] == M.MINE){
+	if (env_map[M.agentRow][M.agentColumn] == M.MINE){
         return -10;}
     else
         return -1;
@@ -118,7 +116,7 @@ Reward getReward()
 
 void env_cleanup()
 {
-	printf("\nError:: env_cleanup must be defined in your enviornment before you can call RL_cleanup()\n\n");
+	//Nothing to delete
 }
 
 State_key env_get_state()
