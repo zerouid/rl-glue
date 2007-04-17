@@ -1,8 +1,6 @@
-#include <stdexcept>
 #include "RLnet_agent.h"
 
 #include "RLnet.h"
-#include "RLnetx.h"
 
 char send_buffer[4] = {0};
 char recv_buffer[8] = {0};
@@ -18,10 +16,9 @@ Reward reward;
 
 void on_agent_init(rlSocket theSocket)
 {
-  rlxRecvType(theSocket, theTaskSpecLength);
+  rlRecvData(theSocket, theTaskSpecLength, sizeof(unsigned int));
   rlRecvData(theSocket, theTaskSpecBuffer, 2048);
  
-  //parse_task_spec(theTaskSpecBuffer, &theTaskSpec);
   agent_init(theTaskSpecBuffer);
 
   // allocate observation
@@ -105,9 +102,6 @@ void run_agent(rlSocket theSocket)
 
 int main(int argc, char** argv)
 {
-  if (argc != 2)
-    throw std::runtime_error("Usage: client <ip address>");
-
   rlSocket theSocket;
   
   theSocket = rlOpen(4096);
