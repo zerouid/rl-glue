@@ -127,3 +127,8 @@ int argmax(int s)
 	}
 	return bestIndex;        
 }
+
+void agent_freeze()
+{
+	printf("\nWarning:: agent_freeze must be defined in your environment before you can call RL_freeze_Agent()\nFunction Not Called!\n");
+}
