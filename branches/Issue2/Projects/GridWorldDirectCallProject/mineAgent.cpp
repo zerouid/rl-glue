@@ -7,7 +7,6 @@ void agent_init(Task_specification task_spec)
     {
         //Parse task_spec...General case where I dont know in adavance number of state and actions dimensions
         //if you know use one call to sscanf
-		int j = 0;	
 		try 
 		{
 			task_spec_struct ps;
@@ -26,7 +25,6 @@ void agent_init(Task_specification task_spec)
         
 		n = state_dim; //WE KNOW ONLY OE STATE DIMENSION
 		m = action_dim;    //again we know number of action dim       
-		fprintf(stderr,"task_spec: %s, num_states: %d, num_actions: %d\n",task_spec,n,m);
 		nm = n*m;   
 
 		actions = new int[m];//array of possible actions
@@ -59,7 +57,7 @@ Action agent_step(Reward r, Observation o)
 {
 	//Update one step, return agent's action
 	double delta;
-	int iNew, iOld, a;
+	int a;
         
 	a = egreedy(o);
 
@@ -74,7 +72,6 @@ Action agent_step(Reward r, Observation o)
 void agent_end(Reward r)
 {
 	//Update last step of current episode
-	int i;
 	double error;
 	error = r - Q[S][A];
 	Q[S][A] = Q[S][A] + alpha*error;
@@ -87,6 +84,12 @@ void agent_cleanup()
 		
 	delete [] Q;
 	delete [] actions;
+}
+
+void agent_freeze()
+{
+	alpha = 0.0;
+	//epsilon = 0;
 }
 
 int egreedy(int s)
@@ -128,7 +131,4 @@ int argmax(int s)
 	return bestIndex;        
 }
 
-void agent_freeze()
-{
-	printf("\nWarning:: agent_freeze must be defined in your environment before you can call RL_freeze_Agent()\nFunction Not Called!\n");
-}
+

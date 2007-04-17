@@ -1,5 +1,5 @@
 /********************************************************************************
- *  MCExperiment.cpp
+ *  Experiment.cpp
  *  
  *  Created by Adam White, created on March 29 2007.
  *  Copyright (c) 2005 UAlberta. All rights reserved.
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 {
 		int training_time = 100;
 		int test_length = 100;
-		int longrun_training_time = 1000;
+		int longrun_training_time = 10000;
 		int phase2_training = longrun_training_time -training_time; 
 		int num_runs = 100;
 		
