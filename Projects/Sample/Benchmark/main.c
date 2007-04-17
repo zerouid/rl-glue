@@ -4,9 +4,9 @@
 void run(int num_episodes)
 {        
   int x = 0;
-  for(x=0; x < num_episodes; ++x)
+  for(x = 0; x < num_episodes; ++x)
   {
-    RL_episode();
+    RL_episode(100000000);
     fprintf(stderr, ".");
   }
 }
@@ -18,4 +18,6 @@ int main(int argc, char *argv[])
   RL_init();
   run(num_episodes);
   RL_cleanup();
+
+  return 0;
 }

@@ -181,9 +181,13 @@ void env_set_random_seed(Random_seed_key rsk)
 
 State_key env_get_state()
 {
+  State_key theKey;
+  return theKey;
 }
 
 Random_seed_key env_get_random_seed()
 {
+  Random_seed_key theKey;
+  return theKey;
 }
 
