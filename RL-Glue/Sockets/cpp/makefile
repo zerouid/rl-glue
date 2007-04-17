@@ -17,8 +17,8 @@ server.o: server.cpp
 client.o: client.cpp	
 	$(CXX) $(CFLAGS) -c client.cpp
 
-RLnet.o: RLnet.cpp RLnet.h
-	$(CXX) $(CFLAGS) -c RLnet.cpp 
+RLnet.o: RLnet.c RLnet.h
+	$(CXX) $(CFLAGS) -c RLnet.c 
 
 clean: tidy
 	rm -fr server
