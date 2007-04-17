@@ -1,9 +1,6 @@
 #ifndef MINE_COMMON_H
 #define MINE_COMMON_H
 
-#define ENV_INIT
-#define AGENT_INIT
-#define AGENT_CLEANUP
 
 typedef int Observation;    //Defining what type a Observation is
 typedef int Action;	  //Defining what type a action is
