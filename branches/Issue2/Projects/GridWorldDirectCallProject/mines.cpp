@@ -116,3 +116,33 @@ Reward getReward()
         return -1;
 }
 
+void env_cleanup()
+{
+	printf("\nError:: env_cleanup must be defined in your enviornment before you can call RL_cleanup()\n\n");
+}
+
+State_key env_get_state()
+{
+	printf("\nError:: env_get_state must be defined in your enviornment before you can call RL_get_state\n\n");
+	State_key sk;
+	return sk;
+
+}
+
+void env_set_state(State_key sk)
+{
+	printf("\nError:: env_set_state must be defined in your environment before you can call RL_set_state\n\n");
+}
+
+Random_seed_key env_get_random_seed()
+{
+	printf("\nError:: env_get_random_seed must be defined in your environment before you can call RL_get_random_seed\n\n");
+	Random_seed_key rsk;
+	return rsk;
+}
+
+void env_set_random_seed(Random_seed_key rsk)
+{
+	printf("\nError:: env_set_random must be defined in your environment before you can call RL_set_random_seed\n\n");
+}
+
