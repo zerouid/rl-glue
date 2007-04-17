@@ -121,8 +121,8 @@ int rlGetSystemByteOrder()
   // Endian will be 1 when we are on a little endian machine,
   // and not 1 on a big endian machine.
 
-  static const int one = 1;
-  static const char endian = (*(char*)(&one));
+  const int one = 1;
+  const char endian = *(char*)&one;
 
   return endian;
 }
