@@ -11,8 +11,6 @@ Reward total_reward;
 int total_steps;
 int num_episodes;
 
-char* RLts;
-
 Reward_observation_action_terminal roa;
 Observation_action oa;
 
@@ -24,7 +22,6 @@ void RL_init()
 	
   num_episodes = 0;
   total_steps = 0;
-  RLts = task_spec;
 }
 
 Observation_action RL_start()
@@ -63,7 +60,7 @@ Reward_observation_action_terminal RL_step()
   else
   {
     last_action = agent_step(last_reward,last_state);
-    num_steps++; //increment num_steps if state is not terminal
+    num_steps++; /* increment num_steps if state is not terminal */
     
     roa.a = last_action;
   }
@@ -83,8 +80,9 @@ void RL_episode()
 
 void RL_episode(int num_Steps)
 {
+  int x = 0;
   RL_start();
-  for (int x=0; x<num_Steps && !isTerminal; ++x)
+  for (x=0; x<num_Steps && !isTerminal; ++x)
   {
     RL_step();
   }
@@ -97,29 +95,24 @@ Reward RL_return()
 
 Reward RL_average_reward()
 {
-  return (Reward)(total_reward/double(num_steps));
+  return (Reward)(total_reward/(double)num_steps);
 }
 
 double RL_average_num_steps()
 {
-  //average number of steps per episode (only counts completed episodes (not current))	
+  /* average number of steps per episode (only counts completed episodes (not current))	*/
   return ((double)total_steps)/((double)num_episodes);
 }
 
 int RL_num_steps()
 {
-  //number of steps of the current or just completed episodes or run
+  /* number of steps of the current or just completed episodes or run */
   return num_steps;
 }
 
 int RL_num_episodes()
 {
   return num_episodes;
-}
-
-char* RL_get_spec()
-{
-  return RLts;
 }
 
 void RL_cleanup()

@@ -25,10 +25,10 @@ RL_parser.o: $(RL-Glue)/Parser/cpp/RL_parser.cpp $(RL-Glue)/Parser/cpp/RL_parser
 	$(CC) -c $(CFLAGS) $< -o Build/RL_parser.o
 
 mines.o: ./Env/mines.c ./Env/mines.h
-	$(CC) -c $(CFLAGS) -DTYPES_HEADER=$(TYPES_HEADER) $< -o Build/mines.o
+	$(CC) -c $(CFLAGS) $< -o Build/mines.o
 
 main.o: ./Benchmark/main.c
-	$(CC) -c $(CFLAGS) -DTYPES_HEADER=$(TYPES_HEADER) $< -o Build/main.o
+	$(CC) -c $(CFLAGS) $< -o Build/main.o
 
 clean:
 	rm -fr Build/*.o
