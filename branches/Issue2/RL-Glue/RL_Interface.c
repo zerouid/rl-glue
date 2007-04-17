@@ -1,64 +1,5 @@
 #include "RL_Interface.h"
 
-#ifndef RL_USE_ALL
-
-#ifndef ENV_STATE
-State_key env_get_state()
-{
-	printf("\nError:: env_get_state must be defined in your enviornment c file before you can call RL_get_state\n\n");
-        exit(1);
-	State_key sk;
-	return sk;
-
-}
-
-void env_set_state(State_key sk)
-{
-	printf("\nError:: env_set_state must be defined in your environment c file before you can call RL_set_state\n\n");
-        exit(1);
-}
-#endif
-
-#ifndef ENV_RANDOM
-Random_seed_key env_get_random_seed()
-{
-	printf("\nError:: env_get_random_seed must be defined in your environment c file before you can call RL_get_random_seed\n\n");
-	exit(1);        
-	Random_seed_key rsk;
-	return rsk;
-}
-
-void env_set_random_seed(Random_seed_key rsk)
-{
-	printf("\nError:: env_set_random must be defined in your environment c file before you can call RL_set_random_seed\n\n");
-	exit(1);
-}
-#endif
-
-#ifndef ENV_CLEANUP
-void env_cleanup()
-{}	
-#endif
-
-#ifndef AGENT_CLEANUP
-void agent_cleanup()
-{}
-#endif
-
-#ifndef AGENT_INIT
-void agent_init(char* ts)
-{}
-#endif
-	
-#ifndef ENV_INIT
-char* env_init()
-{
-	return NULL;
-}
-#endif
-
-#endif
-
 Action last_action;
 Observation last_state;
 Reward last_reward;
@@ -324,13 +265,13 @@ int RL_num_episodes()
 	return num_episodes;
 }
 
-char* RL_get_spec()
-{
-	return RLts;
-}
-
 void RL_cleanup()
 {
 	env_cleanup();
 	agent_cleanup();
+}
+
+void RL_freeze_agent()
+{
+	agent_freeze();
 }

@@ -34,7 +34,7 @@ int RL_num_steps();
 int RL_num_episodes();
 void RL_episode();
 void RL_episode(int num_Steps);
-char* RL_get_spec();
+void RL_freeze_agent();
 
 #ifdef PIPES
 void RL_set_state(State_key sk);
@@ -59,29 +59,14 @@ void RL_cleanup();
 #ifdef PIPES
 void agent_init(Task_specification task_);
 void agent_init(Task_specification task_, char* inpath, char* outpath);
-#else
-void agent_init(Task_specification task_);
 #endif
 
-Action agent_start(Observation o);
-Action agent_step(Reward r, Observation o);
-void agent_end(Reward r);  
-void agent_cleanup();
+
 
 #ifdef PIPES
 Task_specification env_init();
 Task_specification env_init(char* inpath, char* outpath);
-#else
-Task_specification env_init();
 #endif
-Observation env_start();
-Reward_observation env_step(Action a);
-void env_cleanup();
-
-void env_set_state(State_key sk);
-void env_set_random_seed(Random_seed_key rsk);
-State_key env_get_state();
-Random_seed_key env_get_random_seed();
 
 
 #endif
