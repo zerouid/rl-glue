@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 #include <RLcommon.h>
-#include "RLnet.h"
+#include <RLnet/RLnet.h>
 
 /* Declare the task spec and length */
 unsigned int theTaskSpecLength;
