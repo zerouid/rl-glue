@@ -85,14 +85,16 @@ int rlClose(rlSocket theSocket)
   return close(theSocket.os_socket);
 }
 
-int rlSendData(rlSocket theSocket, const char* theData, int theLength)
+int rlSendData(rlSocket theSocket, const void* theData, int theLength)
 {
   int theBytesSent = 0;
   int theMsgError = 0;
+
+  const char* theDataBuffer = (const char*)theData;
   
   while (theBytesSent < theLength)
   {
-    theMsgError = send(theSocket.os_socket, theData + theBytesSent, theLength - theBytesSent, 0);
+    theMsgError = send(theSocket.os_socket, theDataBuffer + theBytesSent, theLength - theBytesSent, 0);
     if (theMsgError == -1) break;
     else theBytesSent += theMsgError;
   }
@@ -100,14 +102,16 @@ int rlSendData(rlSocket theSocket, const char* theData, int theLength)
   return theBytesSent;
 }
 
-int rlRecvData(rlSocket theSocket, char* theData, int theLength)
+int rlRecvData(rlSocket theSocket, void* theData, int theLength)
 {
   int theBytesRecv = 0;
   int theMsgError = 0;
 
+  char* theDataBuffer = (char*)theData;
+
   while (theBytesRecv < theLength)
   {
-    theMsgError = recv(theSocket.os_socket, theData + theBytesRecv, theLength - theBytesRecv, 0);
+    theMsgError = recv(theSocket.os_socket, theDataBuffer + theBytesRecv, theLength - theBytesRecv, 0);
     if (theMsgError <= 0) break;
     else theBytesRecv += theMsgError;
   }
@@ -115,11 +119,12 @@ int rlRecvData(rlSocket theSocket, char* theData, int theLength)
   return theBytesRecv;
 }
 
-
 int rlGetSystemByteOrder()
 {
-  // Endian will be 1 when we are on a little endian machine,
-  // and not 1 on a big endian machine.
+  /*
+    Endian will be 1 when we are on a little endian machine,
+    and not 1 on a big endian machine.
+  */
 
   const int one = 1;
   const char endian = *(char*)&one;

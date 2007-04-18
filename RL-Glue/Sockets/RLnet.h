@@ -17,8 +17,8 @@ int rlConnect(rlSocket socket, const char* address);
 int rlListen(rlSocket);
 int rlClose(rlSocket socket);
 
-int rlSendData(rlSocket socket, const char* data, int length);
-int rlRecvData(rlSocket socket, char* data, int length);
+int rlSendData(rlSocket socket, const void* data, int length);
+int rlRecvData(rlSocket socket, void* data, int length);
 
 int rlGetSystemByteOrder();
 
