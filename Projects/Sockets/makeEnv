@@ -5,25 +5,25 @@ RL-Sockets = $(RL-Glue)/Sockets/
 # We need to search the RL-Glue directory for Sockets/RLagent_net
 CFLAGS = -I$(RL-Glue)/ -I$(RL-Sockets) -ansi -pedantic -Wall
 
-all: Agent RL_agent 
-	$(CC) -o RL_agent Build/ZeroAgent.o Build/RLnet.o Build/RLnet_agent.o
+all: Environment RL_environment
+	$(CC) -o RL_environment Build/mines.o Build/RLnet.o Build/RLnet_environment.o
 
-Agent: ZeroAgent.o
+Environment: mines.o
 
-RL_agent: RLnet.o RLnet_agent.o
+RL_environment: RLnet.o RLnet_environment.o
 
-ZeroAgent.o: ./Agent/ZeroAgent.c ./Agent/ZeroAgent.h
-	$(CC) -c $(CFLAGS) $< -o Build/ZeroAgent.o
+mines.o: ./Environment/mines.c ./Environment/mines.h
+	$(CC) -c $(CFLAGS) $< -o Build/mines.o
 
 RLnet.o: $(RL-Glue)/Sockets/RLnet/RLnet.c
 	$(CC) -c $(CFLAGS) $< -o Build/RLnet.o
 
-RLnet_agent.o: $(RL-Glue)/Sockets/Agent/RLnet_agent.c
-	$(CC) -c $(CFLAGS) $< -o Build/RLnet_agent.o
+RLnet_environment.o: $(RL-Glue)/Sockets/Environment/RLnet_environment.c
+	$(CC) -c $(CFLAGS) $< -o Build/RLnet_environment.o
 
 clean:
 	rm -fr Build/*.o
-	rm -fr RL_agent
+	rm -fr RL_environment
 
 tidy:
 	rm -fr *.*~
