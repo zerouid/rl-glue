@@ -6,7 +6,7 @@ void run(int num_episodes)
   int x = 0;
   for(x = 0; x < num_episodes; ++x)
   {
-    RL_episode(100000000);
+    RL_episode(10);
     fprintf(stderr, ".");
   }
 }
