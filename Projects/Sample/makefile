@@ -18,7 +18,7 @@ RL_Interface.o: $(RL-Glue)/RL_Interface.c $(RL-Glue)/RL_Interface.h
 ZeroAgent.o: ./Agent/ZeroAgent.c ./Agent/ZeroAgent.h
 	$(CC) -c $(CFLAGS) $< -o Build/ZeroAgent.o
 
-mines.o: ./Env/mines.c ./Env/mines.h
+mines.o: ./Environment/mines.c ./Environment/mines.h
 	$(CC) -c $(CFLAGS) $< -o Build/mines.o
 
 main.o: ./Benchmark/main.c

@@ -18,8 +18,7 @@ char* theTaskSpecBuffer;
 
 /* Declare observation action and reward */
 Action theAction;
-Observation theObservation;
-Reward theReward;
+int isActionAllocated = 0;
 
 /* Provide forward declaration of environment interface */
 extern Task_specification env_init();
@@ -36,51 +35,73 @@ const char* kUsage = "Usage: Environment <ip-address> <port>\n";
 
 void print_reward(Reward theReward)
 {
-  fprintf(stderr, "ENV RECV: theReward %f\n", theReward);
+  fprintf(stderr, "ENV SENT: theReward %f\n", theReward);
 }
 
 void print_action_header(Action theAction)
 {
-  fprintf(stderr, "ENV SENT: theAction.numInts = %d\n", theAction.numInts);
-  fprintf(stderr, "ENV SENT: theAction.numDoubles = %d\n", theAction.numDoubles);
+  fprintf(stderr, "ENV RECV: theAction.numInts = %d\n", theAction.numInts);
+  fprintf(stderr, "ENV RECV: theAction.numDoubles = %d\n", theAction.numDoubles);
 }
 
 void print_observation_header(Observation theObservation)
 {
-  fprintf(stderr, "ENV RECV: theObservation.numInts = %d\n", theObservation.numInts);
-  fprintf(stderr, "ENV RECV: theObservation.numDoubles = %d\n", theObservation.numDoubles);
+  fprintf(stderr, "ENV SENT: theObservation.numInts = %d\n", theObservation.numInts);
+  fprintf(stderr, "ENV SENT: theObservation.numDoubles = %d\n", theObservation.numDoubles);
 }
 
 void on_env_init(rlSocket theConnection)
 {
   /* Task_specification env_init(); */  
-  theTaskSpec = env_init();
-  theTaskSpecLength = strlen(theTaskSpec) + 1;
+  theTaskSpecBuffer = env_init();
+  theTaskSpecLength = strlen(theTaskSpecBuffer) + 1;
 
-  rlSendMessageHeader(theConnection, &theTaskSpecLength);
-  rlSendMessageBody(theConnection, theTaskSpec, theTaskSpecLength);
+  rlSendMessageHeader(theConnection, theTaskSpecLength);
+  rlSendMessageBody(theConnection, theTaskSpecBuffer, theTaskSpecLength);
 }
 
 void on_env_start(rlSocket theConnection)
 {
   /* Observation env_start(); */
-
-  theObservation = env_start();
+  Observation theObservation = env_start();
   rlSendObservation(theConnection, theObservation);
+
+  isActionAllocated = 0;
 }
 
 void on_env_step(rlSocket theConnection)
 {
   /* Reward_observation env_step(Action a); */
-  
+  Reward_observation ro;
+
   /* need to deal with allocation / dealloction of the action! */
-  rlRecvAction(theConnection, &theAction);  
-  Reward_observation ro = env_step(theAction);
+  if (isActionAllocated == 0)
+  {
+    rlRecvActionHeader(theConnection, &theAction);
+
+    if (theAction.numInts > 0)
+      theAction.intArray = (int*)calloc(theAction.numInts, sizeof(int));
+
+    if (theAction.numDoubles > 0)
+      theAction.doubleArray = (double*)calloc(theAction.numDoubles, sizeof(double));
+
+    isActionAllocated = 1;
+  }
+  else
+  {
+    rlRecvAction(theConnection, &theAction);  
+  }
+  
+  ro = env_step(theAction);
+  rlSendRewardObservation(theConnection, ro);
 }
 
 void on_env_cleanup(rlSocket theConnection)
 {
-  /* void env_cleanup(); */
+  void env_cleanup();
+
+  free(theAction.intArray);
+  free(theAction.doubleArray);
 }
 
 void on_env_set_state(rlSocket theConnection)
