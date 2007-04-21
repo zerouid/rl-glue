@@ -9,6 +9,7 @@ all: Agent RL_agent
 	$(CC) -o RL_agent Build/ZeroAgent.o Build/RLnet.o Build/RLnet_agent.o
 
 Agent: ZeroAgent.o
+
 RL_agent: RLnet.o RLnet_agent.o
 
 ZeroAgent.o: ./Agent/ZeroAgent.c ./Agent/ZeroAgent.h
