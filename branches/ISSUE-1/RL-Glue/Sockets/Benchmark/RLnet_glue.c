@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <string.h>
+#include <assert.h>
+
 #include <RLcommon.h>
 #include <RLnet/RLnet.h>
 
@@ -22,6 +26,25 @@ const char* kRLGetState = "gets";
 const char* kRLGetRandomSeed = "getrs";
 const char* kRLCleanup = "cleanup";
 
+const char* kUnknownMessage = "Unknown Message: %s\n";
+const char* kUsage = "Usage: Agent <ip-address> <port>\n";
+
+extern void RL_init();
+extern Observation_action RL_start();
+extern Reward_observation_action_terminal RL_step();
+extern Reward RL_return();
+extern Reward RL_average_reward();
+extern double RL_average_num_steps();
+extern int RL_num_steps();
+extern int RL_num_episodes();
+/* extern void RL_episode(); */
+extern void RL_episode(int num_steps);
+extern void RL_set_state(State_key sk);
+extern void RL_set_random_seed(Random_seed_key rsk);
+extern State_key RL_get_state();
+extern Random_seed_key RL_get_random_seed();
+extern void RL_cleanup();
+
 void on_RL_init(rlSocket theConnection)
 {
   RL_init();
@@ -29,67 +52,86 @@ void on_RL_init(rlSocket theConnection)
 
 void on_RL_start(rlSocket theConnection)
 {
-  RL_start();
+  Observation_action theObservationAction = RL_start();
+
+  rlSendObservationHeader(theConnection, theObservationAction.o);
+  rlSendActionHeader(theConnection, theObservationAction.a);
 }
 
 void on_RL_step(rlSocket theConnection)
 {
-  RL_step();
+  Reward_observation_action_terminal theRewardObservationActionTerminal = RL_step();
+
+  rlSendObservationHeader(theConnection, theRewardObservationActionTerminal.o);
+  rlSendActionHeader(theConnection, theRewardObservationActionTerminal.a);
+
+  rlSendReward(theConnection, theRewardObservationActionTerminal.r);
+  rlSendObservationBody(theConnection, theRewardObservationActionTerminal.o);
+  rlSendActionBody(theConnection, theRewardObservationActionTerminal.a);
+  rlSendTerminal(theConnection, theRewardObservationActionTerminal.terminal);
 }
 
 void on_RL_return(rlSocket theConnection)
 {
-  RL_return();
+  Reward theReturn = RL_return();
+  rlSendReward(theConnection, theReturn);
 }
 
 void on_RL_average_reward(rlSocket theConnection)
 {
-  RL_average_reward();
+  Reward theAverageReward = RL_average_reward();
+  rlSendReward(theConnection, theAverageReward);
 }
 
 void on_RL_average_num_steps(rlSocket theConnection)
 {
-  RL_average_num_steps();
-}
-
-void on_RL_num_episodes(rlSocket theConnection)
-{
-  RL_num_episodes();
+  double theAverageNumberOfSteps = RL_average_num_steps();
+  rlSendData(theConnection, &theAverageNumberOfSteps, sizeof(double));
 }
 
 void on_RL_num_steps(rlSocket theConnection)
 {
-  RL_num_steps();
+  int theNumberOfSteps = RL_num_steps();
+  rlSendData(theConnection, &theNumberOfSteps, sizeof(int));
 }
 
 void on_RL_num_episodes(rlSocket theConnection)
 {
-  RL_num_episodes();
+  int theNumberOfEpisodes = RL_num_episodes();
+  rlSendData(theConnection, &theNumberOfEpisodes, sizeof(int));
 }
 
 void on_RL_episode(rlSocket theConnection)
 {
-  RL_episode();
+  int numSteps = 0;
+  rlRecvData(theConnection, &numSteps, sizeof(int));
+  RL_episode(numSteps);
 }
 
 void on_RL_set_state(rlSocket theConnection)
 {
-  RL_set_state();
+  State_key theKey;
+  rlRecvData(theConnection, &theKey, sizeof(State_key));
+  RL_set_state(theKey);
 }
 
 void on_RL_set_random_seed(rlSocket theConnection)
 {
-  RL_set_random_seed();
+  Random_seed_key theKey;
+  rlRecvData(theConnection, &theKey, sizeof(Random_seed_key));
+  RL_set_random_seed(theKey);
 }
 
 void on_RL_get_state(rlSocket theConnection)
 {
-  RL_get_state();
+  State_key theKey = RL_get_state();
+  rlSendData(theConnection, &theKey, sizeof(State_key));
 }
 
 void on_RL_get_random_seed(rlSocket theConnection)
 {
-  RL_get_random_seed();
+  Random_seed_key theKey = RL_get_random_seed();
+  rlSendData(theConnection, &theKey, sizeof(Random_seed_key));
 }
 
 void on_RL_cleanup(rlSocket theConnection)
@@ -129,10 +171,6 @@ void run_benchmark(rlSocket theConnection)
     else if (strncmp(theMessage, kRLAverageNumSteps, 8) == 0)
     {
       on_RL_average_num_steps(theConnection);
-    }
-    else if (strncmp(theMessage, kRLNumEpisodes, 8) == 0)
-    {
-      on_RL_num_episodes(theConnection);
     }
     else if (strncmp(theMessage, kRLNumSteps, 8) == 0)
     {
