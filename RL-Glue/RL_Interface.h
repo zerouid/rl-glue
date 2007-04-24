@@ -13,6 +13,7 @@ Reward RL_average_reward();
 double RL_average_num_steps();
 int RL_num_steps();
 int RL_num_episodes();
+
 /* void RL_episode(); */
 void RL_episode(int num_steps);
 void RL_set_state(State_key sk);
@@ -33,8 +34,6 @@ Task_specification env_init();
 Observation env_start();
 Reward_observation env_step(Action a);
 void env_cleanup();
-
-/* State Key Interface */
 void env_set_state(State_key sk);
 void env_set_random_seed(Random_seed_key rsk);
 State_key env_get_state();
