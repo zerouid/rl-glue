@@ -14,9 +14,15 @@
 
 rlSocket rlOpen(short thePort)
 {
+  int flag = 1;
   rlSocket theSocket = {0};
+
   theSocket.os_socket = socket(PF_INET, SOCK_STREAM, 0);
   theSocket.port = thePort;
+
+  setsockopt(theSocket.os_socket, IPPROTO_TCP, TCP_NODELAY, 
+	     (char*)&flag, sizeof(int));
+
   return theSocket;
 }
 

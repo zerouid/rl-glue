@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "RL_Interface.h"
 
 Action last_action;
@@ -28,6 +29,7 @@ Observation_action RL_start()
 {
   last_state = env_start();
   last_action = agent_start(last_state);
+
   num_steps = 1;
   total_reward = 0;
   isTerminal = 0;

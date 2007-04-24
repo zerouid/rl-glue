@@ -12,8 +12,14 @@
 #define RLNET_DEBUG(x)
 #endif
 
+const char* kAgentInit = "init";
+const char* kAgentStart= "start";
+const char* kAgentStep = "step";
+const char* kAgentEnd  = "end";
+const char* kAgentCleanup = "cleanup";
+
 /* Declare the task spec and length */
-unsigned int theTaskSpecLength;
+int theTaskSpecLength;
 char* theTaskSpecBuffer;
 
 /* Declare observation action and reward */
@@ -51,11 +57,11 @@ void print_observation_header(Observation theObservation)
 void on_agent_init(rlSocket theConnection)
 {
   theTaskSpecLength = 0;
-  rlRecvData(theConnection, &theTaskSpecLength, sizeof(unsigned int));
+  rlRecvMessageHeader(theConnection, &theTaskSpecLength);
 
-  theTaskSpecBuffer = (char*)malloc(theTaskSpecLength);
-  rlRecvData(theConnection, theTaskSpecBuffer, theTaskSpecLength);
- 
+  theTaskSpecBuffer = (char*)calloc(theTaskSpecLength, 1);
+  rlRecvMessageBody(theConnection, theTaskSpecBuffer, theTaskSpecLength);
+
   agent_init(theTaskSpecBuffer);
 }
 
@@ -115,23 +121,23 @@ void run_agent(rlSocket theConnection)
     rlRecvData(theConnection, theMessage, 8);
     RLNET_DEBUG( fprintf(stderr, "AGENT RECV: %s\n", theMessage); )
 	      
-    if (strncmp(theMessage, "init", 8) == 0)
+    if (strncmp(theMessage, kAgentInit, 8) == 0)
     {
       on_agent_init(theConnection);
     }
-    else if (strncmp(theMessage, "start", 8) == 0)
+    else if (strncmp(theMessage, kAgentStart, 8) == 0)
     {
       on_agent_start(theConnection);
     }
-    else if (strncmp(theMessage, "step", 8) == 0)
+    else if (strncmp(theMessage, kAgentStep, 8) == 0)
     {
       on_agent_step(theConnection);
     }
-    else if ( strncmp(theMessage, "end", 8) == 0)
+    else if ( strncmp(theMessage, kAgentEnd, 8) == 0)
     {
       on_agent_end(theConnection);
     }
-    else if (strncmp(theMessage, "cleanup", 8) == 0)
+    else if (strncmp(theMessage, kAgentCleanup, 8) == 0)
     {
       on_agent_cleanup(theConnection);
     }
@@ -140,7 +146,7 @@ void run_agent(rlSocket theConnection)
       fprintf(stderr, kUnknownMessage, theMessage);
       break;
     }
-  } while (strncmp(theMessage, "cleanup", 8) != 0);
+  } while (strncmp(theMessage, kAgentCleanup, 8) != 0);
 }
 
 int main(int argc, char** argv)

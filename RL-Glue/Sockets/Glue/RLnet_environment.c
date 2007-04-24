@@ -13,35 +13,38 @@
 /* Could be culled, used only for debugging */
 #include <stdio.h>
 
-rlSocket theConnection;
-Action theAction;
+static rlSocket theEnvironmentConnection;
+static Observation theObservation;
+static Task_specification theTaskSpecBuffer;
+static int isAllocated;
 
-const char* kInit = "init";
-const char* kStart= "start";
-const char* kStep = "step";
-const char* kEnd  = "end";
-const char* kTerm = "term";
-const char* kCleanup = "cleanup";
+const char* kEnvInit = "init";
+const char* kEnvStart= "start";
+const char* kEnvStep = "step";
+const char* kEnvCleanup = "cleanup";
+const char* kEnvSetStateKey = "setsk";
+const char* kEnvSetRandomSeed = "setrs";
+const char* kEnvGetStateKey = "getsk";
+const char* kEnvGetRandomSeed = "getrs";
 
-void print_reward(Reward theReward)
+static void print_reward(Reward theReward)
 {
   fprintf(stderr, "GLUE SENT: theReward %f\n", theReward);
 }
 
-void print_action_header(Action theAction)
+static void print_action_header(Action theAction)
 {
   fprintf(stderr, "GLUE RECV: theAction.numInts = %d\n", theAction.numInts);
   fprintf(stderr, "GLUE RECV: theAction.numDoubles = %d\n", theAction.numDoubles);
 }
 
-
-void print_observation_header(Observation theObservation)
+static void print_observation_header(Observation theObservation)
 {
   fprintf(stderr, "GLUE SENT: theObservation.numInts = %d\n", theObservation.numInts);
   fprintf(stderr, "GLUE SENT: theObservation.numDoubles = %d\n", theObservation.numDoubles);
 }
 
-void send_msg(rlSocket theSocket, const char* theMessage)
+static void send_msg(rlSocket theSocket, const char* theMessage)
 {
   char send_buffer[8] = {0};
   strncpy(send_buffer, theMessage, 8);
@@ -50,77 +53,98 @@ void send_msg(rlSocket theSocket, const char* theMessage)
   RLNET_DEBUG( fprintf(stderr, "GLUE SENT: %s\n", send_buffer); )
 }
 
-void agent_init(Task_specification task_spec)
+Task_specification env_init()
 {
-  int taskSpecLength = 0;
-  rlSocket theServer = rlOpen(4096);
+  int theTaskSpecLength = 0;
+  rlSocket theServer = rlOpen(4097);
   assert(rlIsValidSocket(theServer));
   assert(rlListen(theServer) >= 0);
-  theConnection = rlAcceptConnection(theServer);
+  theEnvironmentConnection = rlAcceptConnection(theServer);
   rlClose(theServer);
 
-  assert(rlIsValidSocket(theConnection));
+  assert(rlIsValidSocket(theEnvironmentConnection));
 
-  send_msg(theConnection, kInit);
+  send_msg(theEnvironmentConnection, kEnvInit);
 
-  /* Warning, strlen, could be used as buffer-overrun exploit */
-  taskSpecLength = strlen(task_spec)+1;
-  rlSendData(theConnection, &taskSpecLength, sizeof(int));
-  rlSendData(theConnection, task_spec, taskSpecLength);
+  rlRecvMessageHeader(theEnvironmentConnection, &theTaskSpecLength);
+
+  theTaskSpecBuffer = (char*)calloc(theTaskSpecLength, 1);
+  rlRecvMessageBody(theEnvironmentConnection, theTaskSpecBuffer, theTaskSpecLength);
+
+  isAllocated = 0;
+
+  return theTaskSpecBuffer;
 }
 
-Action agent_start(Observation theObservation)
+Observation env_start()
 {
-  send_msg(theConnection, kStart);
+  send_msg(theEnvironmentConnection, kEnvStart);
+  rlRecvObservationHeader(theEnvironmentConnection, &theObservation);
+  RLNET_DEBUG( print_observation_header(theObservation) );
 
-  rlSendObservation(theConnection, theObservation);
-  RLNET_DEBUG( print_observation_header(theObservation); )
 
-  rlRecvActionHeader(theConnection, &theAction);
-  RLNET_DEBUG( print_action_header(theAction); )
+  if (isAllocated == 0)
+  {
+    if (theObservation.numInts > 0)
+      theObservation.intArray = (int*)calloc(theObservation.numInts, sizeof(int));
+    
+    if (theObservation.numDoubles > 0)
+      theObservation.doubleArray = (double*)calloc(theObservation.numDoubles, sizeof(int));
+    
+    isAllocated = 1;
+  }
 
-  if (theAction.numInts > 0)
-    theAction.intArray = (int*)calloc(theAction.numInts, sizeof(int));
+  rlRecvObservationBody(theEnvironmentConnection, &theObservation);
 
-  if (theAction.numDoubles > 0)
-    theAction.doubleArray = (double*)calloc(theAction.numDoubles, sizeof(int));
-
-  rlRecvActionBody(theConnection, &theAction);
-  return theAction;
+  return theObservation;
 }
 
-Action agent_step(Reward theReward, Observation theObservation)
+Reward_observation env_step(Action theAction)
 {
-  send_msg(theConnection, kStep);
+  Reward_observation theRewardObservation;
+
+  send_msg(theEnvironmentConnection, kEnvStep);
+  RLNET_DEBUG( fprintf(stderr, "ENV SENT: %s\n", kEnvStep); )
   
-  rlSendReward(theConnection, theReward);
-  RLNET_DEBUG( print_reward(theReward); )
+  rlSendAction(theEnvironmentConnection, theAction);
+  RLNET_DEBUG( print_action_header(theAction) );
 
-  rlSendObservation(theConnection, theObservation);
-  RLNET_DEBUG( print_observation_header(theObservation); )
+  rlRecvObservationHeader(theEnvironmentConnection, &theObservation);
+  RLNET_DEBUG( print_observation_header(theObservation) );
 
-  rlRecvAction(theConnection, &theAction);
-  RLNET_DEBUG( print_action_header(theAction); )
+  rlRecvReward(theEnvironmentConnection, &theRewardObservation.r);
+  rlRecvObservationBody(theEnvironmentConnection, &theObservation);
+  rlRecvTerminal(theEnvironmentConnection, &theRewardObservation.terminal);
 
-  return theAction;
+  theRewardObservation.o = theObservation;
+
+  return theRewardObservation;
 }
 
-void agent_end(Reward theReward)
+void env_cleanup()
 {
-  send_msg(theConnection, kEnd);
-
-  rlSendReward(theConnection, theReward);
-  RLNET_DEBUG( print_reward(theReward); )
-
-  free(theAction.intArray);
-  free(theAction.doubleArray);
-
-  theAction.intArray = 0;
-  theAction.doubleArray = 0;
+  send_msg(theEnvironmentConnection, kEnvCleanup);
+  free(theObservation.intArray);
+  free(theObservation.doubleArray);
+  free(theTaskSpecBuffer);
 }
 
-void agent_cleanup()
+void env_set_state(State_key sk)
 {
-  send_msg(theConnection, kCleanup);
-  rlClose(theConnection);
+}
+
+void env_set_random_seed(Random_seed_key rsk)
+{
+}
+
+State_key env_get_state()
+{
+  State_key theStateKey;
+  return theStateKey;
+}
+
+Random_seed_key env_get_random_seed()
+{
+  Random_seed_key theRandomSeedKey;
+  return theRandomSeedKey;
 }
