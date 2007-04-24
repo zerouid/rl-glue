@@ -40,6 +40,6 @@ void agent_end(Reward r)
 
 void agent_cleanup()
 {
-  fprintf(stderr, "%s agent_cleanup\n", __FILE__);
+  /* fprintf(stderr, "%s agent_cleanup\n", __FILE__); */
   free (theAction.intArray);
 }

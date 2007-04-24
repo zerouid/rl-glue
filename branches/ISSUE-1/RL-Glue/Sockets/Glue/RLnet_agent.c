@@ -13,35 +13,33 @@
 /* Could be culled, used only for debugging */
 #include <stdio.h>
 
-rlSocket theConnection;
-Action theAction;
+static rlSocket theAgentConnection;
+static Action theAction;
 
-const char* kInit = "init";
-const char* kStart= "start";
-const char* kStep = "step";
-const char* kEnd  = "end";
-const char* kTerm = "term";
-const char* kCleanup = "cleanup";
+const char* kAgentInit = "init";
+const char* kAgentStart= "start";
+const char* kAgentStep = "step";
+const char* kAgentEnd  = "end";
+const char* kAgentCleanup = "cleanup";
 
-void print_reward(Reward theReward)
+static void print_reward(Reward theReward)
 {
   fprintf(stderr, "GLUE SENT: theReward %f\n", theReward);
 }
 
-void print_action_header(Action theAction)
+static void print_action_header(Action theAction)
 {
   fprintf(stderr, "GLUE RECV: theAction.numInts = %d\n", theAction.numInts);
   fprintf(stderr, "GLUE RECV: theAction.numDoubles = %d\n", theAction.numDoubles);
 }
 
-
-void print_observation_header(Observation theObservation)
+static void print_observation_header(Observation theObservation)
 {
   fprintf(stderr, "GLUE SENT: theObservation.numInts = %d\n", theObservation.numInts);
   fprintf(stderr, "GLUE SENT: theObservation.numDoubles = %d\n", theObservation.numDoubles);
 }
 
-void send_msg(rlSocket theSocket, const char* theMessage)
+static void send_msg(rlSocket theSocket, const char* theMessage)
 {
   char send_buffer[8] = {0};
   strncpy(send_buffer, theMessage, 8);
@@ -50,33 +48,34 @@ void send_msg(rlSocket theSocket, const char* theMessage)
   RLNET_DEBUG( fprintf(stderr, "GLUE SENT: %s\n", send_buffer); )
 }
 
-void agent_init(Task_specification task_spec)
+void agent_init(Task_specification theTaskSpecBuffer)
 {
-  int taskSpecLength = 0;
+  int theTaskSpecLength = 0;
   rlSocket theServer = rlOpen(4096);
   assert(rlIsValidSocket(theServer));
   assert(rlListen(theServer) >= 0);
-  theConnection = rlAcceptConnection(theServer);
+  theAgentConnection = rlAcceptConnection(theServer);
   rlClose(theServer);
 
-  assert(rlIsValidSocket(theConnection));
+  assert(rlIsValidSocket(theAgentConnection));
 
-  send_msg(theConnection, kInit);
+  send_msg(theAgentConnection, kAgentInit);
 
   /* Warning, strlen, could be used as buffer-overrun exploit */
-  taskSpecLength = strlen(task_spec)+1;
-  rlSendData(theConnection, &taskSpecLength, sizeof(int));
-  rlSendData(theConnection, task_spec, taskSpecLength);
+  theTaskSpecLength = strlen(theTaskSpecBuffer) + 1;
+
+  rlSendMessageHeader(theAgentConnection, theTaskSpecLength);
+  rlSendMessageBody(theAgentConnection, theTaskSpecBuffer, theTaskSpecLength);
 }
 
 Action agent_start(Observation theObservation)
 {
-  send_msg(theConnection, kStart);
+  send_msg(theAgentConnection, kAgentStart);
 
-  rlSendObservation(theConnection, theObservation);
+  rlSendObservation(theAgentConnection, theObservation);
   RLNET_DEBUG( print_observation_header(theObservation); )
 
-  rlRecvActionHeader(theConnection, &theAction);
+  rlRecvActionHeader(theAgentConnection, &theAction);
   RLNET_DEBUG( print_action_header(theAction); )
 
   if (theAction.numInts > 0)
@@ -85,21 +84,21 @@ Action agent_start(Observation theObservation)
   if (theAction.numDoubles > 0)
     theAction.doubleArray = (double*)calloc(theAction.numDoubles, sizeof(int));
 
-  rlRecvActionBody(theConnection, &theAction);
+  rlRecvActionBody(theAgentConnection, &theAction);
   return theAction;
 }
 
 Action agent_step(Reward theReward, Observation theObservation)
 {
-  send_msg(theConnection, kStep);
+  send_msg(theAgentConnection, kAgentStep);
   
-  rlSendReward(theConnection, theReward);
+  rlSendReward(theAgentConnection, theReward);
   RLNET_DEBUG( print_reward(theReward); )
 
-  rlSendObservation(theConnection, theObservation);
+  rlSendObservation(theAgentConnection, theObservation);
   RLNET_DEBUG( print_observation_header(theObservation); )
 
-  rlRecvAction(theConnection, &theAction);
+  rlRecvAction(theAgentConnection, &theAction);
   RLNET_DEBUG( print_action_header(theAction); )
 
   return theAction;
@@ -107,9 +106,9 @@ Action agent_step(Reward theReward, Observation theObservation)
 
 void agent_end(Reward theReward)
 {
-  send_msg(theConnection, kEnd);
+  send_msg(theAgentConnection, kAgentEnd);
 
-  rlSendReward(theConnection, theReward);
+  rlSendReward(theAgentConnection, theReward);
   RLNET_DEBUG( print_reward(theReward); )
 
   free(theAction.intArray);
@@ -121,6 +120,6 @@ void agent_end(Reward theReward)
 
 void agent_cleanup()
 {
-  send_msg(theConnection, kCleanup);
-  rlClose(theConnection);
+  send_msg(theAgentConnection, kAgentCleanup);
+  rlClose(theAgentConnection);
 }

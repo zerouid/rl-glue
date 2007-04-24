@@ -12,6 +12,15 @@
 #define RLNET_DEBUG(x)
 #endif
 
+const char* kEnvInit = "init";
+const char* kEnvStart= "start";
+const char* kEnvStep = "step";
+const char* kEnvCleanup = "cleanup";
+const char* kEnvSetStateKey = "setsk";
+const char* kEnvSetRandomSeed = "setrs";
+const char* kEnvGetStateKey = "getsk";
+const char* kEnvGetRandomSeed = "getrs";
+
 /* Declare the task spec and length */
 unsigned int theTaskSpecLength;
 char* theTaskSpecBuffer;
@@ -75,22 +84,19 @@ void on_env_step(rlSocket theConnection)
   Reward_observation ro;
 
   /* need to deal with allocation / dealloction of the action! */
+  rlRecvActionHeader(theConnection, &theAction);
+
   if (isActionAllocated == 0)
   {
-    rlRecvActionHeader(theConnection, &theAction);
-
     if (theAction.numInts > 0)
       theAction.intArray = (int*)calloc(theAction.numInts, sizeof(int));
 
     if (theAction.numDoubles > 0)
       theAction.doubleArray = (double*)calloc(theAction.numDoubles, sizeof(double));
-
     isActionAllocated = 1;
   }
-  else
-  {
-    rlRecvAction(theConnection, &theAction);  
-  }
+
+  rlRecvActionBody(theConnection, &theAction);
   
   ro = env_step(theAction);
   rlSendRewardObservation(theConnection, ro);
@@ -98,7 +104,7 @@ void on_env_step(rlSocket theConnection)
 
 void on_env_cleanup(rlSocket theConnection)
 {
-  void env_cleanup();
+  env_cleanup();
 
   free(theAction.intArray);
   free(theAction.doubleArray);
@@ -133,35 +139,35 @@ void run_env(rlSocket theConnection)
     rlRecvData(theConnection, theMessage, 8);
     RLNET_DEBUG( fprintf(stderr, "ENV RECV: %s\n", theMessage); )
 	      
-    if (strncmp(theMessage, "init", 8) == 0)
+    if (strncmp(theMessage, kEnvInit, 8) == 0)
     {
       on_env_init(theConnection);
     }
-    else if (strncmp(theMessage, "start", 8) == 0)
+    else if (strncmp(theMessage, kEnvStart, 8) == 0)
     {
       on_env_start(theConnection);
     }
-    else if (strncmp(theMessage, "step", 8) == 0)
+    else if (strncmp(theMessage, kEnvStep, 8) == 0)
     {
       on_env_step(theConnection);
     }
-    else if (strncmp(theMessage, "cleanup", 8) == 0)
+    else if (strncmp(theMessage, kEnvCleanup, 8) == 0)
     {
       on_env_cleanup(theConnection);
     }
-    else if ( strncmp(theMessage, "setsk", 8) == 0)
+    else if ( strncmp(theMessage, kEnvSetStateKey, 8) == 0)
     {
       on_env_set_state(theConnection);
     }
-    else if ( strncmp(theMessage, "setrsk", 8) == 0)
+    else if ( strncmp(theMessage, kEnvSetRandomSeed, 8) == 0)
     {
       on_env_set_random_seed(theConnection);
     }
-    else if ( strncmp(theMessage, "getsk", 8) == 0)
+    else if ( strncmp(theMessage, kEnvGetStateKey, 8) == 0)
     {
       on_env_get_state(theConnection);
     }
-    else if ( strncmp(theMessage, "getrsk", 8) == 0)
+    else if ( strncmp(theMessage, kEnvGetRandomSeed, 8) == 0)
     {
       on_env_get_random_seed(theConnection);
     }
@@ -170,7 +176,7 @@ void run_env(rlSocket theConnection)
       fprintf(stderr, kUnknownMessage, theMessage);
       break;
     }
-  } while (strncmp(theMessage, "cleanup", 8) != 0);
+  } while (strncmp(theMessage, kEnvCleanup, 8) != 0);
 }
 
 int main(int argc, char** argv)
