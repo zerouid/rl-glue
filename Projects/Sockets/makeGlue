@@ -23,10 +23,13 @@ BENCHMARK_SEPARATE: Glue Agent Environment Network
 Glue: RL_Interface.o RLnet_glue.o
 Agent: RLnet_agent.o ZeroAgent.o
 Environment: RLnet_environment.o mines.o
-Benchmark: main.o
+Benchmark: main.o RLnet_benchmark.o
 Network: RLnet.o
 
-RLnet_glue.o: $(RL-Glue)/Sockets/Benchmark/RLnet_glue.c
+RLnet_benchmark.o: $(RL-Glue)/Sockets/Benchmark/RLnet_benchmark.c
+	$(CC) -c $(CFLAGS) $< -o Build/RLnet_benchmark.o
+
+RLnet_glue.o: $(RL-Glue)/Sockets/Glue/RLnet_glue.c
 	$(CC) -c $(CFLAGS) $< -o Build/RLnet_glue.o
 
 RL_Interface.o: $(RL-Glue)/RL_Interface.c $(RL-Glue)/RL_Interface.h
