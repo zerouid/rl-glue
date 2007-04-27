@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 {
   int num_episodes = 1000;
   
-  RL_init();
+  RL_init(argc, argv);
   run(num_episodes);
   RL_cleanup();
 
