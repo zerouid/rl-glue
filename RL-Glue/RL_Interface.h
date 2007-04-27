@@ -5,7 +5,7 @@
 #include "RLcommon.h"
 
 /* Glue */
-void RL_init();
+void RL_init(int argc, char** argv);
 Observation_action RL_start();
 Reward_observation_action_terminal RL_step();
 Reward RL_return();

@@ -1,12 +1,15 @@
 all:
 	make -f makeGlue clean
-	make -f makeGlue AGENT_ENV_SEPARATE
+	make -f makeGlue AGENT_ENV_BENCHMARK_SEPARATE
 
 	make -f makeAgent clean
 	make -f makeAgent
 
 	make -f makeEnvironment clean
 	make -f makeEnvironment
+
+	make -f makeBenchmark clean
+	make -f makeBenchmark
 
 g:
 	make -f makeGlue clean

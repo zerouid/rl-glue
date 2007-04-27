@@ -38,22 +38,31 @@ static void send_msg(rlSocket theSocket, const char* theMessage)
   strncpy(send_buffer, theMessage, 8);
   rlSendData(theSocket, send_buffer, 8);
 
-  RLNET_DEBUG( fprintf(stderr, "GLUE SENT: %s\n", send_buffer); )
+  RLNET_DEBUG( fprintf(stderr, "BENCHMARK SENT: %s\n", send_buffer); )
+}
+
+static void recv_receipt(rlSocket theSocket, const char* theExpectedMessage)
+{
+  char recv_buffer[8] = {0};
+  rlRecvData(theSocket, recv_buffer, 8);
+
+
+  if(strncmp(recv_buffer, theExpectedMessage, 8) != 0)
+    fprintf(stderr, "Expected: %s\nReceived: %s\n", theExpectedMessage, recv_buffer);
+
 }
 
 void RL_init()
 {
-  rlSocket theServer = rlOpen(4095);
-  assert(rlIsValidSocket(theServer));
-  assert(rlListen(theServer) >= 0);
-  theGlueConnection = rlAcceptConnection(theServer);
-  rlClose(theServer);
-
+  theGlueConnection = rlOpen(4095);
   assert(rlIsValidSocket(theGlueConnection));
- 
+  assert(rlConnect(theGlueConnection, "127.0.0.1") >= 0);
+
   send_msg(theGlueConnection, kRLInit);
 
   isAllocated = 0;
+
+  recv_receipt(theGlueConnection, kRLInit);
 }
 
 Observation_action RL_start()
@@ -77,6 +86,8 @@ Observation_action RL_start()
   theObservationAction.o = theObservation;
   theObservationAction.a = theAction;
 
+  recv_receipt(theGlueConnection, kRLStart);
+
   return theObservationAction;
 }
 
@@ -96,6 +107,8 @@ Reward_observation_action_terminal RL_step()
   theRewardObservationActionTerminal.o = theObservation;
   theRewardObservationActionTerminal.a = theAction;
 
+  recv_receipt(theGlueConnection, kRLStep);
+
   return theRewardObservationActionTerminal;
 }
 
@@ -104,6 +117,7 @@ Reward RL_return()
   Reward theReturn = 0;
   send_msg(theGlueConnection, kRLReturn);
   rlRecvReward(theGlueConnection, &theReturn);
+  recv_receipt(theGlueConnection, kRLReturn);
   return theReturn;
 }
 
@@ -112,6 +126,7 @@ Reward RL_average_reward()
   Reward theAverageReward = 0;
   send_msg(theGlueConnection, kRLAverageReward);
   rlRecvReward(theGlueConnection, &theAverageReward);
+  recv_receipt(theGlueConnection, kRLAverageReward);
   return theAverageReward;
 }
 
@@ -120,6 +135,7 @@ double RL_average_num_steps()
   double theAverageNumberOfSteps = 0;
   send_msg(theGlueConnection, kRLAverageNumSteps);
   rlRecvData(theGlueConnection, &theAverageNumberOfSteps, sizeof(double));
+  recv_receipt(theGlueConnection, kRLAverageNumSteps);
   return theAverageNumberOfSteps;
 }
 
@@ -128,6 +144,7 @@ int RL_num_steps()
   int theNumberOfSteps = 0;
   send_msg(theGlueConnection, kRLNumSteps);
   rlRecvData(theGlueConnection, &theNumberOfSteps, sizeof(int));
+  recv_receipt(theGlueConnection, kRLNumSteps);
   return theNumberOfSteps;
 }
 
@@ -136,6 +153,7 @@ int RL_num_episodes()
   int theNumberOfEpisodes = 0;
   send_msg(theGlueConnection, kRLNumEpisodes);
   rlRecvData(theGlueConnection, &theNumberOfEpisodes, sizeof(int));
+  recv_receipt(theGlueConnection, kRLNumEpisodes);
   return theNumberOfEpisodes;
 }
 
@@ -144,18 +162,21 @@ void RL_episode(int numSteps)
 {
   send_msg(theGlueConnection, kRLEpisode);
   rlSendData(theGlueConnection, &numSteps, sizeof(int));
+  recv_receipt(theGlueConnection, kRLEpisode);
 }
 
 void RL_set_state(State_key sk)
 {
   send_msg(theGlueConnection, kRLSetState);
   rlSendData(theGlueConnection, &sk, sizeof(State_key));
+  recv_receipt(theGlueConnection, kRLSetState);
 }
 
 void RL_set_random_seed(Random_seed_key rsk)
 {
   send_msg(theGlueConnection, kRLSetRandomSeed);
   rlSendData(theGlueConnection, &rsk, sizeof(Random_seed_key));
+  recv_receipt(theGlueConnection, kRLSetRandomSeed);
 }
 
 State_key RL_get_state()
@@ -163,6 +184,7 @@ State_key RL_get_state()
   State_key theStateKey = 0;
   send_msg(theGlueConnection, kRLGetState);
   rlRecvData(theGlueConnection, &theStateKey, sizeof(State_key));
+  recv_receipt(theGlueConnection, kRLGetState);
   return theStateKey;
 }
 
@@ -171,13 +193,15 @@ Random_seed_key RL_get_random_seed()
   Random_seed_key theRandomSeedKey = 0;
   send_msg(theGlueConnection, kRLGetRandomSeed);
   rlRecvData(theGlueConnection, &theRandomSeedKey, sizeof(Random_seed_key));
+  recv_receipt(theGlueConnection, kRLGetRandomSeed);
   return theRandomSeedKey;
 }
 
 void RL_cleanup()
 {
   send_msg(theGlueConnection, kRLCleanup);
-
+  recv_receipt(theGlueConnection, kRLCleanup);
+  
   /* Cleanup our memory */
   free(theObservation.intArray);
   free(theObservation.doubleArray);

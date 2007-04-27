@@ -45,9 +45,19 @@ extern State_key RL_get_state();
 extern Random_seed_key RL_get_random_seed();
 extern void RL_cleanup();
 
+static void send_msg(rlSocket theSocket, const char* theMessage)
+{
+  char send_buffer[8] = {0};
+  strncpy(send_buffer, theMessage, 8);
+  rlSendData(theSocket, send_buffer, 8);
+
+  RLNET_DEBUG( fprintf(stderr, "GLUE SENT: %s\n", send_buffer); )
+}
+
 void on_RL_init(rlSocket theConnection)
 {
   RL_init();
+  send_msg(theConnection, kRLInit);
 }
 
 void on_RL_start(rlSocket theConnection)
@@ -56,6 +66,8 @@ void on_RL_start(rlSocket theConnection)
 
   rlSendObservationHeader(theConnection, theObservationAction.o);
   rlSendActionHeader(theConnection, theObservationAction.a);
+
+  send_msg(theConnection, kRLStart);
 }
 
 void on_RL_step(rlSocket theConnection)
@@ -69,36 +81,48 @@ void on_RL_step(rlSocket theConnection)
   rlSendObservationBody(theConnection, theRewardObservationActionTerminal.o);
   rlSendActionBody(theConnection, theRewardObservationActionTerminal.a);
   rlSendTerminal(theConnection, theRewardObservationActionTerminal.terminal);
+
+  send_msg(theConnection, kRLStep);
 }
 
 void on_RL_return(rlSocket theConnection)
 {
   Reward theReturn = RL_return();
   rlSendReward(theConnection, theReturn);
+
+  send_msg(theConnection, kRLReturn);
 }
 
 void on_RL_average_reward(rlSocket theConnection)
 {
   Reward theAverageReward = RL_average_reward();
   rlSendReward(theConnection, theAverageReward);
+
+  send_msg(theConnection, kRLAverageReward);
 }
 
 void on_RL_average_num_steps(rlSocket theConnection)
 {
   double theAverageNumberOfSteps = RL_average_num_steps();
   rlSendData(theConnection, &theAverageNumberOfSteps, sizeof(double));
+
+  send_msg(theConnection, kRLAverageNumSteps);
 }
 
 void on_RL_num_steps(rlSocket theConnection)
 {
   int theNumberOfSteps = RL_num_steps();
   rlSendData(theConnection, &theNumberOfSteps, sizeof(int));
+
+  send_msg(theConnection, kRLNumSteps);
 }
 
 void on_RL_num_episodes(rlSocket theConnection)
 {
   int theNumberOfEpisodes = RL_num_episodes();
   rlSendData(theConnection, &theNumberOfEpisodes, sizeof(int));
+
+  send_msg(theConnection, kRLNumEpisodes);
 }
 
 void on_RL_episode(rlSocket theConnection)
@@ -106,6 +130,8 @@ void on_RL_episode(rlSocket theConnection)
   int numSteps = 0;
   rlRecvData(theConnection, &numSteps, sizeof(int));
   RL_episode(numSteps);
+
+  send_msg(theConnection, kRLEpisode);
 }
 
 void on_RL_set_state(rlSocket theConnection)
@@ -113,6 +139,8 @@ void on_RL_set_state(rlSocket theConnection)
   State_key theKey;
   rlRecvData(theConnection, &theKey, sizeof(State_key));
   RL_set_state(theKey);
+
+  send_msg(theConnection, kRLSetState);
 }
 
 void on_RL_set_random_seed(rlSocket theConnection)
@@ -120,23 +148,31 @@ void on_RL_set_random_seed(rlSocket theConnection)
   Random_seed_key theKey;
   rlRecvData(theConnection, &theKey, sizeof(Random_seed_key));
   RL_set_random_seed(theKey);
+
+  send_msg(theConnection, kRLSetRandomSeed);
 }
 
 void on_RL_get_state(rlSocket theConnection)
 {
   State_key theKey = RL_get_state();
   rlSendData(theConnection, &theKey, sizeof(State_key));
+
+  send_msg(theConnection, kRLGetState);
 }
 
 void on_RL_get_random_seed(rlSocket theConnection)
 {
   Random_seed_key theKey = RL_get_random_seed();
   rlSendData(theConnection, &theKey, sizeof(Random_seed_key));
+
+  send_msg(theConnection, kRLGetRandomSeed);
 }
 
 void on_RL_cleanup(rlSocket theConnection)
 {
   RL_cleanup();
+
+  send_msg(theConnection, kRLCleanup);
 }
 
 void run_benchmark(rlSocket theConnection)
@@ -215,22 +251,20 @@ void run_benchmark(rlSocket theConnection)
 int main(int argc, char** argv)
 {
   rlSocket theConnection;
-  short thePort = 0;
+  short thePort = 4095;
 
-  if (argc != 3) 
+  while(1)
   {
-    fprintf(stderr, kUsage);
-    return 1;
+    rlSocket theServer = rlOpen(thePort);
+    assert(rlIsValidSocket(theServer));
+    assert(rlListen(theServer) >= 0);
+    theConnection = rlAcceptConnection(theServer);
+    rlClose(theServer);
+    
+    assert(rlIsValidSocket(theConnection));
+    run_benchmark(theConnection);
+    assert(rlClose(theConnection) >= 0);
   }
-
-  sscanf(argv[2], "%hd", &thePort);
-
-  theConnection = rlOpen(thePort);
-  assert(rlIsValidSocket(theConnection));
-
-  assert(rlConnect(theConnection, argv[1]) >= 0);
-  run_benchmark(theConnection);
-  assert(rlClose(theConnection) >= 0);
 
   return 0;
 }

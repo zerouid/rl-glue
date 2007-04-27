@@ -105,11 +105,11 @@ Task_specification env_init()
   M.agentRow = M.startRow;
   M.agentColumn = M.startCol;
   
-  o.numInts = 1;
-  o.numDoubles = 0;
+  o.numInts = 10;
+  o.numDoubles = 10;
 
-  o.intArray = (int*)malloc(sizeof(int)*o.numInts);
-  o.doubleArray = 0;
+  o.intArray = (int*)calloc(o.numInts,sizeof(int));
+  o.doubleArray = (double*)calloc(o.numDoubles, sizeof(double));
 
   /* Return task specification */
   
@@ -125,6 +125,7 @@ Task_specification env_init()
 
 Observation env_start()
 {   
+  int i = 0;
   int r = 0, c = 0;
 
   env_terminal = 0;
@@ -143,6 +144,12 @@ Observation env_start()
   M.agentColumn =  M.startCol;
   M.agentRow = M.startRow;
 
+  for (i = 0; i < 10; ++i)
+  {
+    o.intArray[i] = -i;
+    o.doubleArray[i] = -i - 10;
+  }
+
   o.intArray[0] = M.startRow * M.col + M.startCol;
   
   return o;
@@ -150,6 +157,8 @@ Observation env_start()
 
 Reward_observation env_step(Action a)
 {    
+  int i = 0;
+
   getNextPosition(a); /* getNextPosition will update the values of agentRow and agentColumn */
  
   o.intArray[0] = getPosition();
