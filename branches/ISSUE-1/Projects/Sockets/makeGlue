@@ -14,11 +14,14 @@ AGENT_SEPARATE: Glue Agent Environment Benchmark Network
 ENV_SEPARATE: Glue Agent Environment Benchmark Network
 	$(CC) -o RL_main Build/RL_Interface.o Build/RLnet.o Build/ZeroAgent.o Build/RLnet_environment.o Build/main.o	
 
+BENCHMARK_SEPARATE: Glue Agent Environment Network
+	$(CC) -o RL_main Build/RL_Interface.o Build/RLnet.o Build/ZeroAgent.o Build/mines.o Build/RLnet_glue.o 
+
 AGENT_ENV_SEPARATE: Glue Agent Environment Benchmark Network
 	$(CC) -o RL_main Build/RL_Interface.o Build/RLnet.o Build/RLnet_agent.o Build/RLnet_environment.o Build/main.o
 
-BENCHMARK_SEPARATE: Glue Agent Environment Network
-	$(CC) -o RL_main Build/RL_Interface.o Build/RLnet.o Build/ZeroAgent.o Build/mines.o Build/RLnet_glue.o 
+AGENT_ENV_BENCHMARK_SEPARATE: Glue Agent Environment Benchmark Network
+	$(CC) -o RL_main Build/RL_Interface.o Build/RLnet.o Build/RLnet_agent.o Build/RLnet_environment.o Build/RLnet_glue.o
 
 Glue: RL_Interface.o RLnet_glue.o
 Agent: RLnet_agent.o ZeroAgent.o

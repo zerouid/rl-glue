@@ -15,7 +15,7 @@ int num_episodes;
 Reward_observation_action_terminal roa;
 Observation_action oa;
 
-void RL_init()
+void RL_init(int argc, char** argv)
 {
   Task_specification task_spec;
   task_spec = env_init();

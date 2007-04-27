@@ -89,7 +89,7 @@ Observation env_start()
       theObservation.intArray = (int*)calloc(theObservation.numInts, sizeof(int));
     
     if (theObservation.numDoubles > 0)
-      theObservation.doubleArray = (double*)calloc(theObservation.numDoubles, sizeof(int));
+      theObservation.doubleArray = (double*)calloc(theObservation.numDoubles, sizeof(double));
     
     isAllocated = 1;
   }

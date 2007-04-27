@@ -82,7 +82,7 @@ Action agent_start(Observation theObservation)
     theAction.intArray = (int*)calloc(theAction.numInts, sizeof(int));
 
   if (theAction.numDoubles > 0)
-    theAction.doubleArray = (double*)calloc(theAction.numDoubles, sizeof(int));
+    theAction.doubleArray = (double*)calloc(theAction.numDoubles, sizeof(double));
 
   rlRecvActionBody(theAgentConnection, &theAction);
   return theAction;
