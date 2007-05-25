@@ -18,6 +18,9 @@ Observation_action oa;
 void RL_init(int argc, char** argv)
 {
   Task_specification task_spec;
+
+  wait_for_connections();
+
   task_spec = env_init(argc, argv);
   agent_init(argc, argv, task_spec);
 	
