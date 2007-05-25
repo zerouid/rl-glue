@@ -34,7 +34,6 @@ extern Reward RL_average_reward();
 extern double RL_average_num_steps();
 extern int RL_num_steps();
 extern int RL_num_episodes();
-/* extern void RL_episode(); */
 extern void RL_episode(int num_steps);
 extern void RL_set_state(State_key sk);
 extern void RL_set_random_seed(Random_seed_key rsk);
