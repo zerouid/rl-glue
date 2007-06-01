@@ -1,5 +1,7 @@
 #include <Remote/RL_netapi.h>
 
+#include <stdio.h>
+
 static const short kDefaultPort = 4696;
 
 enum { 
@@ -13,7 +15,7 @@ extern void rlSetEnvironmentConnection(int);
 extern void rlSetExperimentConnection(int);
 
 void rlConnectSystems() {
-  int isAgentConnected       = 0;
+  int isAgentConnected       = 1;
   int isEnvironmentConnected = 1; 
   int isExperimentConnected  = 1;
   int theClientType = 0;
@@ -23,7 +25,7 @@ void rlConnectSystems() {
   theServer = rlOpen(kDefaultPort);
   rlListen(theServer, kDefaultPort);
 
-  while(!isAgentConnected && !isEnvironmentConnected && !isExperimentConnected) {
+  while(!isAgentConnected || !isEnvironmentConnected || !isExperimentConnected) {
     theClient = rlAcceptConnection(theServer);
     rlRecvData(theClient, &theClientType, sizeof(int));
 

@@ -1,7 +1,7 @@
 #ifndef ZeroAgent_h
 #define ZeroAgent_h
 
-#include <RLcommon.h>
+#include <RL_common.h>
 
 void agent_init(int argc, char** argv, Task_specification task_spec);
 Action agent_start(Observation o);
