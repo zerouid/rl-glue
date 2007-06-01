@@ -1,13 +1,12 @@
-#include <Remote/RLnet.h>
+#include <Remote/Network/RLnet.h>
 
 static const short kDefaultPort = 4696;
 
 enum { 
-  kAgentConnection = 1, 
+  kAgentConnection       = 1, 
   kEnvironmentConnection = 2, 
   kExperimentConnection  = 3 
 };
-
 
 extern void rlSetAgentConnection(int);
 extern void rlSetEnvironmentConnection(int);

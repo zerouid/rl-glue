@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 
 /* RLnet Library Header */
-#include <Remote/RLnet.h>
+#include <Remote/Network/RLnet.h>
 
 int rlOpen(short thePort)
 {
