@@ -88,7 +88,7 @@ void RL_episode(unsigned int num_steps)
   int x = 0;
   RL_start();
 
-  if (x == 0) {
+  if (num_steps == 0) {
     while (!isTerminal) {
       RL_step();
     }
