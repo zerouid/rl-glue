@@ -1,8 +1,8 @@
 #ifndef RL_Interface_h
 #define RL_Interface_h
 
-#include <stdarg.h>
-#include "RLcommon.h"
+#include <RL_common.h>
+/* #include <stdarg.h> */
 
 /* Glue */
 void RL_init(int argc, char** argv);

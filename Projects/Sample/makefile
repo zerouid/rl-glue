@@ -1,19 +1,31 @@
 CC = gcc
 RL-Glue = ../../RL-Glue
 
-# We need to search the RL-Glue directory RL_Interface.h 
+# We need to search the RL-Glue directory RL_interface.h 
 CFLAGS = -I$(RL-Glue)/ -ansi -pedantic -Wall
 
 all: Glue Agent Environment Benchmark
-	$(CC) -o RL_main Build/RL_Interface.o Build/ZeroAgent.o Build/mines.o Build/main.o
+	$(CC) -o RL_main Build/RL_interface.o Build/RL_direct.o Build/RL_direct_agent.o Build/RL_direct_environment.o Build/RL_direct_experiment.o Build/ZeroAgent.o Build/mines.o Build/main.o
 
-Glue: RL_Interface.o
+Glue: RL_interface.o RL_direct.o RL_direct_agent.o RL_direct_environment.o RL_direct_experiment.o
 Agent: ZeroAgent.o
 Environment: mines.o
 Benchmark: main.o
 
-RL_Interface.o: $(RL-Glue)/RL_Interface.c $(RL-Glue)/RL_Interface.h
-	$(CC) -c $(CFLAGS) $< -o Build/RL_Interface.o
+RL_interface.o: $(RL-Glue)/RL_interface.c $(RL-Glue)/RL_interface.h
+	$(CC) -c $(CFLAGS) $< -o Build/RL_interface.o
+
+RL_direct.o: $(RL-Glue)/Direct/RL_direct.c
+	$(CC) -c $(CFLAGS) $< -o Build/RL_direct.o
+
+RL_direct_agent.o: $(RL-Glue)/Direct/Agent/RL_direct_agent.c
+	$(CC) -c $(CFLAGS) $< -o Build/RL_direct_agent.o
+
+RL_direct_environment.o: $(RL-Glue)/Direct/Environment/RL_direct_environment.c
+	$(CC) -c $(CFLAGS) $< -o Build/RL_direct_environment.o
+
+RL_direct_experiment.o: $(RL-Glue)/Direct/Experiment/RL_direct_experiment.c
+	$(CC) -c $(CFLAGS) $< -o Build/RL_direct_experiment.o
 
 ZeroAgent.o: ./Agent/ZeroAgent.c ./Agent/ZeroAgent.h
 	$(CC) -c $(CFLAGS) $< -o Build/ZeroAgent.o
