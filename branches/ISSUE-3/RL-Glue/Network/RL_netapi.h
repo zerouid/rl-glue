@@ -2,23 +2,19 @@
 #define libSocketRL_h
 
 /* Defines types for RL-Glue */
-#include <RLcommon.h>
+#include <RL_common.h>
 
 /* Data types */
-typedef struct rlSocket_t
-{
-  short port;
-  int os_socket;
-} rlSocket;
+typedef int rlSocket;
 
 /* Basic network functionality */
-rlSocket rlOpen(short port);
-rlSocket rlAcceptConnection(rlSocket socket);
+rlSocket rlOpen(short thePort);
+rlSocket rlAcceptConnection(rlSocket theSocket);
 
-int rlIsValidSocket(rlSocket socket);
-int rlConnect(rlSocket socket, const char* address);
-int rlListen(rlSocket socket);
-int rlClose(rlSocket socket);
+int rlConnect(rlSocket theSocket, const char* theAddress, short thePort);
+int rlListen(rlSocket theSocket, short thePort);
+int rlClose(rlSocket theSocket);
+int rlIsValidSocket(rlSocket theSocket);
 
 int rlSendData(rlSocket socket, const void* data, int length);
 int rlRecvData(rlSocket socket, void* data, int length);
