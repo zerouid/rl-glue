@@ -1,9 +1,9 @@
 CC = gcc
 CFLAGS = -ansi -pedantic -Wall -I../
 
-all: RL_network.o RLnet.o
+all: RL_remote.o RLnet.o
 
-RL_network.o: RL_network.c
+RL_remote.o: RL_remote.c
 	$(CC) -c $(CFLAGS) $<
 
 RLnet.o: RLnet.c RLnet.h
