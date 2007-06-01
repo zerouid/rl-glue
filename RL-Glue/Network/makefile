@@ -1,12 +1,12 @@
 CC = gcc
 CFLAGS = -ansi -pedantic -Wall -I../
 
-all: RL_remote.o RLnet.o
+all: RL_network.o RL_netapi.o
 
-RL_remote.o: RL_remote.c
+RL_network.o: RL_network.c
 	$(CC) -c $(CFLAGS) $<
 
-RLnet.o: ./Network/RLnet.c ./Network/RLnet.h
+RL_netapi.o: RL_netapi.c RL_netapi.h
 	$(CC) -c $(CFLAGS) $< 
 
 clean:
