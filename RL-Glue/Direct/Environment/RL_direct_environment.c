@@ -1,1 +1,0 @@
-void rlSetEnvironmentConnection(int connection) { }
