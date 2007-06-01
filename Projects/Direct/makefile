@@ -5,12 +5,12 @@ RL-Glue = ../../RL-Glue
 CFLAGS = -I$(RL-Glue)/ -ansi -pedantic -Wall
 
 all: Glue Agent Environment Experiment
-	$(CC) -o RL_main Build/RL_interface.o Build/RL_direct.o Build/RL_direct_agent.o Build/RL_direct_environment.o Build/RL_direct_experiment.o Build/ZeroAgent.o Build/mines.o Build/main.o
+	$(CC) -o RL_main Build/RL_interface.o Build/RL_direct.o Build/RL_direct_agent.o Build/RL_direct_environment.o Build/RL_direct_experiment.o Build/ZeroAgent.o Build/mines.o Build/experiment.o
 
 Glue: RL_interface.o RL_direct.o RL_direct_agent.o RL_direct_environment.o RL_direct_experiment.o
 Agent: ZeroAgent.o
 Environment: mines.o
-Experiment: main.o
+Experiment: experiment.o
 
 RL_interface.o: $(RL-Glue)/RL_interface.c $(RL-Glue)/RL_interface.h
 	$(CC) -c $(CFLAGS) $< -o Build/RL_interface.o
@@ -33,8 +33,8 @@ ZeroAgent.o: ./Agent/ZeroAgent.c ./Agent/ZeroAgent.h
 mines.o: ./Environment/mines.c ./Environment/mines.h
 	$(CC) -c $(CFLAGS) $< -o Build/mines.o
 
-main.o: ./Experiment/main.c
-	$(CC) -c $(CFLAGS) $< -o Build/main.o
+experiment.o: ./Experiment/experiment.c
+	$(CC) -c $(CFLAGS) $< -o Build/experiment.o
 
 clean:
 	rm -fr Build/*.o
