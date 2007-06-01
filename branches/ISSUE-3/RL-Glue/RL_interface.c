@@ -1,5 +1,5 @@
-#include <RL_Interface.h>
-#include <stdio.h>
+#include <RL_interface.h>
+/* #include <stdio.h> */
 
 Action last_action;
 Observation last_state;
@@ -14,6 +14,9 @@ int num_episodes;
 
 Reward_observation_action_terminal roa;
 Observation_action oa;
+
+/* Call into the direct call or network libraries */
+extern void rlConnectSystems();
 
 void RL_init(int argc, char** argv)
 {
