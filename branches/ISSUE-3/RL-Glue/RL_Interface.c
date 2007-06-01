@@ -1,5 +1,5 @@
+#include <RL_Interface.h>
 #include <stdio.h>
-#include "RL_Interface.h"
 
 Action last_action;
 Observation last_state;
@@ -19,7 +19,7 @@ void RL_init(int argc, char** argv)
 {
   Task_specification task_spec;
 
-  wait_for_connections();
+  rlConnectSystems();
 
   task_spec = env_init(argc, argv);
   agent_init(argc, argv, task_spec);
@@ -83,13 +83,19 @@ void RL_episode()
 }
 */
 
-void RL_episode(int num_Steps)
+void RL_episode(unsigned int num_steps)
 {
   int x = 0;
   RL_start();
-  for (x=0; x<num_Steps && !isTerminal; ++x)
-  {
-    RL_step();
+
+  if (x == 0) {
+    while (!isTerminal) {
+      RL_step();
+    }
+  } else {
+    for (x = 0; x < num_steps && !isTerminal; ++x) {
+      RL_step();
+    }
   }
 }
 

@@ -1,27 +1,28 @@
-#include "RLnet.h"
+#include <Network/RLnet.h>
 
-const short kDefaultPort = 4696;
+static const short kDefaultPort = 4696;
 
-const int kAgentConnection       = 1;
-const int kEnvironmentConnection = 2;
-const int kExperimentConnection  = 3;
+enum { 
+  kAgentConnection = 1, 
+  kEnvironmentConnection = 2, 
+  kExperimentConnection  = 3 
+};
 
-int accept_connection(rlSocket theServer) {
-  int theClientType = 0;
-  rlSocket theClient = rlAcceptConnection(theServer);
-  rlRecvData(theClient, &theClientType, sizeof(int));
-  return theClientType;
-}
 
-void wait_for_connections() {
-  int isAgentConnected = 0;
+extern void rlSetAgentConnection(int);
+extern void rlSetEnvironmentConnection(int);
+extern void rlSetExperimentConnection(int);
+
+void rlConnectSystems() {
+  int isAgentConnected       = 0;
   int isEnvironmentConnected = 1; 
-  int isExperimentConnected = 1;
+  int isExperimentConnected  = 1;
   int theClientType = 0;
 
-  rlSocket theClient;
-  rlSocket theServer = rlOpen(kDefaultPort);
-  rlListen(theServer);
+  int theClient = 0;
+  int theServer = 0;
+  theServer = rlOpen(kDefaultPort);
+  rlListen(theServer, kDefaultPort);
 
   while(!isAgentConnected && !isEnvironmentConnected && !isExperimentConnected) {
     theClient = rlAcceptConnection(theServer);
@@ -29,14 +30,17 @@ void wait_for_connections() {
 
     switch(theClientType) {
     case kAgentConnection:
+      rlSetAgentConnection(theClient);
       isAgentConnected = 1;
       break;
 
     case kEnvironmentConnection:
+      rlSetEnvironmentConnection(theClient);
       isEnvironmentConnected = 1;
       break;
 
     case kExperimentConnection:
+      rlSetExperimentConnection(theClient);
       isExperimentConnected = 1;
       break;
 
