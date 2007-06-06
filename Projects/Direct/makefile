@@ -20,7 +20,7 @@ LDFLAGS =
 
 # An example of RL-Glue compiled without using sockets 
 all: agent.o environment.o experiment.o glue.o direct.o
-	$(CC) -o RL_main Build/agent.o Build/environment.o Build/experiment.o Build/RL_interface.o Build/RL_direct.o
+	$(CC) -o RL_main Build/agent.o Build/environment.o Build/experiment.o Build/glue.o Build/direct.o
 
 # Dependencies
 agent.o: $(AGENTC) $(AGENTH)
@@ -33,10 +33,10 @@ experiment.o: $(EXPERIMENTC) $(EXPERIMENTH)
 	$(CC) -c $(CFLAGS) $(EXPERIMENTC) -o Build/experiment.o
 
 glue.o: $(RL-GLUE)/RL_interface.c $(RL-GLUE)/RL_interface.h
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/RL_interface.c -o Build/RL_interface.o
+	$(CC) -c $(CFLAGS) $(RL-GLUE)/RL_interface.c -o Build/glue.o
 
-direct.o: $(RL-GLUE)/Direct/RL_direct.c
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/Direct/RL_direct.c -o Build/RL_direct.o
+direct.o: $(RL-GLUE)/Direct/Glue/RL_direct_glue.c
+	$(CC) -c $(CFLAGS) $(RL-GLUE)/Direct/Glue/RL_direct_glue.c -o Build/direct.o
 
 clean:
 	rm -fr Build/*.o

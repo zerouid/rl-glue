@@ -4,6 +4,17 @@
 /* Defines types for RL-Glue */
 #include <RL_common.h>
 
+/* RL-Glue needs to know what type of object is trying to connect. */
+#define kExperimentConnection  1
+#define kAgentConnection       2
+#define kEnvironmentConnection 3
+
+#define kAgentInit    1 /* agent_* start by sending one of these values */
+#define kAgentStart   2 /* to the client to let it know what type of    */
+#define kAgentStep    3 /* event to respond to                          */
+#define kAgentEnd     4
+#define kAgentCleanup 5
+
 /* Data types */
 typedef int rlSocket;
 

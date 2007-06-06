@@ -1,3 +1,6 @@
+/* IO For Debugging */
+#include <stdio.h>
+
 /* Standard Headers */
 #include <string.h>
 
@@ -88,11 +91,9 @@ int rlSendData(rlSocket theSocket, const void* theData, int theLength)
 {
   int theBytesSent = 0;
   int theMsgError = 0;
-
   const char* theDataBuffer = (const char*)theData;
   
-  while (theBytesSent < theLength)
-  {
+  while (theBytesSent < theLength) {
     theMsgError = send(theSocket, theDataBuffer + theBytesSent, theLength - theBytesSent, 0);
     if (theMsgError == -1) break;
     else theBytesSent += theMsgError;
@@ -105,11 +106,9 @@ int rlRecvData(rlSocket theSocket, void* theData, int theLength)
 {
   int theBytesRecv = 0;
   int theMsgError = 0;
-
   char* theDataBuffer = (char*)theData;
-
-  while (theBytesRecv < theLength)
-  {
+  
+  while (theBytesRecv < theLength) {
     theMsgError = recv(theSocket, theDataBuffer + theBytesRecv, theLength - theBytesRecv, 0);
     if (theMsgError <= 0) break;
     else theBytesRecv += theMsgError;

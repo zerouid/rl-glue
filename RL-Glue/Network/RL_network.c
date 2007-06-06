@@ -4,12 +4,6 @@
 
 static const short kDefaultPort = 4096;
 
-enum { 
-  kAgentConnection       = 1, 
-  kEnvironmentConnection = 2, 
-  kExperimentConnection  = 3 
-};
-
 extern void rlSetAgentConnection(int);
 extern void rlSetEnvironmentConnection(int);
 extern void rlSetExperimentConnection(int);

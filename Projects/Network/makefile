@@ -14,49 +14,102 @@ EXPERIMENTH =
 RL-GLUE = ../../RL-Glue
 
 # Compiler flags
-CC = gcc
-CFLAGS = -I$(RL-GLUE)/ -ansi -pedantic -Wall
+CC      = gcc
+CFLAGS  = -I$(RL-GLUE)/ -ansi -pedantic -Wall
 LDFLAGS =
 
-# Objects we need to link against for a direct compilation
-DIRECT_OBJECTS = Build/RL_direct.o
+# ==================================== User Code ===========================================
+all: RL_glue RL_agent
 
-# Objects we need to link against for a network compilation
-NETWORK_OBJECTS = Build/RL_network.o Build/RL_netlib.o
+# ----------------------- Compile And Link RL-Glue 2.0 (Agent Network) ----------------------
+RL_glue: RL_interface.o RL_network.o RL_netlib.o RL_direct_experiment.o RL_experiment.o RL_direct_environment.o RL_environment.o RL_server_agent.o 
+	$(CC) $(LDFLAGS) -o $@ Build/RL_interface.o Build/RL_network.o Build/RL_netlib.o Build/RL_direct_experiment.o Build/RL_experiment.o Build/RL_direct_environment.o Build/RL_environment.o Build/RL_server_agent.o 
 
-# Build everything. Just as an example.
-all: agent environment experiment glue direct network
-	$(CC) -o RL_main Build/environment.o Build/experiment.o Build/RL_interface.o Build/RL_server_agent.o $(NETWORK_OBJECTS)
-	$(CC) -o RL_agent Build/agent.o Build/RL_netlib.o Build/RL_client_agent.o
+RL_experiment.o: $(EXPERIMENTC) $(EXPERIMENTH)
+	$(CC) $(CFLAGS) -c $< -o Build/$@
 
-# Dependencies
-agent: $(AGENTC) $(AGENTH)
-	$(CC) -c $(CFLAGS) $(AGENTC) -o Build/agent.o
+RL_environment.o: $(ENVIRONMENTC) $(ENVIRONMENTH)
+	$(CC) $(CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
 
-environment: $(ENVIRONMENTC) $(ENVIRONMENTH)
-	$(CC) -c $(CFLAGS) $(ENVIRONMENTC) -o Build/environment.o
+# ------------------------- Compile And Link the Agent (Network) ----------------------------
+RL_agent: RL_agent.o RL_client_agent.o RL_netlib.o
+	$(CC) $(LDFLAGS) -o $@ Build/RL_agent.o Build/RL_client_agent.o Build/RL_netlib.o
 
-experiment: $(EXPERIMENTC) $(EXPERIMENTH)
-	$(CC) -c $(CFLAGS) $(EXPERIMENTC) -o Build/experiment.o
+RL_agent.o: $(AGENTC) $(AGENTH)
+	$(CC) $(CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
+# ===========================================================================================
 
-glue: $(RL-GLUE)/RL_interface.c $(RL-GLUE)/RL_interface.h
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/RL_interface.c -o Build/RL_interface.o
 
-direct: RL_direct 
 
-RL_direct: $(RL-GLUE)/Direct/RL_direct.c
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/Direct/RL_direct.c -o Build/RL_direct.o
 
-network: RL_network RL_netlib RL_server_agent
 
-RL_network: $(RL-GLUE)/Network/RL_network.c
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/Network/RL_network.c -o Build/RL_network.o
 
-RL_netlib: $(RL-GLUE)/Network/RL_netlib.c
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/Network/RL_netlib.c -o Build/RL_netlib.o
+# ============================================================================================
+#                                     RLGLUE 2.0
+# ============================================================================================
 
-RL_server_agent: $(RL-GLUE)/Network/Glue/RL_server_agent.c
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/Network/Glue/RL_server_agent.c -o Build/RL_server_agent.o
+# Path to RL-Glue to find RL_interface and related files.
+RLGLUE_PATH = ../../RL-Glue
+
+# Compiler flags
+RLGLUE_CC      = gcc
+RLGLUE_CFLAGS  = -I$(RLGLUE_PATH)/ -ansi -pedantic -Wall
+
+# ===================================== INTERFACE ============================================
+# ------------------------------- Compile The RL-Interface ----------------------------------
+RL_interface.o: $(RLGLUE_PATH)/RL_interface.c $(RLGLUE_PATH)/RL_interface.h
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
+
+
+# ====================================== DIRECT =============================================
+# ----------------------------------- Direct Call Objects -----------------------------------
+RL_direct_glue.o: $(RLGLUE_PATH)/Direct/Glue/RL_direct_glue.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
+RL_direct_agent.o: $(RLGLUE_PATH)/Direct/Agent/RL_direct_agent.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
+RL_direct_environment.o: $(RLGLUE_PATH)/Direct/Environment/RL_direct_environment.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
+RL_direct_experiment.o: $(RLGLUE_PATH)/Direct/Experiment/RL_direct_experiment.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
+
+# ====================================== NETWORK ============================================
+# -------------------------------------- Client ---------------------------------------------
+RL_client_agent.o: $(RLGLUE_PATH)/Network/Agent/RL_client_agent.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
+RL_client_environment.o: $(RLGLUE_PATH)/Network/Environment/RL_client_environment.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
+RL_client_experiment.o: $(RLGLUE_PATH)/Network/Experiment/RL_client_experiment.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
+
+# -------------------------------------- Server ---------------------------------------------
+RL_server_agent.o: $(RLGLUE_PATH)/Network/Glue/RL_server_agent.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
+RL_server_environment.o: $(RLGLUE_PATH)/Network/Glue/RL_server_environment.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
+RL_server_experiment.o: $(RLGLUE_PATH)/Network/Glue/RL_server_experiment.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
+
+# ------------------------------------ Network Library --------------------------------------
+RL_network.o: $(RLGLUE_PATH)/Network/RL_network.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
+RL_netlib.o: $(RLGLUE_PATH)/Network/RL_netlib.c $(RLGLUE_PATH)/Network/RL_netlib.h
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
+
 
 clean:
 	rm -fr Build/*.o
