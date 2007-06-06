@@ -13,15 +13,6 @@ extern Action agent_step(Reward r, Observation o);
 extern void   agent_end(Reward r);
 extern void   agent_cleanup();
 
-/* RL-Glue needs to know what type of object is trying to connect. */
-static const int kAgentConnection = 1;
-
-static const int kAgentInit    = 1; /* agent_* start by sending one of these values */
-static const int kAgentStart   = 2; /* to the client to let it know what type of    */
-static const int kAgentStep    = 3; /* event to respond to                          */
-static const int kAgentEnd     = 4;
-static const int kAgentCleanup = 5;
-
 static const char* kUnknownMessage = "Unknown Message: %d\n";
 
 static const char* kLocalHost   = "127.0.0.1";
@@ -66,16 +57,20 @@ static rlSocket waitForConnection(const char* address, const short port, const i
       rlClose(theConnection);
       sleep(retryTimeout);
     }
+  }
+
+  return theConnection;
 }
 
 static void onAgentInit(rlSocket theConnection)
 {
+  int dataRecv = 0;
   int theTaskSpecLength = 0;
   rlRecvData(theConnection, &theTaskSpecLength, sizeof(int));
 
   if (theTaskSpecLength > 0) {
-    theTaskSpec = (char*)calloc(theTaskSpecLength, 1);
-    rlRecvData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+    theTaskSpec = (char*)calloc(theTaskSpecLength, sizeof(char));
+    dataRecv = rlRecvData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
   }
 
   agent_init(theTaskSpec);
@@ -103,7 +98,7 @@ static void onAgentStart(rlSocket theConnection)
 static void onAgentStep(rlSocket theConnection)
 {
   Reward theReward = 0;
-  Action theAction = 0;
+  Action theAction = {0};
 
   rlRecvData(theConnection, &theReward, sizeof(Reward));
   rlRecvADTHeader(theConnection, (RL_abstract_type*)&theObservation);
@@ -138,7 +133,8 @@ static void runAgentEventLoop(rlSocket theConnection)
 
   do
   { 
-    rlRecvData(theConnection, agentState, sizeof(int));
+    rlRecvData(theConnection, &agentState, sizeof(int));
+    fprintf(stderr, "%d\n", agentState);
 
     switch(agentState) {
     case kAgentInit:
@@ -170,12 +166,13 @@ static void runAgentEventLoop(rlSocket theConnection)
 
 int main(int argc, char** argv)
 {
+  int theConnectionType = kAgentConnection;
   rlSocket theConnection = 0;
 
   while(1) {
     theConnection = waitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
     /* we need to tell RL-Glue what type of object is connecting */
-    rlSendData(theConnection, kAgentConnection, sizeof(int)); 
+    rlSendData(theConnection, &theConnectionType, sizeof(int)); 
     runAgentEventLoop(theConnection);
     rlClose(theConnection);
   }
