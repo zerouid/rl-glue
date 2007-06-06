@@ -1,35 +1,45 @@
-CC = gcc
-RL-Glue = ../../RL-Glue
+# Agent Source Files
+AGENTC = ./Agent/ZeroAgent.c
+AGENTH = ./Agent/ZeroAgent.h
 
-# We need to search the RL-Glue directory RL_interface.h 
-CFLAGS = -I$(RL-Glue)/ -ansi -pedantic -Wall
+# Environment Source Files
+ENVIRONMENTC = ./Environment/mines.c
+ENVIRONMENTH = ./Environment/mines.h
 
-all: Glue Agent Environment Experiment
-	$(CC) -o RL_main Build/RL_interface.o Build/RL_direct.o Build/ZeroAgent.o Build/mines.o Build/experiment.o
+# Experiment Source Files
+EXPERIMENTC = ./Experiment/experiment.c
+EXPERIMENTH = 
 
-Glue: RL_interface.o RL_direct.o 
-Agent: ZeroAgent.o
-Environment: mines.o
-Experiment: experiment.o
+# Path to RL-Glue to find RL_interface and related files.
+RL-GLUE = ../../RL-Glue
 
-RL_interface.o: $(RL-Glue)/RL_interface.c $(RL-Glue)/RL_interface.h
-	$(CC) -c $(CFLAGS) $< -o Build/RL_interface.o
+# Compiler flags
+CC      = gcc
+CFLAGS  = -I$(RL-GLUE)/ -ansi -pedantic -Wall
+LDFLAGS =
 
-RL_direct.o: $(RL-Glue)/Direct/RL_direct.c
-	$(CC) -c $(CFLAGS) $< -o Build/RL_direct.o
+# An example of RL-Glue compiled without using sockets 
+all: agent.o environment.o experiment.o glue.o direct.o
+	$(CC) -o RL_main Build/agent.o Build/environment.o Build/experiment.o Build/RL_interface.o Build/RL_direct.o
 
-ZeroAgent.o: ./Agent/ZeroAgent.c ./Agent/ZeroAgent.h
-	$(CC) -c $(CFLAGS) $< -o Build/ZeroAgent.o
+# Dependencies
+agent.o: $(AGENTC) $(AGENTH)
+	$(CC) -c $(CFLAGS) $(AGENTC) -o Build/agent.o
 
-mines.o: ./Environment/mines.c ./Environment/mines.h
-	$(CC) -c $(CFLAGS) $< -o Build/mines.o
+environment.o: $(ENVIRONMENTC) $(ENVIRONMENTH)
+	$(CC) -c $(CFLAGS) $(ENVIRONMENTC) -o Build/environment.o
 
-experiment.o: ./Experiment/experiment.c
-	$(CC) -c $(CFLAGS) $< -o Build/experiment.o
+experiment.o: $(EXPERIMENTC) $(EXPERIMENTH)
+	$(CC) -c $(CFLAGS) $(EXPERIMENTC) -o Build/experiment.o
+
+glue.o: $(RL-GLUE)/RL_interface.c $(RL-GLUE)/RL_interface.h
+	$(CC) -c $(CFLAGS) $(RL-GLUE)/RL_interface.c -o Build/RL_interface.o
+
+direct.o: $(RL-GLUE)/Direct/RL_direct.c
+	$(CC) -c $(CFLAGS) $(RL-GLUE)/Direct/RL_direct.c -o Build/RL_direct.o
 
 clean:
 	rm -fr Build/*.o
-	rm -fr RL_main
 
 tidy:
 	rm -fr *.*~

@@ -13,10 +13,8 @@ void run(int num_episodes)
 
 int main(int argc, char *argv[])
 {
-  int num_episodes = 1000;
-  
-  RL_init(argc, argv);
-  run(num_episodes);
+  RL_init();
+  run(100);
   RL_cleanup();
 
   return 0;
