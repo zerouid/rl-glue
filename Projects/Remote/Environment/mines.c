@@ -87,15 +87,10 @@ Reward getReward()
 
 /* RL-Glue Interface */
 
-Task_specification env_init(int argc, char** argv)
+Task_specification env_init()
 {    
   static char Task_spec[100] = {0};
   char temp[50] = {0};
-  
-  int i = 0;
-  fprintf(stderr, "env_init called with parameters: ");
-  for (i = 0; i < argc; ++i) fprintf(stderr, "%s ", argv[i]);
-  fprintf(stderr, "\n");
 
   M.START = 0;
   M.GOAL = 1;
@@ -110,11 +105,11 @@ Task_specification env_init(int argc, char** argv)
   M.agentRow = M.startRow;
   M.agentColumn = M.startCol;
   
-  o.numInts = 10;
-  o.numDoubles = 10;
+  o.numInts = 1;
+  o.numDoubles = 0;
 
-  o.intArray = (int*)calloc(o.numInts,sizeof(int));
-  o.doubleArray = (double*)calloc(o.numDoubles, sizeof(double));
+  o.intArray = (int*)malloc(sizeof(int)*o.numInts);
+  o.doubleArray = 0;
 
   /* Return task specification */
   
@@ -137,7 +132,7 @@ Observation env_start()
   
   while(env_map[r][c] != M.LAND)
   {
-    r = rand()% M.row;
+    r =  rand()% M.row;
     c = rand()% M.col;
   }
 

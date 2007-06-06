@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <unistd.h>
 
-#include <RLcommon.h>
-#include <RLnet/RLnet.h>
+#include <RL_common.h>
+#include <Remote/RL_netapi.h>
 
 const char* kAgentInit = "init";
 const char* kAgentStart= "start";
@@ -23,17 +23,17 @@ Observation theObservation;
 Reward theReward;
 
 /* Provide forward declaration of agent interface */
-extern void agent_init(int argc, char** argv, Task_specification task_spec);
+extern void agent_init(Task_specification task_spec);
 extern Action agent_start(Observation o);
 extern Action agent_step(Reward r, Observation o);
 extern void agent_end(Reward r);
 extern void agent_cleanup();
 
 const char* kUnknownMessage = "Unknown Message: %s\n";
-const char* kDefaultIp = "127.0.0.1";
-const short kDefaultPort = 4697;
+const char* kLocalHost = "127.0.0.1";
+const short kDefaultPort = 4096;
 
-void on_agent_init(int argc, char** argv, rlSocket theConnection)
+void on_agent_init(rlSocket theConnection)
 {
   theTaskSpecLength = 0;
   rlRecvMessageHeader(theConnection, &theTaskSpecLength);
@@ -41,7 +41,7 @@ void on_agent_init(int argc, char** argv, rlSocket theConnection)
   theTaskSpecBuffer = (char*)calloc(theTaskSpecLength, 1);
   rlRecvMessageBody(theConnection, theTaskSpecBuffer, theTaskSpecLength);
 
-  agent_init(argc, argv, theTaskSpecBuffer);
+  agent_init(theTaskSpecBuffer);
 }
 
 void on_agent_start(rlSocket theConnection)
@@ -92,7 +92,7 @@ void run_agent(int argc, char** argv, rlSocket theConnection)
 	      
     if (strncmp(theMessage, kAgentInit, 8) == 0)
     {
-      on_agent_init(argc, argv, theConnection);
+      on_agent_init(theConnection);
     }
     else if (strncmp(theMessage, kAgentStart, 8) == 0)
     {
@@ -118,22 +118,6 @@ void run_agent(int argc, char** argv, rlSocket theConnection)
   } while (strncmp(theMessage, kAgentCleanup, 8) != 0);
 }
 
-void parse_command_line(int argc, char** argv, char* const ip_buffer, int ip_buffer_size, short* port) {
-  int c = 0;
-
-  while((c = getopt(argc, argv, "h:p:")) != -1) {
-    switch(c) {
-    case 'h':
-      sscanf(optarg, "%s", ip_buffer);
-      break;
-
-    case 'p':
-      sscanf(optarg, "%hd", port);
-      break;
-    };
-  }
-}
-
 int main(int argc, char** argv)
 {
   rlSocket theConnection;
@@ -142,22 +126,15 @@ int main(int argc, char** argv)
   int isConnected = -1;
   int isClosed = 0;
 
-  char ipbuffer[256] = {0};
-  int ipbuffersize = 256;
-  short port = kDefaultPort;
-
-  strncpy(ipbuffer, kDefaultIp, ipbuffersize);
-  parse_command_line(argc, argv, ipbuffer, ipbuffersize, &port);
-
   while(1)
   {
     while(isConnected < 0)
     {
-      theConnection = rlOpen(port);
+      theConnection = rlOpen(kDefaultPort);
       isValidSocket = rlIsValidSocket(theConnection);
       assert(isValidSocket);
       
-      isConnected = rlConnect(theConnection, ipbuffer);
+      isConnected = rlConnect(theConnection, kLocalHost, kDefaultPort);
       if (isConnected < 0) rlClose(theConnection); /* We need to try again */
     }
 

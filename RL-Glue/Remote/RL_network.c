@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-static const short kDefaultPort = 4696;
+static const short kDefaultPort = 4096;
 
 enum { 
   kAgentConnection       = 1, 
@@ -15,7 +15,7 @@ extern void rlSetEnvironmentConnection(int);
 extern void rlSetExperimentConnection(int);
 
 void rlConnectSystems() {
-  int isAgentConnected       = 1;
+  int isAgentConnected       = 0;
   int isEnvironmentConnected = 1; 
   int isExperimentConnected  = 1;
   int theClientType = 0;
