@@ -1,5 +1,5 @@
-#ifndef libSocketRL_h
-#define libSocketRL_h
+#ifndef RL_netlib_h
+#define RL_netlib_h
 
 /* Defines types for RL-Glue */
 #include <RL_common.h>
@@ -19,6 +19,11 @@ int rlIsValidSocket(rlSocket theSocket);
 int rlSendData(rlSocket socket, const void* data, int length);
 int rlRecvData(rlSocket socket, void* data, int length);
 
+void rlSendADT(rlSocket socket, RL_abstract_type* data);
+void rlRecvADTHeader(rlSocket socket, RL_abstract_type* data);
+void rlRecvADTBody(rlSocket socket, RL_abstract_type* data);
+
 int rlGetSystemByteOrder();
+
 
 #endif
