@@ -1,9 +1,10 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
-#include <RLcommon.h>
-#include <RLnet/RLnet.h>
 #include <unistd.h>
+
+#include <RL_common.h>
+#include <Network/RLnet.h>
 
 /* Could be culled, used only for debugging */
 #include <stdio.h>
