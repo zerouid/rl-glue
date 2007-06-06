@@ -1,120 +1,105 @@
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <string.h> /* strlen */
+#include <stdlib.h> /* calloc */
 
 #include <RL_common.h>
-#include <Network/RLnet.h>
+#include <Network/RL_netlib.h>
 
-/* Could be culled, used only for debugging */
-#include <stdio.h>
+static const int kAgentInit    = 1; /* agent_* start by sending one of these values */
+static const int kAgentStart   = 2; /* to the client to let it know what type of    */
+static const int kAgentStep    = 3; /* event to respond to                          */
+static const int kAgentEnd     = 4;
+static const int kAgentCleanup = 5;
 
-static rlSocket theAgentConnection;
-static Action theAction;
+static const short kDefaultPort = 4096;
+static rlSocket theAgentConnection = 0;
+static Action theAction = {0};
 
-const char* kAgentInit = "init";
-const char* kAgentStart= "start";
-const char* kAgentStep = "step";
-const char* kAgentEnd  = "end";
-const char* kAgentCleanup = "cleanup";
-
-static const short kDefaultPort = 4697;
-
-static void send_msg(rlSocket theSocket, const char* theMessage)
-{
-  char send_buffer[8] = {0};
-  strncpy(send_buffer, theMessage, 8);
-  rlSendData(theSocket, send_buffer, 8);
-}
-
-static void parse_command_line(int argc, char** argv, short *thePort) {
-  int c = 0;
-
-  while((c = getopt(argc, argv, "p:")) != -1) {
-    switch(c) {
-    case 'p':
-      sscanf(optarg, "%hd", thePort);
-      break;
-    };
+static void mallocAction(Action *theAction) {
+  if (theAction != 0) {
+    if (theAction->numInts > 0 && theAction->intArray == 0) {
+      theAction->intArray = (int*)calloc(theAction->numInts, sizeof(int));
+    }
+    if (theAction->numDoubles > 0 && theAction->doubleArray == 0) {
+      theAction->doubleArray = (double*)calloc(theAction->numDoubles, sizeof(double));
+    }
   }
 }
 
-void agent_init(int argc, char** argv, Task_specification theTaskSpecBuffer)
-{
-  int theTaskSpecLength = 0;
+static void freeAction(Action *theAction) {
+  if (theAction != 0) {
+    free(theAction->intArray);
+    free(theAction->doubleArray);
 
-  rlSocket theServer;
-  int isValidSocket = 0;
-  int isListening = 0;
-
-  short port = kDefaultPort;
-  parse_command_line(argc, argv, &port);
-
-  theServer = rlOpen(port);  
-  isValidSocket = rlIsValidSocket(theServer);
-  assert(isValidSocket);
-
-  isListening = rlListen(theServer);
-  assert(isListening >= 0);
-
-  theAgentConnection = rlAcceptConnection(theServer);
-  isValidSocket = rlIsValidSocket(theAgentConnection);
-  assert(isValidSocket);
-
-  rlClose(theServer);
-
-  send_msg(theAgentConnection, kAgentInit);
-
-  /* Warning, strlen, could be used as buffer-overrun exploit */
-  theTaskSpecLength = strlen(theTaskSpecBuffer) + 1;
-
-  rlSendMessageHeader(theAgentConnection, theTaskSpecLength);
-  rlSendMessageBody(theAgentConnection, theTaskSpecBuffer, theTaskSpecLength);
+    theAction->numInts     = 0;
+    theAction->numDoubles  = 0;
+    theAction->intArray    = 0;
+    theAction->doubleArray = 0;
+  }
 }
 
+void rlSetAgentConnection(int theConnection) {
+  if (theAgentConnection) {
+    rlClose(theAgentConnection);
+  }
+
+  theAgentConnection = theConnection;
+}
+
+/* Send the task spec to the agent */
+void agent_init(Task_specification theTaskSpec)
+{
+  int theTaskSpecLength = strlen(theTaskSpec);
+
+  rlSendData(theAgentConnection, &kAgentInit, sizeof(int));
+  rlSendData(theAgentConnection, &theTaskSpecLength, sizeof(int));
+
+  if (theTaskSpecLength > 0) {
+    rlSendData(theAgentConnection, &theTaskSpec, sizeof(char) * theTaskSpecLength);
+  }
+}
+
+/* Send the observation to the agent, receive the action and return it */
 Action agent_start(Observation theObservation)
 {
-  send_msg(theAgentConnection, kAgentStart);
+  rlSendData(theAgentConnection, &kAgentStart, sizeof(int));
+  rlSendADT(theAgentConnection, (RL_abstract_type*)&theObservation);
 
-  rlSendObservation(theAgentConnection, theObservation);
-  rlRecvActionHeader(theAgentConnection, &theAction);
+  rlRecvADTHeader(theAgentConnection, &theAction);
 
-  if (theAction.numInts > 0)
-    theAction.intArray = (int*)calloc(theAction.numInts, sizeof(int));
+  /* 
+     We need to allocate here because we don't know the actual sizes being sent
+     from the client until now. mallocAction will not reallocate already allocated
+     data. (See mallocAction above and RL_client_agent.c:onAgentStart)
+  */
 
-  if (theAction.numDoubles > 0)
-    theAction.doubleArray = (double*)calloc(theAction.numDoubles, sizeof(double));
+  mallocAction(&theAction);
+  rlRecvADTBody(theAgentConnection, &theAction);
 
-  rlRecvActionBody(theAgentConnection, &theAction);
   return theAction;
 }
 
+/* Send the reward and the observation to the agent, receive the action and return it */
 Action agent_step(Reward theReward, Observation theObservation)
 {
-  send_msg(theAgentConnection, kAgentStep);
-  
-  rlSendReward(theAgentConnection, theReward);
-  rlSendObservation(theAgentConnection, theObservation);
-  rlRecvAction(theAgentConnection, &theAction);
+  rlSendData(theAgentConnection, &kAgentStep, sizeof(int));
+  rlSendData(theAgentConnection, &theReward, sizeof(Reward));
+  rlSendADT(theAgentConnection, (RL_abstract_type*)&theObservation);
+  rlRecvADTHeader(theAgentConnection, &theAction);
+  rlRecvADTBody(theAgentConnection, &theAction);
 
   return theAction;
 }
 
+/* Send the final reward to the agent */
 void agent_end(Reward theReward)
-{
-  send_msg(theAgentConnection, kAgentEnd);
-
-  rlSendReward(theAgentConnection, theReward);
-
-  free(theAction.intArray);
-  free(theAction.doubleArray);
-
-  theAction.intArray = 0;
-  theAction.doubleArray = 0;
+{  
+  rlSendData(theAgentConnection, &kAgentEnd, sizeof(int));
+  rlSendData(theAgentConnection, &theReward, sizeof(Reward));
 }
 
+/* Tell the agent that we're cleaning up */
 void agent_cleanup()
 {
-  send_msg(theAgentConnection, kAgentCleanup);
-  rlClose(theAgentConnection);
+  rlSendData(theAgentConnection, &kAgentCleanup, sizeof(int));
+  freeAction(&theAction);
 }

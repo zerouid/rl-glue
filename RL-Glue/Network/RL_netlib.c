@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 
 /* RLnet Library Header */
-#include <Network/RL_netapi.h>
+#include <Network/RL_netlib.h>
 
 rlSocket rlOpen(short thePort)
 {
@@ -116,6 +116,34 @@ int rlRecvData(rlSocket theSocket, void* theData, int theLength)
   }
 
   return theBytesRecv;
+}
+
+void rlSendADT(rlSocket socket, RL_abstract_type* data) {
+  rlSendData(socket, &data->numInts, sizeof(int));
+  rlSendData(socket, &data->numDoubles, sizeof(double));
+
+  if (data->numInts > 0) {
+    rlSendData(socket, data->intArray, sizeof(int) * data->numInts);
+  }
+
+  if (data->numDoubles > 0) {
+    rlSendData(socket, data->doubleArray, sizeof(double) * data->numDoubles);
+  }
+}
+
+void rlRecvADTHeader(rlSocket socket, RL_abstract_type* data) {
+  rlRecvData(socket, &data->numInts, sizeof(int));
+  rlRecvData(socket, &data->numDoubles, sizeof(int));
+}
+
+void rlRecvADTBody(rlSocket socket, RL_abstract_type* data) {
+  if (data->numInts > 0) {
+    rlRecvData(socket, data->intArray, sizeof(int) * data->numInts);
+  }
+
+  if (data->numDoubles > 0) {
+    rlRecvData(socket, data->doubleArray, sizeof(double) * data->numDoubles);
+  }
 }
 
 int rlGetSystemByteOrder()
