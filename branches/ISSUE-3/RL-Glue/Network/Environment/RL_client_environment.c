@@ -43,7 +43,7 @@ static rlSocket waitForConnection(const char* address, const short port, const i
   return theConnection;
 }
 
-void onEnvInit(rlSocket theConnection) {
+static void onEnvInit(rlSocket theConnection) {
   Task_specification theTaskSpec = 0;
   int theTaskSpecLength = 0;
 
@@ -54,12 +54,12 @@ void onEnvInit(rlSocket theConnection) {
   rlSendData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
 }
 
-void onEnvStart(rlSocket theConnection) {
+static void onEnvStart(rlSocket theConnection) {
   Observation theObservation = env_start();
   rlSendADT(theConnection, &theObservation);
 }
 
-void onEnvStep(rlSocket theConnection) {
+static void onEnvStep(rlSocket theConnection) {
   Reward_observation ro = {0};
 
   rlRecvADTHeader(theConnection, &theAction);
@@ -76,7 +76,7 @@ void onEnvStep(rlSocket theConnection) {
   rlSendData(theConnection, &ro.terminal, sizeof(int));
 }
 
-void onEnvCleanup(rlSocket theConnection) {
+static void onEnvCleanup(rlSocket theConnection) {
   env_cleanup();
   
   rlFreeADT(&theAction);
@@ -88,7 +88,7 @@ void onEnvCleanup(rlSocket theConnection) {
   isRandomSeedKeyAllocated = 0;
 }
 
-void onEnvSetState(rlSocket theConnection) {
+static void onEnvSetState(rlSocket theConnection) {
   rlRecvADTHeader(theConnection, &theStateKey);
   if (!isStateKeyAllocated) {
     rlAllocADT(&theStateKey);
@@ -99,7 +99,7 @@ void onEnvSetState(rlSocket theConnection) {
   env_set_state(theStateKey);
 }
 
-void onEnvSetRandomSeed(rlSocket theConnection) {
+static void onEnvSetRandomSeed(rlSocket theConnection) {
   rlRecvADTHeader(theConnection, &theRandomSeedKey);
   if (!isRandomSeedKeyAllocated) {
     rlAllocADT(&theRandomSeedKey);
@@ -110,12 +110,12 @@ void onEnvSetRandomSeed(rlSocket theConnection) {
   env_set_random_seed(theRandomSeedKey);
 }
 
-void onEnvGetState(rlSocket theConnection) {
+static void onEnvGetState(rlSocket theConnection) {
   State_key key = env_get_state(); 
   rlSendADT(theConnection, &key);
 }
 
-void onEnvGetRandomSeed(rlSocket theConnection) {
+static void onEnvGetRandomSeed(rlSocket theConnection) {
   Random_seed_key key = env_get_random_seed();
   rlSendADT(theConnection, &key);
 }
@@ -166,8 +166,7 @@ static void runEnvironmentEventLoop(rlSocket theConnection) {
   } while (envState != kEnvCleanup);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   int theConnectionType = kEnvironmentConnection;
   rlSocket theConnection = 0;
 
