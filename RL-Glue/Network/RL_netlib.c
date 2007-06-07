@@ -1,7 +1,5 @@
-/* IO For Debugging */
-#include <stdio.h>
-
 /* Standard Headers */
+#include <stdlib.h> /* calloc */
 #include <string.h>
 
 /* Network Headers */
@@ -12,7 +10,7 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 
-/* RLnet Library Header */
+/* RL_netlib Library Header */
 #include <Network/RL_netlib.h>
 
 rlSocket rlOpen(short thePort)
@@ -119,7 +117,7 @@ int rlRecvData(rlSocket theSocket, void* theData, int theLength)
 
 void rlSendADT(rlSocket socket, RL_abstract_type* data) {
   rlSendData(socket, &data->numInts, sizeof(int));
-  rlSendData(socket, &data->numDoubles, sizeof(double));
+  rlSendData(socket, &data->numDoubles, sizeof(int));
 
   if (data->numInts > 0) {
     rlSendData(socket, data->intArray, sizeof(int) * data->numInts);
@@ -142,6 +140,29 @@ void rlRecvADTBody(rlSocket socket, RL_abstract_type* data) {
 
   if (data->numDoubles > 0) {
     rlRecvData(socket, data->doubleArray, sizeof(double) * data->numDoubles);
+  }
+}
+
+void rlAllocADT(RL_abstract_type *data) {
+  if (data != 0) {
+    if (data->numInts > 0) {
+      data->intArray = (int*)calloc(data->numInts, sizeof(int));
+    }
+    if (data->numDoubles > 0) {
+      data->doubleArray = (double*)calloc(data->numDoubles, sizeof(double));
+    }
+  }
+}
+
+void rlFreeADT(RL_abstract_type *data) {
+  if (data != 0) {
+    free(data->intArray);
+    free(data->doubleArray);
+
+    data->numInts     = 0;
+    data->numDoubles  = 0;
+    data->intArray    = 0;
+    data->doubleArray = 0;
   }
 }
 

@@ -15,35 +15,9 @@ extern void   agent_cleanup();
 
 static const char* kUnknownMessage = "Unknown Message: %d\n";
 
-static const char* kLocalHost   = "127.0.0.1";
-static const short kDefaultPort = 4096;
-static const int kRetryTimeout  = 10;
-
 static char* theTaskSpec = 0;
 static Observation theObservation = {0};
-
-static void mallocObservation(Observation *theObservation) {
-  if (theObservation != 0) {
-    if (theObservation->numInts > 0 && theObservation->intArray == 0) {
-      theObservation->intArray = (int*)calloc(theObservation->numInts, sizeof(int));
-    }
-    if (theObservation->numDoubles > 0 && theObservation->doubleArray == 0) {
-      theObservation->doubleArray = (double*)calloc(theObservation->numDoubles, sizeof(double));
-    }
-  }
-}
-
-static void freeObservation(Observation *theObservation) {
-  if (theObservation != 0) {
-    free(theObservation->intArray);
-    free(theObservation->doubleArray);
-
-    theObservation->numInts     = 0;
-    theObservation->numDoubles  = 0;
-    theObservation->intArray    = 0;
-    theObservation->doubleArray = 0;
-  }
-}
+static int isObservationAllocated = 0;
 
 static rlSocket waitForConnection(const char* address, const short port, const int retryTimeout) {
   rlSocket theConnection = 0;
@@ -64,13 +38,12 @@ static rlSocket waitForConnection(const char* address, const short port, const i
 
 static void onAgentInit(rlSocket theConnection)
 {
-  int dataRecv = 0;
   int theTaskSpecLength = 0;
-  rlRecvData(theConnection, &theTaskSpecLength, sizeof(int));
 
+  rlRecvData(theConnection, &theTaskSpecLength, sizeof(int));
   if (theTaskSpecLength > 0) {
     theTaskSpec = (char*)calloc(theTaskSpecLength, sizeof(char));
-    dataRecv = rlRecvData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+    rlRecvData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
   }
 
   agent_init(theTaskSpec);
@@ -81,14 +54,12 @@ static void onAgentStart(rlSocket theConnection)
   Action theAction = {0};
 
   rlRecvADTHeader(theConnection, (RL_abstract_type*)&theObservation);
-  
-  /* 
-     We need to allocate here because we don't know the actual sizes being sent
-     from the server until now. mallocAction will not reallocate already allocated
-     data. (See mallocObservation above and RL_server_agent.c:agent_start)
-  */
 
-  mallocObservation(&theObservation);
+  if (!isObservationAllocated) {
+    rlAllocADT(&theObservation);
+    isObservationAllocated = 1;
+  }
+
   rlRecvADTBody(theConnection, (RL_abstract_type*)&theObservation);
 
   theAction = agent_start(theObservation);
@@ -105,14 +76,13 @@ static void onAgentStep(rlSocket theConnection)
   rlRecvADTBody(theConnection, (RL_abstract_type*)&theObservation);
 
   theAction = agent_step(theReward, theObservation);
-
   rlSendADT(theConnection, (RL_abstract_type*)&theAction);
 }
 
 static void onAgentEnd(rlSocket theConnection)
 {
   Reward theReward = 0;
-  
+
   rlRecvData(theConnection, &theReward, sizeof(Reward));
   agent_end(theReward);
 }
@@ -121,20 +91,19 @@ static void onAgentCleanup(rlSocket theConnection)
 {
   agent_cleanup();
 
+  rlFreeADT(&theObservation);
+  isObservationAllocated = 0;
+
   free(theTaskSpec);
   theTaskSpec = 0;
-
-  freeObservation(&theObservation);
 }
 
 static void runAgentEventLoop(rlSocket theConnection)
 {
   int agentState = 0;
 
-  do
-  { 
+  do { 
     rlRecvData(theConnection, &agentState, sizeof(int));
-    fprintf(stderr, "%d\n", agentState);
 
     switch(agentState) {
     case kAgentInit:

@@ -1,8 +1,5 @@
 #include <Network/RL_netlib.h>
-
 #include <stdio.h>
-
-static const short kDefaultPort = 4096;
 
 extern void rlSetAgentConnection(int);
 extern void rlSetEnvironmentConnection(int);
@@ -10,10 +7,9 @@ extern void rlSetExperimentConnection(int);
 
 void rlConnectSystems() {
   int isAgentConnected       = 0;
-  int isEnvironmentConnected = 1; 
+  int isEnvironmentConnected = 0; 
   int isExperimentConnected  = 1;
   int theClientType = 0;
-
   int theClient = 0;
   int theServer = 0;
   theServer = rlOpen(kDefaultPort);
@@ -27,16 +23,19 @@ void rlConnectSystems() {
     case kAgentConnection:
       rlSetAgentConnection(theClient);
       isAgentConnected = 1;
+      fprintf(stderr, "RL_network.c: Agent Connected!\n");
       break;
 
     case kEnvironmentConnection:
       rlSetEnvironmentConnection(theClient);
       isEnvironmentConnected = 1;
+      fprintf(stderr, "RL_network.c: Environment Connected!\n");
       break;
 
     case kExperimentConnection:
       rlSetExperimentConnection(theClient);
       isExperimentConnected = 1;
+      fprintf(stderr, "RL_network.c: Experiment Connected!\n");
       break;
 
     default:
@@ -45,4 +44,5 @@ void rlConnectSystems() {
   }
 
   rlClose(theServer);
+  fprintf(stderr, "Systems Connected. Go Team Venture!\n");
 }

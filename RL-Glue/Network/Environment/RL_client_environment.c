@@ -1,34 +1,13 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <unistd.h>
+#include <assert.h> /* assert  */
+#include <unistd.h> /* sleep   */
+#include <string.h> /* strlen  */
+#include <stdio.h>  /* fprintf */
 
-#include <RLcommon.h>
-#include <RLnet/RLnet.h>
-
-const char* kEnvInit = "init";
-const char* kEnvStart= "start";
-const char* kEnvStep = "step";
-const char* kEnvCleanup = "cleanup";
-const char* kEnvSetStateKey = "setsk";
-const char* kEnvSetRandomSeed = "setrs";
-const char* kEnvGetStateKey = "getsk";
-const char* kEnvGetRandomSeed = "getrs";
-
-const char* kDefaultIp = "127.0.0.1";
-const short kDefaultPort = 4698;
-
-/* Declare the task spec and length */
-unsigned int theTaskSpecLength;
-char* theTaskSpecBuffer;
-
-/* Declare observation action and reward */
-Action theAction;
-int isActionAllocated = 0;
+#include <RL_common.h>
+#include <Network/RL_netlib.h>
 
 /* Provide forward declaration of environment interface */
-extern Task_specification env_init(int argc, char** argv);
+extern Task_specification env_init();
 extern Observation env_start();
 extern Reward_observation env_step(Action a);
 extern void env_cleanup();
@@ -37,173 +16,167 @@ extern void env_set_random_seed(Random_seed_key rsk);
 extern State_key env_get_state();
 extern Random_seed_key env_get_random_seed();
 
-const char* kUnknownMessage = "Unknown Message: %s\n";
+static const char* kUnknownMessage = "Unknown Message: %s\n";
 
-void on_env_init(int argc, char** argv, rlSocket theConnection)
-{
-  theTaskSpecBuffer = env_init(argc, argv);
-  theTaskSpecLength = strlen(theTaskSpecBuffer) + 1;
+static Action theAction                 = {0};
+static State_key theStateKey            = {0};
+static Random_seed_key theRandomSeedKey = {0};
 
-  rlSendMessageHeader(theConnection, theTaskSpecLength);
-  rlSendMessageBody(theConnection, theTaskSpecBuffer, theTaskSpecLength);
+static int isActionAllocated        = 0;
+static int isStateKeyAllocated      = 0;
+static int isRandomSeedKeyAllocated = 0;
+
+static rlSocket waitForConnection(const char* address, const short port, const int retryTimeout) {
+  rlSocket theConnection = 0;
+  int isConnected = -1;
+
+  while(isConnected == -1) {
+    theConnection = rlOpen(port);
+    assert(rlIsValidSocket(theConnection));
+    isConnected = rlConnect(theConnection, kLocalHost, kDefaultPort);
+    if (isConnected == -1) { 
+      rlClose(theConnection);
+      sleep(retryTimeout);
+    }
+  }
+
+  return theConnection;
 }
 
-void on_env_start(rlSocket theConnection)
-{
+void onEnvInit(rlSocket theConnection) {
+  Task_specification theTaskSpec = 0;
+  int theTaskSpecLength = 0;
+
+  theTaskSpec = env_init();
+  theTaskSpecLength = strlen(theTaskSpec)+1;
+
+  rlSendData(theConnection, &theTaskSpecLength, sizeof(int));
+  rlSendData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+}
+
+void onEnvStart(rlSocket theConnection) {
   Observation theObservation = env_start();
-  rlSendObservation(theConnection, theObservation);
-
-  isActionAllocated = 0;
+  rlSendADT(theConnection, &theObservation);
 }
 
-void on_env_step(rlSocket theConnection)
-{
-  /* Reward_observation env_step(Action a); */
-  Reward_observation ro;
+void onEnvStep(rlSocket theConnection) {
+  Reward_observation ro = {0};
 
-  /* need to deal with allocation / dealloction of the action! */
-  rlRecvActionHeader(theConnection, &theAction);
-
-  if (isActionAllocated == 0)
-  {
-    if (theAction.numInts > 0)
-      theAction.intArray = (int*)calloc(theAction.numInts, sizeof(int));
-
-    if (theAction.numDoubles > 0)
-      theAction.doubleArray = (double*)calloc(theAction.numDoubles, sizeof(double));
+  rlRecvADTHeader(theConnection, &theAction);
+  if (!isActionAllocated) {
+    rlAllocADT(&theAction);
     isActionAllocated = 1;
   }
+  rlRecvADTBody(theConnection, &theAction);
 
-  rlRecvActionBody(theConnection, &theAction);
-  
   ro = env_step(theAction);
-  rlSendRewardObservation(theConnection, ro);
+
+  rlSendData(theConnection, &ro.r, sizeof(Reward));
+  rlSendADT(theConnection, &ro.o);
+  rlSendData(theConnection, &ro.terminal, sizeof(int));
 }
 
-void on_env_cleanup(rlSocket theConnection)
-{
+void onEnvCleanup(rlSocket theConnection) {
   env_cleanup();
+  
+  rlFreeADT(&theAction);
+  rlFreeADT(&theStateKey);
+  rlFreeADT(&theRandomSeedKey);
 
-  free(theAction.intArray);
-  free(theAction.doubleArray);
+  isActionAllocated        = 0;
+  isStateKeyAllocated      = 0;
+  isRandomSeedKeyAllocated = 0;
 }
 
-void on_env_set_state(rlSocket theConnection)
-{
-  /* void env_set_state(State_key sk); */
+void onEnvSetState(rlSocket theConnection) {
+  rlRecvADTHeader(theConnection, &theStateKey);
+  if (!isStateKeyAllocated) {
+    rlAllocADT(&theStateKey);
+    isStateKeyAllocated = 1;
+  }
+  rlRecvADTBody(theConnection, &theStateKey);
+
+  env_set_state(theStateKey);
 }
 
-void on_env_set_random_seed(rlSocket theConnection)
-{
-  /* void env_set_random_seed(Random_seed_key rsk); */
+void onEnvSetRandomSeed(rlSocket theConnection) {
+  rlRecvADTHeader(theConnection, &theRandomSeedKey);
+  if (!isRandomSeedKeyAllocated) {
+    rlAllocADT(&theRandomSeedKey);
+    isRandomSeedKeyAllocated = 1;
+  }
+  rlRecvADTBody(theConnection, &theRandomSeedKey);
+  
+  env_set_random_seed(theRandomSeedKey);
 }
 
-void on_env_get_state(rlSocket theConnection)
-{
-  /* State_key env_get_state(); */
+void onEnvGetState(rlSocket theConnection) {
+  State_key key = env_get_state(); 
+  rlSendADT(theConnection, &key);
 }
 
-void on_env_get_random_seed(rlSocket theConnection)
-{
-  /* Random_seed_key env_get_random_seed(); */
+void onEnvGetRandomSeed(rlSocket theConnection) {
+  Random_seed_key key = env_get_random_seed();
+  rlSendADT(theConnection, &key);
 }
 
-void run_environment(int argc, char** argv, rlSocket theConnection)
-{
-  char theMessage[8] = {0};
+static void runEnvironmentEventLoop(rlSocket theConnection) {
+  int envState = 0;
 
-  do
-  { 
-    rlRecvData(theConnection, theMessage, 8);
-	      
-    if (strncmp(theMessage, kEnvInit, 8) == 0)
-    {
-      on_env_init(argc, argv, theConnection);
-    }
-    else if (strncmp(theMessage, kEnvStart, 8) == 0)
-    {
-      on_env_start(theConnection);
-    }
-    else if (strncmp(theMessage, kEnvStep, 8) == 0)
-    {
-      on_env_step(theConnection);
-    }
-    else if (strncmp(theMessage, kEnvCleanup, 8) == 0)
-    {
-      on_env_cleanup(theConnection);
-    }
-    else if ( strncmp(theMessage, kEnvSetStateKey, 8) == 0)
-    {
-      on_env_set_state(theConnection);
-    }
-    else if ( strncmp(theMessage, kEnvSetRandomSeed, 8) == 0)
-    {
-      on_env_set_random_seed(theConnection);
-    }
-    else if ( strncmp(theMessage, kEnvGetStateKey, 8) == 0)
-    {
-      on_env_get_state(theConnection);
-    }
-    else if ( strncmp(theMessage, kEnvGetRandomSeed, 8) == 0)
-    {
-      on_env_get_random_seed(theConnection);
-    }
-    else
-    {
-      fprintf(stderr, kUnknownMessage, theMessage);
-      break;
-    }
-  } while (strncmp(theMessage, kEnvCleanup, 8) != 0);
-}
+  do { 
+    rlRecvData(theConnection, &envState, sizeof(int));
 
-void parse_command_line(int argc, char** argv, char* const ip_buffer, int ip_buffer_size, short* port) {
-  int c = 0;
-
-  while((c = getopt(argc, argv, "h:p:")) != -1) {
-    switch(c) {
-    case 'h':
-      sscanf(optarg, "%s", ip_buffer);
+    switch(envState) {
+    case kEnvInit:
+      onEnvInit(theConnection);
       break;
 
-    case 'p':
-      sscanf(optarg, "%hd", port);
+    case kEnvStart:
+      onEnvStart(theConnection);
+      break;
+
+    case kEnvStep:
+      onEnvStep(theConnection);
+      break;
+
+    case kEnvCleanup:
+      onEnvCleanup(theConnection);
+      break;
+
+    case kEnvSetState:
+      onEnvSetState(theConnection);
+      break;
+
+    case kEnvSetRandomSeed:
+      onEnvSetRandomSeed(theConnection);
+      break;
+
+    case kEnvGetState:
+      onEnvGetState(theConnection);
+      break;
+
+    case kEnvGetRandomSeed:
+      onEnvGetRandomSeed(theConnection);
+      break;
+
+    default:
+      fprintf(stderr, kUnknownMessage, envState);
       break;
     };
-  }
+  } while (envState != kEnvCleanup);
 }
 
 int main(int argc, char** argv)
 {
-  rlSocket theConnection;
+  int theConnectionType = kEnvironmentConnection;
+  rlSocket theConnection = 0;
 
-  int isValidSocket = 0;
-  int isConnected = -1;
-  int isClosed = 0;
-
-  char ipbuffer[256] = {0};
-  int ipbuffersize = 256;
-  short port = kDefaultPort;
-
-  strncpy(ipbuffer, kDefaultIp, ipbuffersize);
-  parse_command_line(argc, argv, ipbuffer, ipbuffersize, &port);
-
-  while(1)
-  {
-    while(isConnected < 0)
-    {
-      theConnection = rlOpen(port);
-      isValidSocket = rlIsValidSocket(theConnection);
-      assert(isValidSocket);
-      
-      isConnected = rlConnect(theConnection, ipbuffer);
-      if (isConnected < 0) rlClose(theConnection); /* We need to try again */
-    }
-
-    run_environment(argc, argv, theConnection);
-    
-    isClosed = rlClose(theConnection);
-    isConnected = -1;
-    /* assert(isClosed >= 0); */
+  while(1) {
+    theConnection = waitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
+    /* we need to tell RL-Glue what type of object is connecting */
+    rlSendData(theConnection, &theConnectionType, sizeof(int)); 
+    runEnvironmentEventLoop(theConnection);
+    rlClose(theConnection);
   }
 
   return 0;

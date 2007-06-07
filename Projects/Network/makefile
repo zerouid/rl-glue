@@ -19,16 +19,13 @@ CFLAGS  = -I$(RL-GLUE)/ -ansi -pedantic -Wall
 LDFLAGS =
 
 # ==================================== User Code ===========================================
-all: RL_glue RL_agent
+all: RL_glue RL_agent RL_environment
 
-# ----------------------- Compile And Link RL-Glue 2.0 (Agent Network) ----------------------
-RL_glue: RL_interface.o RL_network.o RL_netlib.o RL_direct_experiment.o RL_experiment.o RL_direct_environment.o RL_environment.o RL_server_agent.o 
-	$(CC) $(LDFLAGS) -o $@ Build/RL_interface.o Build/RL_network.o Build/RL_netlib.o Build/RL_direct_experiment.o Build/RL_experiment.o Build/RL_direct_environment.o Build/RL_environment.o Build/RL_server_agent.o 
+# ----------------------- Compile And Link RL-Glue 2.0 (Agent/Environment Network) ----------------------
+RL_glue: RL_interface.o RL_network.o RL_netlib.o RL_direct_experiment.o RL_experiment.o RL_server_environment.o RL_server_agent.o 
+	$(CC) $(LDFLAGS) -o $@ Build/RL_interface.o Build/RL_network.o Build/RL_netlib.o Build/RL_direct_experiment.o Build/RL_experiment.o Build/RL_server_environment.o Build/RL_server_agent.o 
 
 RL_experiment.o: $(EXPERIMENTC) $(EXPERIMENTH)
-	$(CC) $(CFLAGS) -c $< -o Build/$@
-
-RL_environment.o: $(ENVIRONMENTC) $(ENVIRONMENTH)
 	$(CC) $(CFLAGS) -c $< -o Build/$@
 # -------------------------------------------------------------------------------------------
 
@@ -37,6 +34,15 @@ RL_agent: RL_agent.o RL_client_agent.o RL_netlib.o
 	$(CC) $(LDFLAGS) -o $@ Build/RL_agent.o Build/RL_client_agent.o Build/RL_netlib.o
 
 RL_agent.o: $(AGENTC) $(AGENTH)
+	$(CC) $(CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
+
+
+# ---------------------- Compile And Link the Environment (Network) -------------------------
+RL_environment: RL_environment.o RL_client_environment.o RL_netlib.o
+	$(CC) $(LDFLAGS) -o $@ Build/RL_environment.o Build/RL_client_environment.o Build/RL_netlib.o
+
+RL_environment.o: $(ENVIRONMENTC) $(ENVIRONMENTH)
 	$(CC) $(CFLAGS) -c $< -o Build/$@
 # -------------------------------------------------------------------------------------------
 # ===========================================================================================

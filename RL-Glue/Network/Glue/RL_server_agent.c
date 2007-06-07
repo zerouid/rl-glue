@@ -9,32 +9,6 @@ static rlSocket theAgentConnection = 0;
 static Action theAction = {0};
 static int isActionAllocated = 0;
 
-static void mallocAction(Action *theAction) {
-  if (theAction != 0 && !isActionAllocated) {
-    if (theAction->numInts > 0) {
-      theAction->intArray = (int*)calloc(theAction->numInts, sizeof(int));
-    }
-    if (theAction->numDoubles > 0) {
-      theAction->doubleArray = (double*)calloc(theAction->numDoubles, sizeof(double));
-    }
-    isActionAllocated = 1;
-  }
-}
-
-static void freeAction(Action *theAction) {
-  if (theAction != 0) {
-    free(theAction->intArray);
-    free(theAction->doubleArray);
-
-    theAction->numInts     = 0;
-    theAction->numDoubles  = 0;
-    theAction->intArray    = 0;
-    theAction->doubleArray = 0;
-
-    isActionAllocated = 0;
-  }
-}
-
 void rlSetAgentConnection(int theConnection) {
   if (theAgentConnection) {
     rlClose(theAgentConnection);
@@ -66,13 +40,11 @@ Action agent_start(Observation theObservation)
   rlSendADT(theAgentConnection, (RL_abstract_type*)&theObservation);
   rlRecvADTHeader(theAgentConnection, (RL_abstract_type*)&theAction);
 
-  /* 
-     We need to allocate here because we don't know the actual sizes being sent
-     from the client until now. mallocAction will not reallocate already allocated
-     data. (See mallocAction above and RL_client_agent.c:onAgentStart)
-  */
+  if (!isActionAllocated) {
+    rlAllocADT(&theAction);
+    isActionAllocated = 1;
+  }
 
-  mallocAction(&theAction);
   rlRecvADTBody(theAgentConnection, (RL_abstract_type*)&theAction);
 
   return theAction;
@@ -107,5 +79,6 @@ void agent_cleanup()
   const int agentState = kAgentCleanup;
 
   rlSendData(theAgentConnection, &agentState, sizeof(int));
-  freeAction(&theAction);
+  rlFreeADT(&theAction);
+  isActionAllocated = 0;
 }

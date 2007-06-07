@@ -1,145 +1,122 @@
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <RLcommon.h>
-#include <RLnet/RLnet.h>
-#include <unistd.h>
+#include <stdlib.h> /* calloc */
 
-/* Could be culled, used only for debugging */
-#include <stdio.h>
+#include <RL_common.h>
+#include <Network/RL_netlib.h>
 
-static rlSocket theEnvironmentConnection;
-static Observation theObservation;
-static Task_specification theTaskSpecBuffer;
-static int isAllocated;
+static rlSocket theEnvironmentConnection = 0;
 
-const char* kEnvInit = "init";
-const char* kEnvStart= "start";
-const char* kEnvStep = "step";
-const char* kEnvCleanup = "cleanup";
-const char* kEnvSetStateKey = "setsk";
-const char* kEnvSetRandomSeed = "setrs";
-const char* kEnvGetStateKey = "getsk";
-const char* kEnvGetRandomSeed = "getrs";
+static Task_specification theTaskSpec = 0;
 
-static const short kDefaultPort = 4698;
+static Observation theObservation       = {0};
+static State_key theStateKey            = {0};
+static Random_seed_key theRandomSeedKey = {0};
 
-static void send_msg(rlSocket theSocket, const char* theMessage)
-{
-  char send_buffer[8] = {0};
-  strncpy(send_buffer, theMessage, 8);
-  rlSendData(theSocket, send_buffer, 8);
-}
+static int isObservationAllocated   = 0;
+static int isStateKeyAllocated      = 0;
+static int isRandomSeedKeyAllocated = 0;
 
-static void parse_command_line(int argc, char** argv, short *thePort) {
-  int c = 0;
-
-  while((c = getopt(argc, argv, "p:")) != -1) {
-    switch(c) {
-    case 'p':
-      sscanf(optarg, "%hd", thePort);
-      break;
-    };
+void rlSetEnvironmentConnection(int theConnection) {
+  if (theEnvironmentConnection) {
+    rlClose(theEnvironmentConnection);
   }
 
+  theEnvironmentConnection = theConnection;
 }
 
-Task_specification env_init(int argc, char** argv)
-{
+Task_specification env_init() {
+  const int envState = kEnvInit;
   int theTaskSpecLength = 0;
-  rlSocket theServer;
-  int isValidSocket;
-  int isListening;
 
-  short port = kDefaultPort;
-  parse_command_line(argc, argv, &port);
-
-  theServer = rlOpen(port);
-  isValidSocket = rlIsValidSocket(theServer);
-  assert(isValidSocket);
-
-  isListening = rlListen(theServer);
-  assert(isListening >= 0);
-
-  theEnvironmentConnection = rlAcceptConnection(theServer);
-  isValidSocket = rlIsValidSocket(theEnvironmentConnection);
-  assert(isValidSocket);
-
-  rlClose(theServer);
-
-  send_msg(theEnvironmentConnection, kEnvInit);
-
-  rlRecvMessageHeader(theEnvironmentConnection, &theTaskSpecLength);
-
-  theTaskSpecBuffer = (char*)calloc(theTaskSpecLength, 1);
-  rlRecvMessageBody(theEnvironmentConnection, theTaskSpecBuffer, theTaskSpecLength);
-
-  isAllocated = 0;
-
-  return theTaskSpecBuffer;
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+  rlRecvData(theEnvironmentConnection, &theTaskSpecLength, sizeof(int));
+  
+  if (theTaskSpecLength > 0) {
+    theTaskSpec = (char*)calloc(theTaskSpecLength, sizeof(char));
+    rlRecvData(theEnvironmentConnection, theTaskSpec, theTaskSpecLength);
+  }
+  
+  return theTaskSpec;
 }
 
-Observation env_start()
-{
-  send_msg(theEnvironmentConnection, kEnvStart);
-  rlRecvObservationHeader(theEnvironmentConnection, &theObservation);
+Observation env_start() {
+  const int envState = kEnvStart;
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
 
-  if (isAllocated == 0)
-  {
-    if (theObservation.numInts > 0)
-      theObservation.intArray = (int*)calloc(theObservation.numInts, sizeof(int));
-    
-    if (theObservation.numDoubles > 0)
-      theObservation.doubleArray = (double*)calloc(theObservation.numDoubles, sizeof(double));
-    
-    isAllocated = 1;
+  rlRecvADTHeader(theEnvironmentConnection, &theObservation);
+  if (!isObservationAllocated) {
+    rlAllocADT(&theObservation);
+    isObservationAllocated = 1;
   }
-
-  rlRecvObservationBody(theEnvironmentConnection, &theObservation);
+  rlRecvADTBody(theEnvironmentConnection, &theObservation);
 
   return theObservation;
 }
 
-Reward_observation env_step(Action theAction)
-{
-  Reward_observation theRewardObservation;
+Reward_observation env_step(Action theAction) {
+  const int envState = kEnvStep;
+  Reward_observation ro = {0};
 
-  send_msg(theEnvironmentConnection, kEnvStep);  
-  rlSendAction(theEnvironmentConnection, theAction);
-  rlRecvObservationHeader(theEnvironmentConnection, &theObservation);
-  rlRecvReward(theEnvironmentConnection, &theRewardObservation.r);
-  rlRecvObservationBody(theEnvironmentConnection, &theObservation);
-  rlRecvTerminal(theEnvironmentConnection, &theRewardObservation.terminal);
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+  rlSendADT(theEnvironmentConnection, &theAction);
 
-  theRewardObservation.o = theObservation;
+  rlRecvData(theEnvironmentConnection, &ro.r, sizeof(Reward));
+  rlRecvADTHeader(theEnvironmentConnection, &theObservation);
+  rlRecvADTBody(theEnvironmentConnection, &theObservation);
+  rlRecvData(theEnvironmentConnection, &ro.terminal, sizeof(int));
 
-  return theRewardObservation;
+  ro.o = theObservation;
+  return ro;
 }
 
-void env_cleanup()
-{
-  send_msg(theEnvironmentConnection, kEnvCleanup);
-  free(theObservation.intArray);
-  free(theObservation.doubleArray);
-  free(theTaskSpecBuffer);
+void env_cleanup() {
+  const int envState = kEnvCleanup;
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+
+  rlFreeADT(&theObservation);
+  rlFreeADT(&theStateKey);
+  rlFreeADT(&theRandomSeedKey);
+
+  isObservationAllocated   = 0;
+  isStateKeyAllocated      = 0;
+  isRandomSeedKeyAllocated = 0;
 }
 
-void env_set_state(State_key sk)
-{
+void env_set_state(State_key theStateKey) {
+  const int envState = kEnvSetState;
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+  rlSendADT(theEnvironmentConnection, &theStateKey);
 }
 
-void env_set_random_seed(Random_seed_key rsk)
-{
+void env_set_random_seed(Random_seed_key theRandomSeedKey) {
+  const int envState = kEnvSetRandomSeed;
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+  rlSendADT(theEnvironmentConnection, &theRandomSeedKey);
 }
 
-State_key env_get_state()
-{
-  State_key theStateKey;
+State_key env_get_state() {
+  const int envState = kEnvGetState;
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+
+  rlRecvADTHeader(theEnvironmentConnection, &theStateKey);
+  if (!isStateKeyAllocated) {
+    rlAllocADT(&theStateKey);
+    isStateKeyAllocated = 1;
+  }
+  rlRecvADTBody(theEnvironmentConnection, &theStateKey);
+
   return theStateKey;
 }
 
-Random_seed_key env_get_random_seed()
-{
-  Random_seed_key theRandomSeedKey;
+Random_seed_key env_get_random_seed() {
+  const int envState = kEnvGetRandomSeed;
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+
+  rlRecvADTHeader(theEnvironmentConnection, &theRandomSeedKey);
+  if (!isRandomSeedKeyAllocated) {
+    rlAllocADT(&theRandomSeedKey);
+    isRandomSeedKeyAllocated = 1;
+  }
+  rlRecvADTBody(theEnvironmentConnection, &theRandomSeedKey);
+
   return theRandomSeedKey;
 }
