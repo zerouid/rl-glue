@@ -133,8 +133,7 @@ static void runAgentEventLoop(rlSocket theConnection)
   } while (agentState != kAgentCleanup);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   int theConnectionType = kAgentConnection;
   rlSocket theConnection = 0;
 
