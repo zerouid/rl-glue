@@ -1,32 +1,9 @@
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <unistd.h>
-
-#include <RLcommon.h>
-#include <RLnet/RLnet.h>
-
-const char* kRLInit = "init";
-const char* kRLStart = "start";
-const char* kRLStep = "step";
-const char* kRLReturn = "return";
-const char* kRLAverageReward = "aver";
-const char* kRLAverageNumSteps = "avens";
-const char* kRLNumSteps = "numstep";
-const char* kRLNumEpisodes = "numeps";
-const char* kRLEpisode = "episode";
-const char* kRLSetState = "sets";
-const char* kRLSetRandomSeed = "setrs";
-const char* kRLGetState = "gets";
-const char* kRLGetRandomSeed = "getrs";
-const char* kRLCleanup = "cleanup";
+#include <RL_common.h>
+#include <Network/RL_netlib.h>
 
 const char* kUnknownMessage = "Unknown Message: %s\n";
 
-const char* kInvalidPort = "The port is invalid, using %hd instead.\n";
-static const short kDefaultPort = 4696;
-
-extern void RL_init(int argc, char** argv);
+extern void RL_init();
 extern Observation_action RL_start();
 extern Reward_observation_action_terminal RL_step();
 extern Reward RL_return();
@@ -41,141 +18,46 @@ extern State_key RL_get_state();
 extern Random_seed_key RL_get_random_seed();
 extern void RL_cleanup();
 
-static void send_msg(rlSocket theSocket, const char* theMessage)
-{
-  char send_buffer[8] = {0};
-  strncpy(send_buffer, theMessage, 8);
-  rlSendData(theSocket, send_buffer, 8);
+void onRLInit(rlSocket theConnection) {
 }
 
-void on_RL_init(int argc, char** argv, rlSocket theConnection)
-{
-  RL_init(argc, argv);
-  send_msg(theConnection, kRLInit);
+void onRLStart(rlSocket theConnection) {
 }
 
-void on_RL_start(rlSocket theConnection)
-{
-  Observation_action theObservationAction = RL_start();
-
-  rlSendObservationHeader(theConnection, theObservationAction.o);
-  rlSendActionHeader(theConnection, theObservationAction.a);
-
-  send_msg(theConnection, kRLStart);
+void onRLStep(rlSocket theConnection) {
 }
 
-void on_RL_step(rlSocket theConnection)
-{
-  Reward_observation_action_terminal theRewardObservationActionTerminal = RL_step();
-
-  rlSendObservationHeader(theConnection, theRewardObservationActionTerminal.o);
-  rlSendActionHeader(theConnection, theRewardObservationActionTerminal.a);
-
-  rlSendReward(theConnection, theRewardObservationActionTerminal.r);
-  rlSendObservationBody(theConnection, theRewardObservationActionTerminal.o);
-  rlSendActionBody(theConnection, theRewardObservationActionTerminal.a);
-  rlSendTerminal(theConnection, theRewardObservationActionTerminal.terminal);
-
-  send_msg(theConnection, kRLStep);
+void onRLReturn(rlSocket theConnection) {
 }
 
-void on_RL_return(rlSocket theConnection)
-{
-  Reward theReturn = RL_return();
-  rlSendReward(theConnection, theReturn);
-
-  send_msg(theConnection, kRLReturn);
+void onRLNumSteps(rlSocket theConnection) {
 }
 
-void on_RL_average_reward(rlSocket theConnection)
-{
-  Reward theAverageReward = RL_average_reward();
-  rlSendReward(theConnection, theAverageReward);
-
-  send_msg(theConnection, kRLAverageReward);
+void onRLNumEpisodes(rlSocket theConnection) {
 }
 
-void on_RL_average_num_steps(rlSocket theConnection)
-{
-  double theAverageNumberOfSteps = RL_average_num_steps();
-  rlSendData(theConnection, &theAverageNumberOfSteps, sizeof(double));
-
-  send_msg(theConnection, kRLAverageNumSteps);
+void onRLEpisode(rlSocket theConnection) {
 }
 
-void on_RL_num_steps(rlSocket theConnection)
-{
-  int theNumberOfSteps = RL_num_steps();
-  rlSendData(theConnection, &theNumberOfSteps, sizeof(int));
-
-  send_msg(theConnection, kRLNumSteps);
+void onRLSetState(rlSocket theConnection) {
 }
 
-void on_RL_num_episodes(rlSocket theConnection)
-{
-  int theNumberOfEpisodes = RL_num_episodes();
-  rlSendData(theConnection, &theNumberOfEpisodes, sizeof(int));
-
-  send_msg(theConnection, kRLNumEpisodes);
+void onRLSetRandomSeed(rlSocket theConnection) {
 }
 
-void on_RL_episode(rlSocket theConnection)
-{
-  int numSteps = 0;
-  rlRecvData(theConnection, &numSteps, sizeof(int));
-  RL_episode(numSteps);
-
-  send_msg(theConnection, kRLEpisode);
+void onRLGetState(rlSocket theConnection) {
 }
 
-void on_RL_set_state(rlSocket theConnection)
-{
-  State_key theKey;
-  rlRecvData(theConnection, &theKey, sizeof(State_key));
-  RL_set_state(theKey);
-
-  send_msg(theConnection, kRLSetState);
+void onRLGetRandomSeed(rlSocket theConnection) {
 }
 
-void on_RL_set_random_seed(rlSocket theConnection)
-{
-  Random_seed_key theKey;
-  rlRecvData(theConnection, &theKey, sizeof(Random_seed_key));
-  RL_set_random_seed(theKey);
-
-  send_msg(theConnection, kRLSetRandomSeed);
+void onRLCleanup(rlSocket theConnection) {
 }
 
-void on_RL_get_state(rlSocket theConnection)
-{
-  State_key theKey = RL_get_state();
-  rlSendData(theConnection, &theKey, sizeof(State_key));
-
-  send_msg(theConnection, kRLGetState);
-}
-
-void on_RL_get_random_seed(rlSocket theConnection)
-{
-  Random_seed_key theKey = RL_get_random_seed();
-  rlSendData(theConnection, &theKey, sizeof(Random_seed_key));
-
-  send_msg(theConnection, kRLGetRandomSeed);
-}
-
-void on_RL_cleanup(rlSocket theConnection)
-{
-  RL_cleanup();
-
-  send_msg(theConnection, kRLCleanup);
-}
-
-void run_experiment(int argc, char** argv, rlSocket theConnection)
-{
-  char theMessage[8] = {0};
-
-  do
-  { 
-    rlRecvData(theConnection, theMessage, 8);
+void runGlueEventLoop(rlSocket theConnection) {
+  int glueState = 0;
+  do { 
+    rlRecvData(theConnection, glueState, sizeof(int));
               
     if (strncmp(theMessage, kRLInit, 8) == 0)
     {
@@ -239,19 +121,6 @@ void run_experiment(int argc, char** argv, rlSocket theConnection)
       break;
     }
   } while (strncmp(theMessage, kRLCleanup, 8) != 0);
-}
-
-static void parse_command_line(int argc, char** argv, short *thePort) {
-  int c = 0;
-
-  while((c = getopt(argc, argv, "p:")) != -1) {
-    switch(c) {
-    case 'p':
-      sscanf(optarg, "%hd", thePort);
-      break;
-    };
-  }
-
 }
 
 int main(int argc, char** argv)
