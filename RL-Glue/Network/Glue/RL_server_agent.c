@@ -1,21 +1,23 @@
-#include <stdio.h>
 #include <string.h> /* strlen */
 #include <stdlib.h> /* calloc */
+#include <stdio.h> /* for fprintf: debug only */
 
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
 static rlSocket theAgentConnection = 0;
 static Action theAction = {0};
+static int isActionAllocated = 0;
 
 static void mallocAction(Action *theAction) {
-  if (theAction != 0) {
-    if (theAction->numInts > 0 && theAction->intArray == 0) {
+  if (theAction != 0 && !isActionAllocated) {
+    if (theAction->numInts > 0) {
       theAction->intArray = (int*)calloc(theAction->numInts, sizeof(int));
     }
-    if (theAction->numDoubles > 0 && theAction->doubleArray == 0) {
+    if (theAction->numDoubles > 0) {
       theAction->doubleArray = (double*)calloc(theAction->numDoubles, sizeof(double));
     }
+    isActionAllocated = 1;
   }
 }
 
@@ -28,6 +30,8 @@ static void freeAction(Action *theAction) {
     theAction->numDoubles  = 0;
     theAction->intArray    = 0;
     theAction->doubleArray = 0;
+
+    isActionAllocated = 0;
   }
 }
 
@@ -78,6 +82,7 @@ Action agent_start(Observation theObservation)
 Action agent_step(Reward theReward, Observation theObservation)
 {
   const int agentState = kAgentStep;
+
   rlSendData(theAgentConnection, &agentState, sizeof(int));
   rlSendData(theAgentConnection, &theReward, sizeof(Reward));
   rlSendADT(theAgentConnection, (RL_abstract_type*)&theObservation);
@@ -91,6 +96,7 @@ Action agent_step(Reward theReward, Observation theObservation)
 void agent_end(Reward theReward)
 { 
   const int agentState = kAgentEnd;
+
   rlSendData(theAgentConnection, &agentState, sizeof(int));
   rlSendData(theAgentConnection, &theReward, sizeof(Reward));
 }
@@ -99,6 +105,7 @@ void agent_end(Reward theReward)
 void agent_cleanup()
 {
   const int agentState = kAgentCleanup;
+
   rlSendData(theAgentConnection, &agentState, sizeof(int));
   freeAction(&theAction);
 }
