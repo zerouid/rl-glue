@@ -1,8 +1,6 @@
 #ifndef RLcommon_h
 #define RLcommon_h
 
-typedef int Random_seed_key;
-typedef int State_key;
 typedef char* Task_specification;
 typedef double Reward;
 
@@ -10,12 +8,14 @@ typedef struct RL_abstract_type_t
 {
   unsigned int numInts;
   unsigned int numDoubles;
-  int* intArray;
-  double* doubleArray;
+  int *intArray;
+  double *doubleArray;
 } RL_abstract_type;
 
 typedef RL_abstract_type Observation;
 typedef RL_abstract_type Action;
+typedef RL_abstract_type Random_seed_key;
+typedef RL_abstract_type State_key;
 
 typedef struct {
   Observation o;

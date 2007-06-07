@@ -9,11 +9,24 @@
 #define kAgentConnection       2
 #define kEnvironmentConnection 3
 
-#define kAgentInit    1 /* agent_* start by sending one of these values */
-#define kAgentStart   2 /* to the client to let it know what type of    */
-#define kAgentStep    3 /* event to respond to                          */
-#define kAgentEnd     4
-#define kAgentCleanup 5
+#define kAgentInit    4 /* agent_* start by sending one of these values */
+#define kAgentStart   5 /* to the client to let it know what type of    */
+#define kAgentStep    6 /* event to respond to                          */
+#define kAgentEnd     7
+#define kAgentCleanup 8
+
+#define kEnvInit          9
+#define kEnvStart         10
+#define kEnvStep          11
+#define kEnvCleanup       12
+#define kEnvSetState      13
+#define kEnvSetRandomSeed 14
+#define kEnvGetState      15
+#define kEnvGetRandomSeed 16
+
+#define kLocalHost "127.0.0.1"
+#define kDefaultPort 4096
+#define kRetryTimeout 10
 
 /* Data types */
 typedef int rlSocket;
@@ -33,6 +46,8 @@ int rlRecvData(rlSocket socket, void* data, int length);
 void rlSendADT(rlSocket socket, RL_abstract_type* data);
 void rlRecvADTHeader(rlSocket socket, RL_abstract_type* data);
 void rlRecvADTBody(rlSocket socket, RL_abstract_type* data);
+void rlAllocADT(RL_abstract_type *data);
+void rlFreeADT(RL_abstract_type *data);
 
 int rlGetSystemByteOrder();
 
