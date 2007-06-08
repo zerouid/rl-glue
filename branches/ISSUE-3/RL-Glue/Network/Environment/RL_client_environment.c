@@ -33,7 +33,7 @@ static rlSocket waitForConnection(const char* address, const short port, const i
   while(isConnected == -1) {
     theConnection = rlOpen(port);
     assert(rlIsValidSocket(theConnection));
-    isConnected = rlConnect(theConnection, kLocalHost, kDefaultPort);
+    isConnected = rlConnect(theConnection, address, port);
     if (isConnected == -1) { 
       rlClose(theConnection);
       sleep(retryTimeout);
