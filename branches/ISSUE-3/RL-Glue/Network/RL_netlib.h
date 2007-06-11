@@ -63,7 +63,7 @@ void rlAllocADT(RL_abstract_type *data);
 void rlFreeADT(RL_abstract_type *data);
 
 rlSocket rlWaitForConnection(const char *address, const short port, const int retryTimeout);
-void rlConnectSystems();
+int rlConnectSystems();
 
 int rlGetSystemByteOrder();
 

@@ -181,13 +181,16 @@ rlSocket rlWaitForConnection(const char *address, const short port, const int re
   return theConnection;
 }
 
-void rlConnectSystems() {
+int rlConnectSystems() {
   int isAgentConnected       = 0;
   int isEnvironmentConnected = 0; 
   int isExperimentConnected  = 0;
   int theClientType = 0;
   int theClient = 0;
   int theServer = 0;
+
+  rlSocket theExperimentConnection = 0;
+
   theServer = rlOpen(kDefaultPort);
   rlListen(theServer, kDefaultPort);
 
@@ -205,11 +208,12 @@ void rlConnectSystems() {
     case kEnvironmentConnection:
       rlSetEnvironmentConnection(theClient);
       isEnvironmentConnected = 1;
+      theExperimentConnection = theClient;
       fprintf(stderr, "RL_network.c: Environment Connected!\n");
       break;
 
     case kExperimentConnection:
-      rlSetExperimentConnection(theClient);
+      /*      rlSetExperimentConnection(theClient); */
       isExperimentConnected = 1;
       fprintf(stderr, "RL_network.c: Experiment Connected!\n");
       break;
@@ -221,6 +225,8 @@ void rlConnectSystems() {
 
   rlClose(theServer);
   fprintf(stderr, "Systems Connected. Go Team Venture!\n");
+
+  return theExperimentConnection;
 }
 
 int rlGetSystemByteOrder() {
