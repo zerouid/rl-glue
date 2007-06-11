@@ -19,14 +19,11 @@ CFLAGS  = -I$(RL-GLUE)/ -ansi -pedantic -Wall
 LDFLAGS =
 
 # ==================================== User Code ===========================================
-all: RL_glue RL_agent RL_environment
+all: RL_glue RL_agent RL_environment RL_experiment
 
 # ----------------------- Compile And Link RL-Glue 2.0 (Agent/Environment Network) ----------------------
-RL_glue: RL_interface.o RL_network.o RL_netlib.o RL_direct_experiment.o RL_experiment.o RL_server_environment.o RL_server_agent.o 
-	$(CC) $(LDFLAGS) -o $@ Build/RL_interface.o Build/RL_network.o Build/RL_netlib.o Build/RL_direct_experiment.o Build/RL_experiment.o Build/RL_server_environment.o Build/RL_server_agent.o 
-
-RL_experiment.o: $(EXPERIMENTC) $(EXPERIMENTH)
-	$(CC) $(CFLAGS) -c $< -o Build/$@
+RL_glue: RL_interface.o RL_network.o RL_netlib.o RL_server_experiment.o RL_server_environment.o RL_server_agent.o 
+	$(CC) $(LDFLAGS) -o $@ Build/RL_interface.o Build/RL_network.o Build/RL_netlib.o Build/RL_server_experiment.o Build/RL_server_environment.o Build/RL_server_agent.o 
 # -------------------------------------------------------------------------------------------
 
 # ------------------------- Compile And Link the Agent (Network) ----------------------------
@@ -37,7 +34,6 @@ RL_agent.o: $(AGENTC) $(AGENTH)
 	$(CC) $(CFLAGS) -c $< -o Build/$@
 # -------------------------------------------------------------------------------------------
 
-
 # ---------------------- Compile And Link the Environment (Network) -------------------------
 RL_environment: RL_environment.o RL_client_environment.o RL_netlib.o
 	$(CC) $(LDFLAGS) -o $@ Build/RL_environment.o Build/RL_client_environment.o Build/RL_netlib.o
@@ -45,6 +41,15 @@ RL_environment: RL_environment.o RL_client_environment.o RL_netlib.o
 RL_environment.o: $(ENVIRONMENTC) $(ENVIRONMENTH)
 	$(CC) $(CFLAGS) -c $< -o Build/$@
 # -------------------------------------------------------------------------------------------
+
+# ---------------------- Compile And Link the Experiment (Network) --------------------------
+RL_experiment: RL_experiment.o RL_client_experiment.o RL_netlib.o
+	$(CC) $(LDFLAGS) -o $@ Build/RL_experiment.o Build/RL_client_experiment.o Build/RL_netlib.o
+	
+RL_experiment.o: $(EXPERIMENTC) $(EXPERIMENTH)
+	$(CC) $(CFLAGS) -c $< -o Build/$@
+# -------------------------------------------------------------------------------------------
+
 # ===========================================================================================
 
 
