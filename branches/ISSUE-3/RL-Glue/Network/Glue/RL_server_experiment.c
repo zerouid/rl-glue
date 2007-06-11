@@ -58,99 +58,67 @@ void runGlueEventLoop(rlSocket theConnection) {
   int glueState = 0;
   do { 
     rlRecvData(theConnection, glueState, sizeof(int));
-              
-    if (strncmp(theMessage, kRLInit, 8) == 0)
-    {
-      on_RL_init(argc, argv, theConnection);
-    }
-    else if (strncmp(theMessage, kRLStart, 8) == 0)
-    {
-      on_RL_start(theConnection);
-    }
-    else if (strncmp(theMessage, kRLStep, 8) == 0)
-    {
-      on_RL_step(theConnection);
-    }
-    else if ( strncmp(theMessage, kRLReturn, 8) == 0)
-    {
-      on_RL_return(theConnection);
-    }
-    else if (strncmp(theMessage, kRLAverageReward, 8) == 0)
-    {
-      on_RL_average_reward(theConnection);
-    }
-    else if (strncmp(theMessage, kRLAverageNumSteps, 8) == 0)
-    {
-      on_RL_average_num_steps(theConnection);
-    }
-    else if (strncmp(theMessage, kRLNumSteps, 8) == 0)
-    {
-      on_RL_num_steps(theConnection);
-    }
-    else if (strncmp(theMessage, kRLNumEpisodes, 8) == 0)
-    {
-      on_RL_num_episodes(theConnection);
-    }
-    else if (strncmp(theMessage, kRLEpisode, 8) == 0)
-    {
-      on_RL_episode(theConnection);
-    }
-    else if (strncmp(theMessage, kRLSetState, 8) == 0)
-    {
-      on_RL_set_state(theConnection);
-    }
-    else if (strncmp(theMessage, kRLSetRandomSeed, 8) == 0)
-    {
-      on_RL_set_random_seed(theConnection);
-    }
-    else if (strncmp(theMessage, kRLGetState, 8) == 0)
-    {
-      on_RL_get_state(theConnection);
-    }
-    else if (strncmp(theMessage, kRLGetRandomSeed, 8) == 0)
-    {
-      on_RL_get_random_seed(theConnection);
-    }    
-    else if (strncmp(theMessage, kRLCleanup, 8) == 0)
-    {
-      on_RL_cleanup(theConnection);
-    }
-    else
-    {
-      fprintf(stderr, kUnknownMessage, theMessage);
+
+    switch(glueState) {
+    case kRLInit:
+      onRLInit(theConnection);
       break;
-    }
-  } while (strncmp(theMessage, kRLCleanup, 8) != 0);
+
+    case kRLStart:
+      onRLStart(theConnection);
+      break;
+
+    case kRLStep:
+      onRLStep(theConnection);
+      break;
+
+    case kRLReturn:
+      onRLReturn(theConnection);
+      break;
+
+    case kRLCleanup:
+      onRLCleanup(theConnection);
+      break;
+
+    case kRLNumSteps:
+      onRLNumSteps(theConnection);
+      break;
+
+    case kRLNumEpisodes:
+      onRLNumEpisodes(theConnection);
+      break;
+
+    case kRLEpisode:
+      onRLEpisode(theConnection);
+      break;
+
+    case kRLSetState:
+      onRLSetState(theConnection);
+      break;
+
+    case kRLSetRandomSeed:
+      onRLSetRandomSeed(theConnection);
+      break;
+
+    case kRLGetState:
+      onRLGetState(theConnection);
+      break;
+
+    case kRLGetRandomSeed:
+      onRLGetRandomSeed(theConnection);
+      break;
+
+    default:
+      fprintf(stderr, kUnknownMessage, glueState);
+      break;
+    };
+  } while (glueState != kRLCleanup);
 }
 
 int main(int argc, char** argv)
 {
-  rlSocket theServer;
-  rlSocket theConnection;
-
-  int isValidSocket = 0;
-  int isListening = 0;
-
-  short thePort = kDefaultPort;
-  parse_command_line(argc, argv, &thePort);
-
-  while(1)
-  {
-    theServer = rlOpen(thePort);
-    isValidSocket = rlIsValidSocket(theServer);
-    assert(isValidSocket);
-
-    isListening = rlListen(theServer);
-    assert(isListening >= 0);
-
-    theConnection = rlAcceptConnection(theServer);
-    isValidSocket = rlIsValidSocket(theConnection);
-    assert(isValidSocket);
-
-    rlClose(theServer);
-    
-    run_experiment(argc, argv, theConnection);
-    rlClose(theConnection);
+  while(1) {
+    rlRunGlueEventLoop();
   }
 
   return 0;

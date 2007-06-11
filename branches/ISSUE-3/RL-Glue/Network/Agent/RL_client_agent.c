@@ -19,23 +19,6 @@ static char* theTaskSpec = 0;
 static Observation theObservation = {0};
 static int isObservationAllocated = 0;
 
-static rlSocket waitForConnection(const char* address, const short port, const int retryTimeout) {
-  rlSocket theConnection = 0;
-  int isConnected = -1;
-
-  while(isConnected == -1) {
-    theConnection = rlOpen(port);
-    assert(rlIsValidSocket(theConnection));
-    isConnected = rlConnect(theConnection, address, port);
-    if (isConnected == -1) { 
-      rlClose(theConnection);
-      sleep(retryTimeout);
-    }
-  }
-
-  return theConnection;
-}
-
 static void onAgentInit(rlSocket theConnection)
 {
   int theTaskSpecLength = 0;
@@ -134,11 +117,11 @@ static void runAgentEventLoop(rlSocket theConnection)
 }
 
 int main(int argc, char** argv) {
-  int theConnectionType = kAgentConnection;
+  const int theConnectionType = kAgentConnection;
   rlSocket theConnection = 0;
 
   while(1) {
-    theConnection = waitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
+    theConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
     /* we need to tell RL-Glue what type of object is connecting */
     rlSendData(theConnection, &theConnectionType, sizeof(int)); 
     runAgentEventLoop(theConnection);

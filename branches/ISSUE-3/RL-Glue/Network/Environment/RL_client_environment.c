@@ -26,23 +26,6 @@ static int isActionAllocated        = 0;
 static int isStateKeyAllocated      = 0;
 static int isRandomSeedKeyAllocated = 0;
 
-static rlSocket waitForConnection(const char* address, const short port, const int retryTimeout) {
-  rlSocket theConnection = 0;
-  int isConnected = -1;
-
-  while(isConnected == -1) {
-    theConnection = rlOpen(port);
-    assert(rlIsValidSocket(theConnection));
-    isConnected = rlConnect(theConnection, address, port);
-    if (isConnected == -1) { 
-      rlClose(theConnection);
-      sleep(retryTimeout);
-    }
-  }
-
-  return theConnection;
-}
-
 static void onEnvInit(rlSocket theConnection) {
   Task_specification theTaskSpec = 0;
   int theTaskSpecLength = 0;
@@ -167,11 +150,11 @@ static void runEnvironmentEventLoop(rlSocket theConnection) {
 }
 
 int main(int argc, char** argv) {
-  int theConnectionType = kEnvironmentConnection;
+  const int theConnectionType = kEnvironmentConnection;
   rlSocket theConnection = 0;
 
   while(1) {
-    theConnection = waitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
+    theConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
     /* we need to tell RL-Glue what type of object is connecting */
     rlSendData(theConnection, &theConnectionType, sizeof(int)); 
     runEnvironmentEventLoop(theConnection);
