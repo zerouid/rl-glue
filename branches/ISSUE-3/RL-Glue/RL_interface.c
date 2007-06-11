@@ -18,8 +18,7 @@ Observation_action oa;
 /* Call into the direct call or network libraries */
 extern void rlConnectSystems();
 
-void RL_init()
-{
+void RL_init() {
   Task_specification task_spec;
 
   rlConnectSystems();
@@ -51,8 +50,7 @@ Observation_action RL_start()
   return oa;
 }
 
-Reward_observation_action_terminal RL_step()
-{
+Reward_observation_action_terminal RL_step() {
   Reward_observation ro;
   ro = env_step(last_action);
   last_reward = ro.r;
@@ -65,14 +63,12 @@ Reward_observation_action_terminal RL_step()
   is_terminal = ro.terminal;
   total_reward += last_reward;
 
-  if (ro.terminal == 1)
-  {
+  if (ro.terminal == 1) {
     num_episodes += 1;
     total_steps  += num_steps;
     agent_end(last_reward);
   }
-  else
-  {
+  else {
     last_action = agent_step(last_reward,last_state);
     num_steps += 1; /* increment num_steps if state is not terminal */
     roa.a = last_action;
@@ -80,8 +76,7 @@ Reward_observation_action_terminal RL_step()
   return roa;
 }
 
-void RL_episode(unsigned int num_steps)
-{
+void RL_episode(unsigned int num_steps) {
   int x = 0;
   RL_start();
 
@@ -90,44 +85,36 @@ void RL_episode(unsigned int num_steps)
   }
 }
 
-Reward RL_return()
-{
+Reward RL_return() {
   return total_reward;
 }
 
-int RL_num_steps()
-{
+int RL_num_steps() {
   /* number of steps of the current or just completed episodes or run */
   return num_steps;
 }
 
-int RL_num_episodes()
-{
+int RL_num_episodes() {
   return num_episodes;
 }
 
-void RL_cleanup()
-{
+void RL_cleanup() {
   env_cleanup();
   agent_cleanup();
 }
 
-State_key RL_get_state()
-{
+State_key RL_get_state() {
   return env_get_state();
 }
 
-Random_seed_key RL_get_random_seed()
-{
+Random_seed_key RL_get_random_seed() {
   return env_get_random_seed();
 }
 
-void RL_set_state(State_key sk)
-{
+void RL_set_state(State_key sk) {
   env_set_state(sk);
 }
 
-void RL_set_random_seed(Random_seed_key rsk)
-{
+void RL_set_random_seed(Random_seed_key rsk) {
   env_set_random_seed(rsk);
 }
