@@ -1,6 +1,6 @@
 #ifndef mines_h
 
-#include <RL_common.h>
+#include <RLcommon.h>
 
 Task_specification env_init();
 Observation env_start();
