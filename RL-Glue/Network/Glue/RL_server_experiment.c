@@ -169,9 +169,10 @@ void runGlueEventLoop(rlSocket theConnection) {
 }
 
 int main(int argc, char** argv) {
+  rlSocket theConnection = 0;
   while(1) {
-    rlConnectSystems();
-    runGlueEventLoop();
+    theConnection = rlConnectSystems();
+    runGlueEventLoop(theConnection);
   }
   return 0;
 }
