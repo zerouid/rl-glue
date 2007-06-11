@@ -16,11 +16,12 @@ Reward_observation_action_terminal roa;
 Observation_action oa;
 
 /* Call into the direct call or network libraries */
-extern void rlConnectSystems();
+extern int rlConnectSystems();
 
 void RL_init() {
   Task_specification task_spec;
 
+  fprintf(stderr, "rlConnnectSystems about to be called by %s in %s\n", __FUNCTION__, __FILE__);
   rlConnectSystems();
 
   task_spec = env_init();
@@ -35,8 +36,7 @@ void RL_init() {
   num_episodes    = 0;
 }
 
-Observation_action RL_start()
-{
+Observation_action RL_start() {
   num_steps    = 1;
   is_terminal  = 0;
   total_reward = 0;

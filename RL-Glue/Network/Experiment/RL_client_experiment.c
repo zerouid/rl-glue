@@ -24,9 +24,9 @@ void RL_init() {
 
 Observation_action RL_start() {
   const int experimentState = kRLStart;
-  Observation_action oa = {0};
+  Observation_action oa = { {0}, {0} };
 
-  rlSendData(theExperimentConnection, &experimentStart, sizeof(int));
+  rlSendData(theExperimentConnection, &experimentState, sizeof(int));
 
   rlRecvADTHeader(theExperimentConnection, &theObservation);
   if (!isObservationAllocated) {
@@ -42,14 +42,14 @@ Observation_action RL_start() {
   }
   rlRecvADTBody(theExperimentConnection, &theAction);
 
-	oa.o = theObservation;
-	oa.a = theAction;
-	return oa;
+  oa.o = theObservation;
+  oa.a = theAction;
+  return oa;
 }
 
 Reward_observation_action_terminal RL_step() {
   const int experimentState = kRLStep;
-  Reward_observation_action_terminal roat = {0};
+  Reward_observation_action_terminal roat = {0, {0}, {0}, 0};
 
   rlSendData(theExperimentConnection, &experimentState, sizeof(int));
 
@@ -178,5 +178,5 @@ Random_seed_key RL_get_random_seed() {
   }
   rlRecvADTBody(theExperimentConnection, &theRandomSeedKey);
 
-	return theRandomSeedKey
+  return theRandomSeedKey;
 }
