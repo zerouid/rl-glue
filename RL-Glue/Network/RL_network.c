@@ -8,7 +8,7 @@ extern void rlSetExperimentConnection(int);
 void rlConnectSystems() {
   int isAgentConnected       = 0;
   int isEnvironmentConnected = 0; 
-  int isExperimentConnected  = 1;
+  int isExperimentConnected  = 0;
   int theClientType = 0;
   int theClient = 0;
   int theServer = 0;

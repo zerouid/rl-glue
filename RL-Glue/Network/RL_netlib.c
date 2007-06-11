@@ -1,6 +1,7 @@
 /* Standard Headers */
 #include <assert.h> /* assert */
 #include <stdlib.h> /* calloc */
+#include <stdio.h> /* fprintf */
 #include <string.h> /* memset */
 
 /* Network Headers */
@@ -14,8 +15,11 @@
 /* RL_netlib Library Header */
 #include <Network/RL_netlib.h>
 
-rlSocket rlOpen(short thePort)
-{
+extern void rlSetAgentConnection(int);
+extern void rlSetEnvironmentConnection(int);
+extern void rlSetExperimentConnection(int);
+
+rlSocket rlOpen(short thePort) {
   int flag = 1;
   rlSocket theSocket = 0;
 
@@ -25,8 +29,7 @@ rlSocket rlOpen(short thePort)
   return theSocket;
 }
 
-rlSocket rlAcceptConnection(rlSocket theSocket)
-{
+rlSocket rlAcceptConnection(rlSocket theSocket) {
   rlSocket theClient = 0;
   struct sockaddr_in theClientAddress = {0};
   unsigned int theSocketSize = sizeof(struct sockaddr_in);
@@ -34,8 +37,7 @@ rlSocket rlAcceptConnection(rlSocket theSocket)
   return theClient;
 }
 
-int rlConnect(rlSocket theSocket, const char* theAddress, short thePort)
-{
+int rlConnect(rlSocket theSocket, const char* theAddress, short thePort) {
   int theStatus = 0;
   struct sockaddr_in theDestination;
   theDestination.sin_family = AF_INET;
@@ -50,8 +52,7 @@ int rlConnect(rlSocket theSocket, const char* theAddress, short thePort)
   return theStatus;
 }
 
-int rlListen(rlSocket theSocket, short thePort)
-{
+int rlListen(rlSocket theSocket, short thePort) {
   struct sockaddr_in theServer;
   int theStatus = 0;
   int yes = 1;
@@ -76,18 +77,15 @@ int rlListen(rlSocket theSocket, short thePort)
   return theStatus;
 }
 
-int rlClose(rlSocket theSocket)
-{
+int rlClose(rlSocket theSocket) {
   return close(theSocket);
 }
 
-int rlIsValidSocket(rlSocket theSocket)
-{
+int rlIsValidSocket(rlSocket theSocket) {
   return theSocket != -1;
 }
 
-int rlSendData(rlSocket theSocket, const void* theData, int theLength)
-{
+int rlSendData(rlSocket theSocket, const void* theData, int theLength) {
   int theBytesSent = 0;
   int theMsgError = 0;
   const char* theDataBuffer = (const char*)theData;
@@ -101,8 +99,7 @@ int rlSendData(rlSocket theSocket, const void* theData, int theLength)
   return theBytesSent;
 }
 
-int rlRecvData(rlSocket theSocket, void* theData, int theLength)
-{
+int rlRecvData(rlSocket theSocket, void* theData, int theLength) {
   int theBytesRecv = 0;
   int theMsgError = 0;
   char* theDataBuffer = (char*)theData;
@@ -184,8 +181,49 @@ rlSocket rlWaitForConnection(const char *address, const short port, const int re
   return theConnection;
 }
 
-int rlGetSystemByteOrder()
-{
+void rlConnectSystems() {
+  int isAgentConnected       = 0;
+  int isEnvironmentConnected = 0; 
+  int isExperimentConnected  = 0;
+  int theClientType = 0;
+  int theClient = 0;
+  int theServer = 0;
+  theServer = rlOpen(kDefaultPort);
+  rlListen(theServer, kDefaultPort);
+
+  while(!isAgentConnected || !isEnvironmentConnected || !isExperimentConnected) {
+    theClient = rlAcceptConnection(theServer);
+    rlRecvData(theClient, &theClientType, sizeof(int));
+
+    switch(theClientType) {
+    case kAgentConnection:
+      rlSetAgentConnection(theClient);
+      isAgentConnected = 1;
+      fprintf(stderr, "RL_network.c: Agent Connected!\n");
+      break;
+
+    case kEnvironmentConnection:
+      rlSetEnvironmentConnection(theClient);
+      isEnvironmentConnected = 1;
+      fprintf(stderr, "RL_network.c: Environment Connected!\n");
+      break;
+
+    case kExperimentConnection:
+      rlSetExperimentConnection(theClient);
+      isExperimentConnected = 1;
+      fprintf(stderr, "RL_network.c: Experiment Connected!\n");
+      break;
+
+    default:
+      break;
+    };
+  }
+
+  rlClose(theServer);
+  fprintf(stderr, "Systems Connected. Go Team Venture!\n");
+}
+
+int rlGetSystemByteOrder() {
   /*
     Endian will be 1 when we are on a little endian machine,
     and not 1 on a big endian machine.
