@@ -1,6 +1,7 @@
 /* Standard Headers */
+#include <assert.h> /* assert */
 #include <stdlib.h> /* calloc */
-#include <string.h>
+#include <string.h> /* memset */
 
 /* Network Headers */
 #include <unistd.h>
@@ -164,6 +165,23 @@ void rlFreeADT(RL_abstract_type *data) {
     data->intArray    = 0;
     data->doubleArray = 0;
   }
+}
+
+rlSocket rlWaitForConnection(const char *address, const short port, const int retryTimeout) {
+  rlSocket theConnection = 0;
+  int isConnected = -1;
+
+  while(isConnected == -1) {
+    theConnection = rlOpen(port);
+    assert(rlIsValidSocket(theConnection));
+    isConnected = rlConnect(theConnection, address, port);
+    if (isConnected == -1) { 
+      rlClose(theConnection);
+      sleep(retryTimeout);
+    }
+  }
+
+  return theConnection;
 }
 
 int rlGetSystemByteOrder()
