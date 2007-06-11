@@ -24,6 +24,19 @@
 #define kEnvGetState      15
 #define kEnvGetRandomSeed 16
 
+#define kRLInit           17
+#define kRLStart          18
+#define kRLStep           19
+#define kRLCleanup        20
+#define kRLReturn         21
+#define kRLNumSteps       22
+#define kRLNumEpisodes    23
+#define kRLEpisode        24
+#define kRLSetState       25
+#define kRLSetRandomSeed  26
+#define kRLGetState       27
+#define kRLGetRandomSeed  28
+
 #define kLocalHost "127.0.0.1"
 #define kDefaultPort 4096
 #define kRetryTimeout 10
