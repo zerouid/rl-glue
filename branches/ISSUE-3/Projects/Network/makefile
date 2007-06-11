@@ -22,8 +22,8 @@ LDFLAGS =
 all: RL_glue RL_agent RL_environment RL_experiment
 
 # ----------------------- Compile And Link RL-Glue 2.0 (Agent/Environment Network) ----------------------
-RL_glue: RL_interface.o RL_netlib.o RL_server_experiment.o RL_server_environment.o RL_server_agent.o 
-	$(CC) $(LDFLAGS) -o $@ Build/RL_interface.o Build/RL_netlib.o Build/RL_server_experiment.o Build/RL_server_environment.o Build/RL_server_agent.o 
+RL_glue: RL_interface.o RL_network.o RL_netlib.o RL_server_experiment.o RL_server_environment.o RL_server_agent.o 
+	$(CC) $(LDFLAGS) -o $@ Build/RL_interface.o Build/RL_network.o Build/RL_netlib.o Build/RL_server_experiment.o Build/RL_server_environment.o Build/RL_server_agent.o 
 # -------------------------------------------------------------------------------------------
 
 # ------------------------- Compile And Link the Agent (Network) ----------------------------
@@ -45,7 +45,7 @@ RL_environment.o: $(ENVIRONMENTC) $(ENVIRONMENTH)
 # ---------------------- Compile And Link the Experiment (Network) --------------------------
 RL_experiment: RL_experiment.o RL_client_experiment.o RL_netlib.o
 	$(CC) $(LDFLAGS) -o $@ Build/RL_experiment.o Build/RL_client_experiment.o Build/RL_netlib.o
-	
+
 RL_experiment.o: $(EXPERIMENTC) $(EXPERIMENTH)
 	$(CC) $(CFLAGS) -c $< -o Build/$@
 # -------------------------------------------------------------------------------------------
@@ -114,6 +114,9 @@ RL_server_experiment.o: $(RLGLUE_PATH)/Network/Glue/RL_server_experiment.c
 # -------------------------------------------------------------------------------------------
 
 # ------------------------------------ Network Library --------------------------------------
+RL_network.o: $(RLGLUE_PATH)/Network/RL_network.c
+	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
+
 RL_netlib.o: $(RLGLUE_PATH)/Network/RL_netlib.c $(RLGLUE_PATH)/Network/RL_netlib.h
 	$(RLGLUE_CC) $(RLGLUE_CFLAGS) -c $< -o Build/$@
 # -------------------------------------------------------------------------------------------

@@ -5,6 +5,8 @@
 
 const char* kUnknownMessage = "Unknown Message: %s\n";
 
+extern int rlConnectSystems();
+
 extern void RL_init();
 extern Observation_action RL_start();
 extern Reward_observation_action_terminal RL_step();
@@ -109,9 +111,11 @@ void onRLCleanup(rlSocket theConnection) {
 
 void runGlueEventLoop(rlSocket theConnection) {
   int glueState = 0;
+
   do { 
     rlRecvData(theConnection, &glueState, sizeof(int));
-    
+    fprintf(stderr, "glueState = %d\n", glueState);
+
     switch(glueState) {
     case kRLInit:
       onRLInit(theConnection);
