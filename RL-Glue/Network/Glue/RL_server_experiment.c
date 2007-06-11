@@ -1,5 +1,6 @@
 #include <stdio.h> /* fprintf */
 
+#include <assert.h> /* assert */
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -176,7 +177,9 @@ int main(int argc, char** argv) {
   rlSocket theConnection = 0;
   while(1) {
     theConnection = rlConnectSystems();
+    assert(rlIsValidSocket(theConnection));
     runGlueEventLoop(theConnection);
+    rlClose(theConnection);
   }
   return 0;
 }
