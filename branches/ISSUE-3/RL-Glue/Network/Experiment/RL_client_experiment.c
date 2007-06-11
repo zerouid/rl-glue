@@ -1,3 +1,5 @@
+#include <stdio.h> /* fprintf */
+
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -19,6 +21,8 @@ void RL_init() {
 
   theExperimentConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
   rlSendData(theExperimentConnection, &theConnectionType, sizeof(int)); 
+
+  fprintf(stderr, "experimentState = %d\n", experimentState);
   rlSendData(theExperimentConnection, &experimentState, sizeof(int));
 }
 
