@@ -77,8 +77,9 @@ void agent_end(Reward theReward)
 void agent_cleanup()
 {
   const int agentState = kAgentCleanup;
+  rlSendData(theAgentConnection, &agentState, sizeof(int));	
+  rlClose(theAgentConnection);
 
-  rlSendData(theAgentConnection, &agentState, sizeof(int));
   rlFreeADT(&theAction);
   isActionAllocated = 0;
 }

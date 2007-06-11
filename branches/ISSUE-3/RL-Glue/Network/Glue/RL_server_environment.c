@@ -71,6 +71,7 @@ Reward_observation env_step(Action theAction) {
 void env_cleanup() {
   const int envState = kEnvCleanup;
   rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+  rlClose(theEnvironmentConnection);
 
   rlFreeADT(&theObservation);
   rlFreeADT(&theStateKey);
