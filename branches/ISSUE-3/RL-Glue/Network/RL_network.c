@@ -31,13 +31,13 @@ int rlConnectSystems() {
     case kEnvironmentConnection:
       rlSetEnvironmentConnection(theClient);
       isEnvironmentConnected = 1;
-      theExperimentConnection = theClient;
       fprintf(stderr, "RL_network.c: Environment Connected!\n");
       break;
 
     case kExperimentConnection:
       /* rlSetExperimentConnection(theClient); */
       isExperimentConnected = 1;
+      theExperimentConnection = theClient;
       fprintf(stderr, "RL_network.c: Experiment Connected!\n");
       break;
 
