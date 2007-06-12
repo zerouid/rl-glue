@@ -58,6 +58,7 @@ else{
 	exit(0);
 }	
   *ts = *ts + characters_read;
+  (*types)[++i] = '\0';
   
   
 /*Get the min and max values for all the variables*/  
