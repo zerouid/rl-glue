@@ -1,7 +1,3 @@
-AGENT       = ./Agent/ZeroAgent.c 
-ENVIRONMENT = ./Environment/mines.c
-EXPERIMENT  = ./Experiment/experiment.c
-
 # Path to RL-Glue to find RL_interface and related files.
 RL-GLUE = ../../RL-Glue
 
@@ -11,39 +7,67 @@ CFLAGS     = -I$(RL-GLUE)/ -ansi -pedantic -Wall
 LDFLAGS    =
 BUILD_PATH = Build/
 
+all: ZeroAgent.o mines.o experiment.o RL_GLUE
+
+ZeroAgent.o: ./Agent/ZeroAgent.c ./Agent/ZeroAgent.h
+	$(CC) $(CFLAGS) -c $< -o $(addprefix $(BUILD_PATH), $@)
+
+mines.o: ./Environment/mines.c ./Environment/mines.h
+	$(CC) $(CFLAGS) -c $< -o $(addprefix $(BUILD_PATH), $@)
+
+experiment.o: ./Experiment/experiment.c
+	$(CC) $(CFLAGS) -c $< -o $(addprefix $(BUILD_PATH), $@)
+
+# Object files and libraries required for linking our agent
+AGENT_OBJECTS       = ZeroAgent.o
+AGENT_LDFLAGS       =
+
+# Object files and libraries required for linking our environment
+ENVIRONMENT_OBJECTS = mines.o
+ENVIRONMENT_LDFLAGS =
+
+# Object files and libraries required for linking our experiment
+EXPERIMENT_OBJECTS  = experiment.o
+EXPERIMENT_LDFLAGS  =
+
 # Uncomment next line to use network agent
 AGENT_NET       = yes
 ENVIRONMENT_NET = yes
 EXPERIMENT_NET  = yes
 
-
 # ============================================================================================
 #                                     RLGLUE 2.0
 # ============================================================================================
-GLUE_AGENT        = RL_direct_agent.o RL_agent.o
-GLUE_ENVIRONMENT  = RL_direct_environment.o RL_environment.o 
-GLUE_EXPERIMENT   = RL_direct_experiment.o RL_experiment.o
+GLUE_AGENT        = RL_direct_agent.o $(AGENT_OBJECTS)
+GLUE_ENVIRONMENT  = RL_direct_environment.o $(ENVIRONMENT_OBJECTS)
+GLUE_EXPERIMENT   = RL_direct_experiment.o $(EXPERIMENT_OBJECTS)
 
 
 AGENT_TARGET      = 
 ifdef AGENT_NET
 GLUE_AGENT        = RL_server_agent.o
-AGENT_TARGET      = RL_agent
 USE_NETWORK       = yes
+ifdef AGENT_OBJECTS
+AGENT_TARGET      = RL_agent
+endif
 endif
 
 ENVIRONMENT_TARGET =
 ifdef ENVIRONMENT_NET
 GLUE_ENVIRONMENT   = RL_server_environment.o 
-ENVIRONMENT_TARGET = RL_environment
 USE_NETWORK        = yes
+ifdef ENVIRONMENT_OBJECTS
+ENVIRONMENT_TARGET = RL_environment
+endif
 endif
 
 EXPERIMENT_TARGET = 
 ifdef EXPERIMENT_NET
 GLUE_EXPERIMENT   = RL_server_experiment.o
-EXPERIMENT_TARGET = RL_experiment
 USE_NETWORK       = yes
+ifdef EXPERIMENT_OBJECTS
+EXPERIMENT_TARGET = RL_experiment
+endif
 endif
 
 ifdef USE_NETWORK
@@ -55,7 +79,7 @@ NETLIB_OBJECT  =
 endif
 
 
-all: RL_glue $(AGENT_TARGET) $(ENVIRONMENT_TARGET) $(EXPERIMENT_TARGET)
+RL_GLUE: RL_glue $(AGENT_TARGET) $(ENVIRONMENT_TARGET) $(EXPERIMENT_TARGET)
 
 # ------------------------------- Compile And Link RL-Glue 2.0 ------------------------------
 RL_glue: RL_interface.o $(NETWORK_OBJECT) $(NETLIB_OBJECT) $(GLUE_EXPERIMENT) $(GLUE_ENVIRONMENT) $(GLUE_AGENT) 
@@ -68,27 +92,24 @@ RL_glue: RL_interface.o $(NETWORK_OBJECT) $(NETLIB_OBJECT) $(GLUE_EXPERIMENT) $(
 # -------------------------------------------------------------------------------------------
 
 # ------------------------------ Compile And Link the Agent ---------------------------------
-RL_agent: RL_agent.o RL_client_agent.o RL_netlib.o
-	$(CC) $(LDFLAGS) -o $@  $(addprefix $(BUILD_PATH), RL_agent.o) $(addprefix $(BUILD_PATH), RL_client_agent.o) $(addprefix $(BUILD_PATH), RL_netlib.o)
-
-RL_agent.o: $(AGENT)
-	$(CC) $(CFLAGS) -c $< -o $(addprefix $(BUILD_PATH), $@)
+ifdef AGENT_OBJECTS
+RL_agent: $(AGENT_OBJECTS) RL_client_agent.o RL_netlib.o
+	$(CC) $(LDFLAGS) -o $@  $(addprefix $(BUILD_PATH), $(AGENT_OBJECTS)) $(addprefix $(BUILD_PATH), RL_client_agent.o) $(addprefix $(BUILD_PATH), RL_netlib.o) $(AGENT_LDFLAGS)
+endif
 # -------------------------------------------------------------------------------------------
 
 # --------------------------- Compile And Link the Environment ------------------------------
-RL_environment: RL_environment.o RL_client_environment.o RL_netlib.o
-	$(CC) $(LDFLAGS) -o $@  $(addprefix $(BUILD_PATH), RL_environment.o) $(addprefix $(BUILD_PATH), RL_client_environment.o) $(addprefix $(BUILD_PATH), RL_netlib.o)
-
-RL_environment.o: $(ENVIRONMENT)
-	$(CC) $(CFLAGS) -c $< -o $(addprefix $(BUILD_PATH), $@)
+ifdef ENVIRONMENT_OBJECTS
+RL_environment: $(ENVIRONMENT_OBJECTS) RL_client_environment.o RL_netlib.o
+	$(CC) $(LDFLAGS) -o $@  $(addprefix $(BUILD_PATH), $(ENVIRONMENT_OBJECTS)) $(addprefix $(BUILD_PATH), RL_client_environment.o) $(addprefix $(BUILD_PATH), RL_netlib.o)
+endif
 # -------------------------------------------------------------------------------------------
 
 # --------------------------- Compile And Link the Experiment -------------------------------
-RL_experiment: RL_experiment.o RL_client_experiment.o RL_netlib.o
-	$(CC) $(LDFLAGS) -o $@  $(addprefix $(BUILD_PATH), RL_experiment.o) $(addprefix $(BUILD_PATH), RL_client_experiment.o) $(addprefix $(BUILD_PATH), RL_netlib.o)
-
-RL_experiment.o: $(EXPERIMENT)
-	$(CC) $(CFLAGS) -c $< -o $(addprefix $(BUILD_PATH), $@)
+ifdef EXPERIMENT_OBJECTS
+RL_experiment: $(EXPERIMENT_OBJECTS) RL_client_experiment.o RL_netlib.o
+	$(CC) $(LDFLAGS) -o $@  $(addprefix $(BUILD_PATH), $(EXPERIMENT_OBJECTS)) $(addprefix $(BUILD_PATH), RL_client_experiment.o) $(addprefix $(BUILD_PATH), RL_netlib.o)
+endif
 # -------------------------------------------------------------------------------------------
 
 
