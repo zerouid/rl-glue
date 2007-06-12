@@ -4,8 +4,8 @@
 void parse_type(char** ts, int* dim, char** types, float** mins, float** maxs, int* num_discrete_dims, int* num_continuous_dims)
 {
   int characters_read,scan_args,i;
-  num_discrete_dims = 0;
-  num_continuous_dims =0;
+  *num_discrete_dims = 0;
+  *num_continuous_dims =0;
   scan_args = sscanf(*ts," %d _ [%n",dim,&characters_read); /* get the numer of dimensions to read*/
   if(scan_args != 1)
   {
@@ -19,6 +19,7 @@ void parse_type(char** ts, int* dim, char** types, float** mins, float** maxs, i
   *types = (char*)malloc(sizeof(char)*((*dim)+1));
   *mins = (float*)malloc(sizeof(float)*(*dim));
   *maxs = (float*)malloc(sizeof(float)*(*dim));
+
   
   /*get all the types for all the variables.*/
   for (i = 0; i < (*dim)-1; i++)
@@ -31,15 +32,16 @@ void parse_type(char** ts, int* dim, char** types, float** mins, float** maxs, i
     }
 	/*counts how many discrete and how many continuous variables*/
 	if(strncmp(&((*types)[i]), "i", 1) == 0)
-		num_discrete_dims++;
+		(*num_discrete_dims) = (*num_discrete_dims) + 1;
 	else if(strncmp(&((*types)[i]), "f", 1) == 0)
-		num_continuous_dims++;
+		(*num_continuous_dims) = (*num_continuous_dims) + 1;
 	else{
-		printf("\nError: Variable type not of type int or float. GRRR!! Variable of type %s Exiting... \n\n", types[i]);
+		printf("\nError: Variable type not of type int or float. GRRR!! Variable of type %s Exiting... \n\n", (*types)[i]);
 		exit(0);
 	}		
   *ts = *ts + characters_read;
   } 
+
   /*get the last type for the last variable*/
   scan_args = sscanf(*ts," %c ] _ [%n",(&((*types)[i])),&characters_read);
   if (scan_args != 1)
@@ -48,21 +50,21 @@ void parse_type(char** ts, int* dim, char** types, float** mins, float** maxs, i
     exit(0);
   }
 if(strncmp(&((*types)[i]), "i", 1) == 0)
-	num_discrete_dims++;
+	(*num_discrete_dims) = (*num_discrete_dims) + 1;
 else if(strncmp(&((*types)[i]), "f", 1) == 0)
-	num_continuous_dims++;
+	(*num_continuous_dims) = (*num_continuous_dims) + 1;
 else{
-	printf("\nError: Variable type not of type int or float. GRRR!! Variable of type %s Exiting... \n\n", types[i]);
+	printf("\nError: Variable type not of type int or float. GRRR!! Variable of type %s Exiting... \n\n", (*types)[i]);
 	exit(0);
 }	
   *ts = *ts + characters_read;
-  types[++i] = '\0';
-
+  
+  
 /*Get the min and max values for all the variables*/  
   for (i = 0; i < (*dim)-1; i++)
   {
 	//obtain minimum value
-	scan_args = sscanf(*ts, " %f , %n", &((*mins)[i]), &characters_read);
+	scan_args = sscanf(*ts, " %f , %n", (&((*mins)[i])), &characters_read);
 	if(scan_args == 1)
 	{
 		//if value is read correctly
@@ -71,7 +73,7 @@ else{
 	else if(scan_args ==0)
 	{
 		//if no value is read (ie we are using negative inf as the min)
-		(*mins)[i] = -1*INFINITY;
+		((*mins)[i]) = -1*INFINITY;
 		sscanf(*ts, " , %n", &characters_read);
 		*ts = *ts + characters_read;
 	}
@@ -80,7 +82,7 @@ else{
 		exit(0);
 	}
 	//obtain maximum value
-    scan_args = sscanf(*ts," %f ] _ [%n",&((*maxs)[i]),&characters_read);
+    scan_args = sscanf(*ts," %f ] _ [%n",(&((*maxs)[i])),&characters_read);
 	if(scan_args == 1)
 	{
 		//if value is correctly read
@@ -88,7 +90,7 @@ else{
 	}
 	else if(scan_args ==0){
 		//if no value is read (ie we are using positive inf as the max)
-		(*maxs)[i] = INFINITY;
+		((*maxs)[i]) = INFINITY;
 		sscanf(*ts, " ] _ [%n", &characters_read);
 		*ts = *ts + characters_read;
 	}
@@ -97,10 +99,10 @@ else{
 		exit(0);
 	}
   }//End of for loop to get values
-  
-  //getting the min max value pair
+
+  //getting the last min max value pair
 	//obtain minimum value
-	scan_args = sscanf(*ts, " %f , %n",  &((*mins)[i]), &characters_read);
+	scan_args = sscanf(*ts, " %f , %n",  (&((*mins)[i])), &characters_read);
 	if(scan_args == 1)
 	{
 		//if value is read correctly
@@ -109,7 +111,7 @@ else{
 	else if(scan_args ==0)
 	{
 		//if no value is read (ie we are using negative inf as the min)
-		(*mins)[i] = -1*INFINITY;
+		((*mins)[i]) = -1*INFINITY;
 		sscanf(*ts, " , %n", &characters_read);
 		*ts = *ts + characters_read;
 	}
