@@ -114,6 +114,7 @@ void runGlueEventLoop(rlSocket theConnection) {
   int glueState = 0;
 
   do { 
+    fprintf(stderr, "Waiting for state\n");
     rlRecvData(theConnection, &glueState, sizeof(int));
     fprintf(stderr, "glueState = %d\n", glueState);
 
