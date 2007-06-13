@@ -44,7 +44,6 @@ def runAgentEventLoop(sock):
 			onAgentEnd(sock)
 		elif agentState == kAgentCleanup:
 			onAgentCleanup(sock)
-			return
 		else:
 			sys.stderr.write(kUnknownMessage % (agentState))
 

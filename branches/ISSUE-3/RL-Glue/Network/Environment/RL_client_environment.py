@@ -58,7 +58,6 @@ def runEnvironmentEventLoop(sock):
 			onEnvStep(sock)
 		elif envState == kEnvCleanup:
 			onEnvCleanup(sock)
-			return
 		elif envState == kEnvSetState:
 			onEnvSetState(sock)
 		elif envState == kEnvSetRandomSeed:
