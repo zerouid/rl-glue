@@ -1,5 +1,5 @@
 #include <stdlib.h> /* calloc */
-
+#include <string.h> /* strlen */
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -123,4 +123,26 @@ Random_seed_key env_get_random_seed() {
   rlRecvADTBody(theEnvironmentConnection, &theRandomSeedKey);
 
   return theRandomSeedKey;
+}
+
+char* env_message(const char* inMessage) {
+  int theInMessageLength = 0;
+  int theOutMessageLength = 0;
+  char * theOutMessage = NULL;
+
+  const int envState = kEnvMessage;
+  rlSendData(theEnvironmentConnection, &envState, sizeof(int));
+
+  if (inMessage != NULL)
+    theInMessageLength = strlen(inMessage) + 1;
+  rlSendData(theEnvironmentConnection, &theInMessageLength, sizeof(int));
+  if (theInMessageLength > 0)
+	rlSendData(theEnvironmentConnection, inMessage, sizeof(char)*theInMessageLength);
+
+  rlRecvData(theEnvironmentConnection, &theOutMessageLength, sizeof(int));
+  if (theOutMessageLength > 0) {
+    theOutMessage = (char*)calloc(theOutMessageLength, sizeof(char));
+    rlRecvData(theEnvironmentConnection, theOutMessage, sizeof(char)*theOutMessageLength);
+  }
+  return theOutMessage;
 }

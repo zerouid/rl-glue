@@ -15,6 +15,7 @@
 #define kAgentEnd     7
 #define kAgentCleanup 8
 #define kAgentFreeze  30
+#define kAgentMessage 31
 
 #define kEnvInit          9
 #define kEnvStart         10
@@ -24,6 +25,7 @@
 #define kEnvSetRandomSeed 14
 #define kEnvGetState      15
 #define kEnvGetRandomSeed 16
+#define kEnvMessage       32
 
 #define kRLInit           17
 #define kRLStart          18

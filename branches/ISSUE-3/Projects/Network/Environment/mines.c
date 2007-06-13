@@ -194,3 +194,6 @@ Random_seed_key env_get_random_seed()
   return theKey;
 }
 
+char* env_message(const char* inMessage) {
+  return NULL;
+}
