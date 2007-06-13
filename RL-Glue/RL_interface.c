@@ -86,7 +86,7 @@ void RL_freeze() {
 }
 
 void RL_episode(unsigned int num_steps) {
-  int x = 0;
+  unsigned int x = 0;
   RL_start();
 
   for ( x = 0; !is_terminal && (num_steps == 0 ? 1 : x < num_steps); ++x ) {
