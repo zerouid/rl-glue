@@ -1,0 +1,2 @@
+void rlSetAgentConnection(int connection) { }
+
