@@ -68,9 +68,17 @@ static void onEnvStep(rlSocket theConnection) {
 static void onEnvCleanup(rlSocket theConnection) {
   env_cleanup();
   
-  rlFreeADT(&theAction);
-  rlFreeADT(&theStateKey);
-  rlFreeADT(&theRandomSeedKey);
+  if (isActionAllocated) {
+    rlFreeADT(&theAction);
+  }
+
+  if (isStateKeyAllocated) {
+    rlFreeADT(&theStateKey);
+  }
+
+  if (isRandomSeedKeyAllocated) {
+    rlFreeADT(&theRandomSeedKey);
+  }
 
   isActionAllocated        = 0;
   isStateKeyAllocated      = 0;

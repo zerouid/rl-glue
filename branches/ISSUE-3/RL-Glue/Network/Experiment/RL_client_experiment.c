@@ -17,24 +17,13 @@ static int isRandomSeedKeyAllocated = 0;
 
 static Task_specification theTaskSpec = 0;
 
-Task_specification RL_init() {
+void RL_init() {
   const int theConnectionType = kExperimentConnection;
   const int experimentState = kRLInit;
-
-  int theTaskSpecLength = 0;
 
   theExperimentConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
   rlSendData(theExperimentConnection, &theConnectionType, sizeof(int)); 
   rlSendData(theExperimentConnection, &experimentState, sizeof(int));
-
-  rlRecvData(theExperimentConnection, &theTaskSpecLength, sizeof(int));
-  
-  if (theTaskSpecLength > 0) {
-    theTaskSpec = (char*)calloc(sizeof(char), theTaskSpecLength);
-    rlRecvData(theExperimentConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
-  }
-
-  return theTaskSpec;
 }
 
 Observation_action RL_start() {

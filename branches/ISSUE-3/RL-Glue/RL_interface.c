@@ -17,9 +17,8 @@ Observation_action oa;
 /* Call into the direct call or network libraries */
 extern int rlConnectSystems();
 
-Task_specification RL_init() {
-  Task_specification task_spec;
-
+void RL_init() {
+  Task_specification task_spec = 0;
   rlConnectSystems();
 
   task_spec = env_init();
@@ -32,8 +31,6 @@ Task_specification RL_init() {
   is_terminal     = 0;
   total_steps     = 0;
   num_episodes    = 0;
-
-  return task_spec;
 }
 
 Observation_action RL_start() {
