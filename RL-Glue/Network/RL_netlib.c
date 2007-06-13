@@ -1,7 +1,6 @@
 /* Standard Headers */
 #include <assert.h> /* assert */
 #include <stdlib.h> /* calloc */
-#include <stdio.h> /* fprintf */
 #include <string.h> /* memset */
 
 /* Network Headers */
@@ -105,7 +104,6 @@ int rlRecvData(rlSocket theSocket, void* theData, int theLength) {
   char* theDataBuffer = (char*)theData;
   
   while (theBytesRecv < theLength) {
-		fprintf(stderr, "recvData \n");
     theMsgError = recv(theSocket, theDataBuffer + theBytesRecv, theLength - theBytesRecv, 0);
     if (theMsgError <= 0) break;
     else theBytesRecv += theMsgError;

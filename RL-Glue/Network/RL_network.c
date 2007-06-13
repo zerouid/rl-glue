@@ -1,4 +1,4 @@
-#include <stdio.h> /* fprintf */
+#include <stdio.h>
 #include <Network/RL_netlib.h> 
 
 extern void rlSetAgentConnection(int);
@@ -28,20 +28,17 @@ int rlConnectSystems() {
     case kAgentConnection:
       rlSetAgentConnection(theClient);
       isAgentConnected = 1;
-      fprintf(stderr, "RL_network.c: Agent Connected!\n");
       break;
 
     case kEnvironmentConnection:
       rlSetEnvironmentConnection(theClient);
       isEnvironmentConnected = 1;
-      fprintf(stderr, "RL_network.c: Environment Connected!\n");
       break;
 
     case kExperimentConnection:
       rlSetExperimentConnection(theClient);
       isExperimentConnected = 1;
       theExperimentConnection = theClient;
-      fprintf(stderr, "RL_network.c: Experiment Connected!\n");
       break;
 
     default:
@@ -51,7 +48,6 @@ int rlConnectSystems() {
   }
 
   rlClose(theServer);
-  fprintf(stderr, "Systems Connected. Go Team Venture!\n");
 
   return theExperimentConnection;
 }
