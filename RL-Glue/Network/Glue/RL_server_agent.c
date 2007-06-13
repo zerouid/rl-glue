@@ -17,6 +17,10 @@ void rlSetAgentConnection(int theConnection) {
   theAgentConnection = theConnection;
 }
 
+int rlIsAgentConnected() {
+	return theAgentConnection != 0;
+}
+
 /* Send the task spec to the agent */
 void agent_init(Task_specification theTaskSpec)
 {
@@ -79,6 +83,7 @@ void agent_cleanup()
   const int agentState = kAgentCleanup;
   rlSendData(theAgentConnection, &agentState, sizeof(int));	
   rlClose(theAgentConnection);
+  theAgentConnection = 0;
 
   rlFreeADT(&theAction);
   isActionAllocated = 0;

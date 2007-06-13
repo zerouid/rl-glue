@@ -1,5 +1,4 @@
 #include <stdio.h> /* fprintf */
-
 #include <assert.h> /* assert */
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
@@ -21,10 +20,24 @@ extern State_key RL_get_state();
 extern Random_seed_key RL_get_random_seed();
 extern void RL_cleanup();
 
+int theExperimentConnection = 0;
 State_key theStateKey = {0};
 Random_seed_key theRandomSeedKey = {0};
 int isStateKeyAllocated = 0;
 int isRandomSeedKeyAllocated = 0;
+
+void rlSetExperimentConnection(int theConnection) {
+  if (theExperimentConnection) {
+    rlClose(theExperimentConnection);
+  }
+
+  theExperimentConnection = theConnection;
+}
+
+int rlIsExperimentConnected() {
+	return theExperimentConnection != 0;
+}
+
 
 void onRLInit(rlSocket theConnection) {
   RL_init();
@@ -108,15 +121,15 @@ void onRLCleanup(rlSocket theConnection) {
   
   isStateKeyAllocated      = 0;
   isRandomSeedKeyAllocated = 0;
+  rlClose(theExperimentConnection);
+  theExperimentConnection = 0;
 }
 
 void runGlueEventLoop(rlSocket theConnection) {
   int glueState = 0;
 
   do { 
-    fprintf(stderr, "Waiting for state\n");
     rlRecvData(theConnection, &glueState, sizeof(int));
-    fprintf(stderr, "glueState = %d\n", glueState);
 
     switch(glueState) {
     case kRLInit:

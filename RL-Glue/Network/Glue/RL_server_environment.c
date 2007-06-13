@@ -23,6 +23,10 @@ void rlSetEnvironmentConnection(int theConnection) {
   theEnvironmentConnection = theConnection;
 }
 
+int rlIsEnvironmentConnected() {
+	return theEnvironmentConnection != 0;
+}
+
 Task_specification env_init() {
   const int envState = kEnvInit;
   int theTaskSpecLength = 0;
@@ -48,14 +52,12 @@ Observation env_start() {
     isObservationAllocated = 1;
   }
   rlRecvADTBody(theEnvironmentConnection, &theObservation);
-
   return theObservation;
 }
 
 Reward_observation env_step(Action theAction) {
   const int envState = kEnvStep;
   Reward_observation ro = {0};
-
   rlSendData(theEnvironmentConnection, &envState, sizeof(int));
   rlSendADT(theEnvironmentConnection, &theAction);
 
@@ -72,6 +74,7 @@ void env_cleanup() {
   const int envState = kEnvCleanup;
   rlSendData(theEnvironmentConnection, &envState, sizeof(int));
   rlClose(theEnvironmentConnection);
+  theEnvironmentConnection = 0;
 
   rlFreeADT(&theObservation);
   rlFreeADT(&theStateKey);

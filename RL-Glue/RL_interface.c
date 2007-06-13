@@ -23,6 +23,7 @@ void RL_init() {
 
   fprintf(stderr, "rlConnnectSystems about to be called by %s in %s\n", __FUNCTION__, __FILE__);
   rlConnectSystems();
+  fprintf(stderr, "rlConnectSystems finished\n");
 
   task_spec = env_init();
   agent_init(task_spec);

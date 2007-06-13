@@ -3,12 +3,15 @@
 
 extern void rlSetAgentConnection(int);
 extern void rlSetEnvironmentConnection(int);
-/* extern void rlSetExperimentConnection(int); */
+extern void rlSetExperimentConnection(int);
+extern int rlIsAgentConnected();
+extern int rlIsEnvironmentConnected();
+extern int rlIsExperimentConnected();
 
 int rlConnectSystems() {
-  int isAgentConnected       = 0;
-  int isEnvironmentConnected = 0; 
-  int isExperimentConnected  = 0;
+  int isAgentConnected       = rlIsAgentConnected();
+  int isEnvironmentConnected = rlIsEnvironmentConnected(); 
+  int isExperimentConnected  = rlIsExperimentConnected();
   int theClientType = 0;
   int theClient = 0;
   int theServer = 0;
@@ -35,7 +38,7 @@ int rlConnectSystems() {
       break;
 
     case kExperimentConnection:
-      /* rlSetExperimentConnection(theClient); */
+      rlSetExperimentConnection(theClient);
       isExperimentConnected = 1;
       theExperimentConnection = theClient;
       fprintf(stderr, "RL_network.c: Experiment Connected!\n");
