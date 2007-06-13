@@ -142,3 +142,6 @@ def env_get_state():
 
 def env_get_random_seed():
 	return Random_seed_key()
+
+def env_message(inMessage):
+	return None

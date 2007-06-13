@@ -14,6 +14,8 @@ kAgentStart   = 5 # to the client to let it know what type of
 kAgentStep    = 6 # event to respond to
 kAgentEnd     = 7
 kAgentCleanup = 8
+kAgentFreeze  = 30
+kAgentMessage = 31
 
 kEnvInit          = 9
 kEnvStart         = 10
@@ -23,6 +25,7 @@ kEnvSetState      = 13
 kEnvSetRandomSeed = 14
 kEnvGetState      = 15
 kEnvGetRandomSeed = 16
+kEnvMessage       = 32
 
 kRLInit           = 17
 kRLStart          = 18
@@ -36,6 +39,7 @@ kRLSetState       = 25
 kRLSetRandomSeed  = 26
 kRLGetState       = 27
 kRLGetRandomSeed  = 28
+kRLFreeze         = 29
 
 kLocalHost = "127.0.0.1"
 kDefaultPort = 4096
