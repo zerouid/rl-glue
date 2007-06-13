@@ -30,6 +30,23 @@ def onAgentEnd(sock):
 def onAgentCleanup(sock):
 	agent_cleanup()
 
+def onAgentFreeze(sock):
+	agent_freeze()
+
+def onAgentMessage(sock):
+	theInMessageLength = sock.recvInt()
+	inMessage = None
+	theOutMessageLength = 0
+	
+	if theInMessageLength > 0:
+		inMessage = sock.recvString(theInMessageLength)
+	outMessage = agent_message(inMessage)
+	if outMessage != None:
+		theOutMessageLength = len(outMessage)
+	sock.sendInt(theOutMessageLength)
+	if theOutMessageLength > 0:
+		sock.sendString(outMessage)
+
 def runAgentEventLoop(sock):
 	agentState = 0
 	while agentState != kAgentCleanup:
@@ -44,6 +61,10 @@ def runAgentEventLoop(sock):
 			onAgentEnd(sock)
 		elif agentState == kAgentCleanup:
 			onAgentCleanup(sock)
+		elif agentState == kAgentFreeze:
+			onAgentFreeze(sock)
+		elif agentState == kAgentMessage:
+			onAgentMessage(sock)
 		else:
 			sys.stderr.write(kUnknownMessage % (agentState))
 

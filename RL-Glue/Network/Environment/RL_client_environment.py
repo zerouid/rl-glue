@@ -45,6 +45,20 @@ def onEnvGetRandomSeed(sock):
 	theRandomSeed = env_get_random_seed()
 	sock.sendADT(theRandomSeed)
 
+def onEnvMessage(sock):
+	theInMessageLength = sock.recvInt()
+	inMessage = None
+	theOutMessageLength = 0
+
+	if theInMessageLength > 0:
+		inMessage = sock.recvString(theInMessageLength)
+	outMessage = env_message(inMessage)
+	if outMessage != None:
+		theOutMessageLength = len(outMessage)
+	sock.sendInt(theOutMessageLength)
+	if theOutMessageLength > 0:
+		sock.sendString(outMessage)
+
 def runEnvironmentEventLoop(sock):
 	envState = 0
 	
@@ -66,6 +80,8 @@ def runEnvironmentEventLoop(sock):
 			onEnvGetState(sock)
 		elif envState == kEnvGetRandomSeed:
 			onEnvGetRandomSeed(sock)
+		elif envState == kEnvMessage:
+			onEnvMessage(sock)
 		else:
 			sys.stderr.write(kUnknownMessage % (agentState))
 

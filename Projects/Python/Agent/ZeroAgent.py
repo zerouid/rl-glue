@@ -25,3 +25,9 @@ def agent_end(reward):
 
 def agent_cleanup():
 	pass
+
+def agent_freeze():
+	pass
+
+def agent_message(inMessage):
+	return None
