@@ -8,7 +8,6 @@ def onAgentInit(sock):
 	taskSpec = ''
 	if theTaskSpecLength > 0:
 		taskSpec = sock.recvString(theTaskSpecLength)
-	sys.stderr.write('calling agent_init\n')
 	agent_init(taskSpec)
 
 def onAgentStart(sock):
@@ -33,10 +32,8 @@ def onAgentCleanup(sock):
 
 def runAgentEventLoop(sock):
 	agentState = 0
-	sys.stderr.write('starting agent event loop\n')
 	while agentState != kAgentCleanup:
 		agentState = sock.recvInt()
-		sys.stderr.write('agentState = %d\n' %(agentState))
 		if agentState == kAgentInit:
 			onAgentInit(sock)
 		elif agentState == kAgentStart:
