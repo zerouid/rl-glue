@@ -7,6 +7,23 @@ CFLAGS     = -I$(RL-GLUE)/ -ansi -pedantic -Wall
 LDFLAGS    =
 BUILD_PATH = Build/
 
+# Object files and libraries required for linking our agent
+#AGENT_OBJECTS       = ZeroAgent.o
+#AGENT_LDFLAGS       =
+
+# Object files and libraries required for linking our environment
+#ENVIRONMENT_OBJECTS = mines.o
+#ENVIRONMENT_LDFLAGS =
+
+# Object files and libraries required for linking our experiment
+#EXPERIMENT_OBJECTS  = experiment.o
+#EXPERIMENT_LDFLAGS  =
+
+# Uncomment next line to use network agent
+AGENT_NET       = yes
+ENVIRONMENT_NET = yes
+EXPERIMENT_NET  = yes
+
 all: ZeroAgent.o mines.o experiment.o RL_GLUE
 
 ZeroAgent.o: ./Agent/ZeroAgent.c ./Agent/ZeroAgent.h
@@ -17,23 +34,6 @@ mines.o: ./Environment/mines.c ./Environment/mines.h
 
 experiment.o: ./Experiment/experiment.c
 	$(CC) $(CFLAGS) -c $< -o $(addprefix $(BUILD_PATH), $@)
-
-# Object files and libraries required for linking our agent
-AGENT_OBJECTS       = ZeroAgent.o
-AGENT_LDFLAGS       =
-
-# Object files and libraries required for linking our environment
-ENVIRONMENT_OBJECTS = mines.o
-ENVIRONMENT_LDFLAGS =
-
-# Object files and libraries required for linking our experiment
-EXPERIMENT_OBJECTS  = experiment.o
-EXPERIMENT_LDFLAGS  =
-
-# Uncomment next line to use network agent
-AGENT_NET       = yes
-ENVIRONMENT_NET = yes
-EXPERIMENT_NET  = yes
 
 # ============================================================================================
 #                                     RLGLUE 2.0
