@@ -156,6 +156,10 @@ static void runEnvironmentEventLoop(rlSocket theConnection) {
       onEnvGetRandomSeed(theConnection);
       break;
 
+    case kEnvMessage:
+      onEnvMessage(theConnection);
+      break;
+
     default:
       fprintf(stderr, kUnknownMessage, envState);
       break;
