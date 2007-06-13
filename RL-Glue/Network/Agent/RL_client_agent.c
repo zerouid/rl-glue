@@ -2,6 +2,7 @@
 #include <stdlib.h> /* calloc */
 #include <stdio.h>  /* fprintf */
 #include <unistd.h> /* sleep   */
+#include <string.h> /* strlen */
 
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
@@ -13,6 +14,7 @@ extern Action agent_step(Reward r, Observation o);
 extern void   agent_end(Reward r);
 extern void   agent_cleanup();
 extern void   agent_freeze();
+extern char*  agent_message(const char* inMessage);
 
 static const char* kUnknownMessage = "Unknown Message: %d\n";
 
@@ -81,6 +83,28 @@ static void onAgentFreeze(rlSocket theConnection) {
   agent_freeze();
 }
 
+static void onAgentMessage(rlSocket theConnection) {
+  int theInMessageLength = 0;
+  int theOutMessageLength = 0;
+  char* theInMessage = NULL;
+  char* theOutMessage = NULL;
+
+  rlRecvData(theConnection, &theInMessageLength, sizeof(int));
+  if (theInMessageLength > 0) {
+    theInMessage = (char*)calloc(theInMessageLength, sizeof(char));
+    rlRecvData(theConnection, theInMessage, sizeof(char) * theInMessageLength);
+  }
+  theOutMessage = agent_message(theInMessage);
+
+  if (theOutMessage != NULL)
+   theOutMessageLength = strlen(theOutMessage)+1;
+
+  rlSendData(theConnection, &theOutMessageLength, sizeof(int));
+  if (theOutMessageLength > 0) {
+	rlSendData(theConnection, theOutMessage, sizeof(char)*theOutMessageLength);
+  } 
+}
+
 static void runAgentEventLoop(rlSocket theConnection) {
   int agentState = 0;
 
@@ -112,6 +136,10 @@ static void runAgentEventLoop(rlSocket theConnection) {
       onAgentFreeze(theConnection);
       break;
 
+    case kAgentMessage:
+      onAgentMessage(theConnection);
+	  break;
+    
     default:
       fprintf(stderr, kUnknownMessage, agentState);
       break;

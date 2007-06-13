@@ -2,6 +2,7 @@
 #include <unistd.h> /* sleep   */
 #include <string.h> /* strlen  */
 #include <stdio.h>  /* fprintf */
+#include <stdlib.h> /* calloc */
 
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
@@ -15,6 +16,7 @@ extern void env_set_state(State_key sk);
 extern void env_set_random_seed(Random_seed_key rsk);
 extern State_key env_get_state();
 extern Random_seed_key env_get_random_seed();
+extern char* env_message(const char* inMessage);
 
 static const char* kUnknownMessage = "Unknown Message: %s\n";
 
@@ -115,6 +117,28 @@ static void onEnvGetState(rlSocket theConnection) {
 static void onEnvGetRandomSeed(rlSocket theConnection) {
   Random_seed_key key = env_get_random_seed();
   rlSendADT(theConnection, &key);
+}
+
+static void onEnvMessage(rlSocket theConnection) {
+  int theInMessageLength = 0;
+  int theOutMessageLength = 0;
+  char* theInMessage = NULL;
+  char* theOutMessage = NULL;
+
+  rlRecvData(theConnection, &theInMessageLength, sizeof(int));
+  if (theInMessageLength > 0) {
+    theInMessage = (char*)calloc(theInMessageLength, sizeof(char));
+    rlRecvData(theConnection, theInMessage, sizeof(char) * theInMessageLength);
+  }
+  theOutMessage = env_message(theInMessage);
+
+  if (theOutMessage != NULL)
+   theOutMessageLength = strlen(theOutMessage)+1;
+
+  rlSendData(theConnection, &theOutMessageLength, sizeof(int));
+  if (theOutMessageLength > 0) {
+	rlSendData(theConnection, theOutMessage, sizeof(char)*theOutMessageLength);
+  }
 }
 
 static void runEnvironmentEventLoop(rlSocket theConnection) {

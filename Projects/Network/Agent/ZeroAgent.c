@@ -30,3 +30,7 @@ void agent_cleanup() {
 
 void agent_freeze() {
 }
+
+char* agent_message(const char* inMessage) {
+  return NULL;
+}

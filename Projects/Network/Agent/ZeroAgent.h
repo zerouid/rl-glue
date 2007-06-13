@@ -9,5 +9,6 @@ Action agent_step(Reward r, Observation o);
 void agent_end(Reward r);
 void agent_cleanup();
 void agent_freeze();
+char* agent_message(const char* inMessage);
 
 #endif
