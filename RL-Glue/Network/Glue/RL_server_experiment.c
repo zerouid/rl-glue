@@ -1,5 +1,7 @@
 #include <stdio.h> /* fprintf */
 #include <assert.h> /* assert */
+#include <signal.h> /* handle ctrl-C */
+#include <stdlib.h> /* exit */
 #include <string.h> /* strlen */
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
@@ -22,11 +24,20 @@ extern Random_seed_key RL_get_random_seed();
 extern void RL_cleanup();
 extern void RL_freeze();
 
+void onRLCleanup(rlSocket theConnection);
+
 int theExperimentConnection = 0;
 State_key theStateKey = {0};
 Random_seed_key theRandomSeedKey = {0};
 int isStateKeyAllocated = 0;
 int isRandomSeedKeyAllocated = 0;
+
+void termination_handler(int signum) {
+	onRLCleanup(theExperimentConnection);
+	if (theExperimentConnection != 0)
+		rlClose(theExperimentConnection);
+	exit(0);
+}
 
 void rlSetExperimentConnection(int theConnection) {
   if (theExperimentConnection) {
@@ -134,8 +145,6 @@ void onRLCleanup(rlSocket theConnection) {
   
   isStateKeyAllocated      = 0;
   isRandomSeedKeyAllocated = 0;
-  rlClose(theExperimentConnection);
-  theExperimentConnection = 0;
 }
 
 void onRLFreeze(rlSocket theConnection) {
@@ -210,11 +219,13 @@ void runGlueEventLoop(rlSocket theConnection) {
 
 int main(int argc, char** argv) {
   rlSocket theConnection = 0;
+  signal (SIGINT, termination_handler);
   while(1) {
     theConnection = rlConnectSystems();
     assert(rlIsValidSocket(theConnection));
     runGlueEventLoop(theConnection);
     rlClose(theConnection);
+	theExperimentConnection = 0;
   }
   return 0;
 }

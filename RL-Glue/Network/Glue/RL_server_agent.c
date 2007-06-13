@@ -76,7 +76,7 @@ void agent_end(Reward theReward) {
 /* Tell the agent that we're cleaning up */
 void agent_cleanup() {
   const int agentState = kAgentCleanup;
-  rlSendData(theAgentConnection, &agentState, sizeof(int));	
+  rlSendData(theAgentConnection, &agentState, sizeof(int));
   rlClose(theAgentConnection);
   theAgentConnection = 0;
 
