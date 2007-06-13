@@ -14,6 +14,7 @@
 #define kAgentStep    6 /* event to respond to                          */
 #define kAgentEnd     7
 #define kAgentCleanup 8
+#define kAgentFreeze  30
 
 #define kEnvInit          9
 #define kEnvStart         10
@@ -36,6 +37,7 @@
 #define kRLSetRandomSeed  26
 #define kRLGetState       27
 #define kRLGetRandomSeed  28
+#define kRLFreeze         29
 
 #define kLocalHost "127.0.0.1"
 #define kDefaultPort 4096

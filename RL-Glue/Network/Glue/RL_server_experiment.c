@@ -1,5 +1,6 @@
 #include <stdio.h> /* fprintf */
 #include <assert.h> /* assert */
+#include <string.h> /* strlen */
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -7,7 +8,7 @@ const char* kUnknownMessage = "Unknown Message: %s\n";
 
 extern int rlConnectSystems();
 
-extern void RL_init();
+extern Task_specification RL_init();
 extern Observation_action RL_start();
 extern Reward_observation_action_terminal RL_step();
 extern Reward RL_return();
@@ -19,6 +20,7 @@ extern void RL_set_random_seed(Random_seed_key rsk);
 extern State_key RL_get_state();
 extern Random_seed_key RL_get_random_seed();
 extern void RL_cleanup();
+extern void RL_freeze();
 
 int theExperimentConnection = 0;
 State_key theStateKey = {0};
@@ -40,7 +42,18 @@ int rlIsExperimentConnected() {
 
 
 void onRLInit(rlSocket theConnection) {
-  RL_init();
+  Task_specification theTaskSpec = RL_init();
+  int theTaskSpecLength = 0;
+
+  if (theTaskSpec != NULL) {
+    theTaskSpecLength = strlen(theTaskSpec) + 1;
+  }
+
+  rlSendData(theConnection, &theTaskSpecLength, sizeof(int));
+
+  if (theTaskSpecLength > 0) {
+    rlSendData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+  }
 }
 
 void onRLStart(rlSocket theConnection) {
@@ -125,6 +138,10 @@ void onRLCleanup(rlSocket theConnection) {
   theExperimentConnection = 0;
 }
 
+void onRLFreeze(rlSocket theConnection) {
+  RL_freeze();
+}
+
 void runGlueEventLoop(rlSocket theConnection) {
   int glueState = 0;
 
@@ -180,6 +197,10 @@ void runGlueEventLoop(rlSocket theConnection) {
       onRLGetRandomSeed(theConnection);
       break;
       
+    case kRLFreeze:
+      onRLFreeze(theConnection);
+      break;
+
     default:
       fprintf(stderr, kUnknownMessage, glueState);
       break;

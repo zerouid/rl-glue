@@ -1,3 +1,5 @@
+#include <stdlib.h> /* calloc */
+
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -13,13 +15,26 @@ static int isActionAllocated        = 0;
 static int isStateKeyAllocated      = 0;
 static int isRandomSeedKeyAllocated = 0;
 
-void RL_init() {
+static Task_specification theTaskSpec = 0;
+
+Task_specification RL_init() {
   const int theConnectionType = kExperimentConnection;
   const int experimentState = kRLInit;
+
+  int theTaskSpecLength = 0;
 
   theExperimentConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
   rlSendData(theExperimentConnection, &theConnectionType, sizeof(int)); 
   rlSendData(theExperimentConnection, &experimentState, sizeof(int));
+
+  rlRecvData(theExperimentConnection, &theTaskSpecLength, sizeof(int));
+  
+  if (theTaskSpecLength > 0) {
+    theTaskSpec = (char*)calloc(sizeof(char), theTaskSpecLength);
+    rlRecvData(theExperimentConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+  }
+
+  return theTaskSpec;
 }
 
 Observation_action RL_start() {
@@ -99,6 +114,11 @@ void RL_cleanup() {
     rlFreeADT(&theRandomSeedKey);
     isRandomSeedKeyAllocated = 0;
   }
+
+  if (theTaskSpec) {
+    free(theTaskSpec);
+    theTaskSpec = 0;
+  }
 }
 
 Reward RL_return() {
@@ -135,6 +155,11 @@ void RL_episode(int numSteps) {
   const int experimentState = kRLEpisode;
   rlSendData(theExperimentConnection, &experimentState, sizeof(int));
   rlSendData(theExperimentConnection, &numSteps, sizeof(int));
+}
+
+void RL_freeze() {
+  const int experimentState = kRLFreeze;
+  rlSendData(theExperimentConnection, &experimentState, sizeof(int));
 }
 
 void RL_set_state(State_key theStateKey) {
