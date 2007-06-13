@@ -4,15 +4,15 @@
 #include <RL_common.h>
 
 /* Glue */
-void RL_init();
+Task_specification RL_init();
 Observation_action RL_start();
 Reward_observation_action_terminal RL_step();
 void RL_cleanup();
 
-void RL_episode(unsigned int num_steps);
 Reward RL_return();
 int RL_num_steps();
 int RL_num_episodes();
+void RL_episode(unsigned int num_steps);
 /* void RL_episode(); */
 void RL_freeze();
 void RL_set_state(State_key sk);

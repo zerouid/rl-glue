@@ -22,8 +22,7 @@ int rlIsAgentConnected() {
 }
 
 /* Send the task spec to the agent */
-void agent_init(Task_specification theTaskSpec)
-{
+void agent_init(Task_specification theTaskSpec) {
   const int agentState = kAgentInit;
   const int theTaskSpecLength = strlen(theTaskSpec)+1;
 
@@ -36,8 +35,7 @@ void agent_init(Task_specification theTaskSpec)
 }
 
 /* Send the observation to the agent, receive the action and return it */
-Action agent_start(Observation theObservation)
-{
+Action agent_start(Observation theObservation) {
   const int agentState = kAgentStart;
 
   rlSendData(theAgentConnection, &agentState, sizeof(int));
@@ -55,8 +53,7 @@ Action agent_start(Observation theObservation)
 }
 
 /* Send the reward and the observation to the agent, receive the action and return it */
-Action agent_step(Reward theReward, Observation theObservation)
-{
+Action agent_step(Reward theReward, Observation theObservation) {
   const int agentState = kAgentStep;
 
   rlSendData(theAgentConnection, &agentState, sizeof(int));
@@ -69,8 +66,7 @@ Action agent_step(Reward theReward, Observation theObservation)
 }
 
 /* Send the final reward to the agent */
-void agent_end(Reward theReward)
-{ 
+void agent_end(Reward theReward) { 
   const int agentState = kAgentEnd;
 
   rlSendData(theAgentConnection, &agentState, sizeof(int));
@@ -78,8 +74,7 @@ void agent_end(Reward theReward)
 }
 
 /* Tell the agent that we're cleaning up */
-void agent_cleanup()
-{
+void agent_cleanup() {
   const int agentState = kAgentCleanup;
   rlSendData(theAgentConnection, &agentState, sizeof(int));	
   rlClose(theAgentConnection);
@@ -87,4 +82,9 @@ void agent_cleanup()
 
   rlFreeADT(&theAction);
   isActionAllocated = 0;
+}
+
+void agent_freeze() {
+  const int agentState = kAgentFreeze;
+  rlSendData(theAgentConnection, &agentState, sizeof(int));
 }

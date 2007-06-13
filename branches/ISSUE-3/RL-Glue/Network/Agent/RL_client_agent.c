@@ -12,6 +12,7 @@ extern Action agent_start(Observation o);
 extern Action agent_step(Reward r, Observation o);
 extern void   agent_end(Reward r);
 extern void   agent_cleanup();
+extern void   agent_freeze();
 
 static const char* kUnknownMessage = "Unknown Message: %d\n";
 
@@ -19,8 +20,7 @@ static char* theTaskSpec = 0;
 static Observation theObservation = {0};
 static int isObservationAllocated = 0;
 
-static void onAgentInit(rlSocket theConnection)
-{
+static void onAgentInit(rlSocket theConnection) {
   int theTaskSpecLength = 0;
 
   rlRecvData(theConnection, &theTaskSpecLength, sizeof(int));
@@ -32,8 +32,7 @@ static void onAgentInit(rlSocket theConnection)
   agent_init(theTaskSpec);
 }
 
-static void onAgentStart(rlSocket theConnection)
-{
+static void onAgentStart(rlSocket theConnection) {
   Action theAction = {0};
 
   rlRecvADTHeader(theConnection, (RL_abstract_type*)&theObservation);
@@ -49,8 +48,7 @@ static void onAgentStart(rlSocket theConnection)
   rlSendADT(theConnection, (RL_abstract_type*)&theAction);
 }
 
-static void onAgentStep(rlSocket theConnection)
-{
+static void onAgentStep(rlSocket theConnection) {
   Reward theReward = 0;
   Action theAction = {0};
 
@@ -62,16 +60,14 @@ static void onAgentStep(rlSocket theConnection)
   rlSendADT(theConnection, (RL_abstract_type*)&theAction);
 }
 
-static void onAgentEnd(rlSocket theConnection)
-{
+static void onAgentEnd(rlSocket theConnection) {
   Reward theReward = 0;
 
   rlRecvData(theConnection, &theReward, sizeof(Reward));
   agent_end(theReward);
 }
 
-static void onAgentCleanup(rlSocket theConnection)
-{
+static void onAgentCleanup(rlSocket theConnection) {
   agent_cleanup();
 
   rlFreeADT(&theObservation);
@@ -81,8 +77,11 @@ static void onAgentCleanup(rlSocket theConnection)
   theTaskSpec = 0;
 }
 
-static void runAgentEventLoop(rlSocket theConnection)
-{
+static void onAgentFreeze(rlSocket theConnection) {
+  agent_freeze();
+}
+
+static void runAgentEventLoop(rlSocket theConnection) {
   int agentState = 0;
 
   do { 
@@ -107,6 +106,10 @@ static void runAgentEventLoop(rlSocket theConnection)
 
     case kAgentCleanup:
       onAgentCleanup(theConnection);
+      break;
+
+    case kAgentFreeze:
+      onAgentFreeze(theConnection);
       break;
 
     default:
