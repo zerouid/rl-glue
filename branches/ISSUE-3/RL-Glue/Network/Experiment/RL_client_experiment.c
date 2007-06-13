@@ -1,5 +1,3 @@
-#include <stdio.h> /* fprintf */
-
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -21,10 +19,7 @@ void RL_init() {
 
   theExperimentConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
   rlSendData(theExperimentConnection, &theConnectionType, sizeof(int)); 
-
-  fprintf(stderr, "sending experimentState = %d\n", experimentState);
   rlSendData(theExperimentConnection, &experimentState, sizeof(int));
-  fprintf(stderr, "done sending experimentState = %d\n", experimentState);
 }
 
 Observation_action RL_start() {
@@ -81,14 +76,8 @@ Reward_observation_action_terminal RL_step() {
 void RL_cleanup() {
   const int experimentState = kRLCleanup;
 
-  fprintf(stderr, "in RL_Cleanup:: sending experimentState %d\n", experimentState);
-
   rlSendData(theExperimentConnection, &experimentState, sizeof(int));
-
-  fprintf(stderr, "in RL_Cleanup:: closing\n");
   rlClose(theExperimentConnection);
-
-  fprintf(stderr, "in RL_Cleanup:: closed\n");
   theExperimentConnection = 0;
 
   if (isObservationAllocated) {
@@ -144,11 +133,8 @@ int RL_num_episodes() {
 
 void RL_episode(int numSteps) {
   const int experimentState = kRLEpisode;
-  fprintf(stderr, "in RL_Episode:: sending experimentState %d and numSteps %d\n", experimentState,numSteps);
-
   rlSendData(theExperimentConnection, &experimentState, sizeof(int));
   rlSendData(theExperimentConnection, &numSteps, sizeof(int));
-  fprintf(stderr, "in RL_Episode:: done sending\n");
 }
 
 void RL_set_state(State_key theStateKey) {

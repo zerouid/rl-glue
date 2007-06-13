@@ -24,7 +24,7 @@ void rlSetEnvironmentConnection(int theConnection) {
 }
 
 int rlIsEnvironmentConnected() {
-	return theEnvironmentConnection != 0;
+  return theEnvironmentConnection != 0;
 }
 
 Task_specification env_init() {

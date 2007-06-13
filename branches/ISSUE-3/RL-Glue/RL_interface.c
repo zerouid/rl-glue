@@ -1,5 +1,4 @@
 #include <RL_interface.h>
-#include <stdio.h>
 
 Action last_action     = {0};
 Observation last_state = {0};
@@ -21,9 +20,7 @@ extern int rlConnectSystems();
 void RL_init() {
   Task_specification task_spec;
 
-  fprintf(stderr, "rlConnnectSystems about to be called by %s in %s\n", __FUNCTION__, __FILE__);
   rlConnectSystems();
-  fprintf(stderr, "rlConnectSystems finished\n");
 
   task_spec = env_init();
   agent_init(task_spec);
@@ -91,7 +88,7 @@ Reward RL_return() {
 }
 
 int RL_num_steps() {
-  /* number of steps of the current or just completed episodes or run */
+  /* number of steps of the current or just completed episodes of run */
   return num_steps;
 }
 

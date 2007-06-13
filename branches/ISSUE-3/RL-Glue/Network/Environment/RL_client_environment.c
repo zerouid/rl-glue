@@ -31,10 +31,16 @@ static void onEnvInit(rlSocket theConnection) {
   int theTaskSpecLength = 0;
 
   theTaskSpec = env_init();
-  theTaskSpecLength = strlen(theTaskSpec)+1;
+  
+  if (theTaskSpec != NULL) {
+    theTaskSpecLength = strlen(theTaskSpec)+1;
+  }
 
   rlSendData(theConnection, &theTaskSpecLength, sizeof(int));
-  rlSendData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+
+  if (theTaskSpecLength > 0) {
+    rlSendData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+  }
 }
 
 static void onEnvStart(rlSocket theConnection) {

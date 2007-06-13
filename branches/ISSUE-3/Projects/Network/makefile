@@ -8,16 +8,16 @@ LDFLAGS    =
 BUILD_PATH = Build/
 
 # Object files and libraries required for linking our agent
-#AGENT_OBJECTS       = ZeroAgent.o
-#AGENT_LDFLAGS       =
+AGENT_OBJECTS       = ZeroAgent.o
+AGENT_LDFLAGS       =
 
 # Object files and libraries required for linking our environment
-#ENVIRONMENT_OBJECTS = mines.o
-#ENVIRONMENT_LDFLAGS =
+ENVIRONMENT_OBJECTS = mines.o
+ENVIRONMENT_LDFLAGS =
 
 # Object files and libraries required for linking our experiment
-#EXPERIMENT_OBJECTS  = experiment.o
-#EXPERIMENT_LDFLAGS  =
+EXPERIMENT_OBJECTS  = experiment.o
+EXPERIMENT_LDFLAGS  =
 
 # Uncomment next line to use network agent
 AGENT_NET       = yes
