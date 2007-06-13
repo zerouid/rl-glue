@@ -74,6 +74,15 @@ Reward_observation_action_terminal RL_step() {
   return roa;
 }
 
+void RL_cleanup() {
+  env_cleanup();
+  agent_cleanup();
+}
+
+void RL_freeze() {
+  agent_freeze();
+}
+
 void RL_episode(unsigned int num_steps) {
   int x = 0;
   RL_start();
@@ -96,17 +105,8 @@ int RL_num_episodes() {
   return num_episodes;
 }
 
-void RL_cleanup() {
-  env_cleanup();
-  agent_cleanup();
-}
-
 State_key RL_get_state() {
   return env_get_state();
-}
-
-Random_seed_key RL_get_random_seed() {
-  return env_get_random_seed();
 }
 
 void RL_set_state(State_key sk) {
@@ -115,4 +115,8 @@ void RL_set_state(State_key sk) {
 
 void RL_set_random_seed(Random_seed_key rsk) {
   env_set_random_seed(rsk);
+}
+
+Random_seed_key RL_get_random_seed() {
+  return env_get_random_seed();
 }
