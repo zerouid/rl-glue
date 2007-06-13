@@ -169,6 +169,9 @@ void env_cleanup()
 {
   free(o.intArray);
   free(o.doubleArray);
+
+  o.intArray    = 0;
+  o.doubleArray = 0;
 }
 
 void env_set_state(State_key sk)

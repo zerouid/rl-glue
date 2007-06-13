@@ -4,7 +4,7 @@
 #include <RL_common.h>
 
 /* Glue */
-Task_specification RL_init();
+void RL_init();
 Observation_action RL_start();
 Reward_observation_action_terminal RL_step();
 void RL_cleanup();

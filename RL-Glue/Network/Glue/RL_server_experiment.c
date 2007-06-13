@@ -33,10 +33,11 @@ int isStateKeyAllocated = 0;
 int isRandomSeedKeyAllocated = 0;
 
 void termination_handler(int signum) {
-	onRLCleanup(theExperimentConnection);
-	if (theExperimentConnection != 0)
-		rlClose(theExperimentConnection);
-	exit(0);
+  onRLCleanup(theExperimentConnection);
+  if (theExperimentConnection != 0) {
+    rlClose(theExperimentConnection);
+  }
+  exit(0);
 }
 
 void rlSetExperimentConnection(int theConnection) {
@@ -53,18 +54,7 @@ int rlIsExperimentConnected() {
 
 
 void onRLInit(rlSocket theConnection) {
-  Task_specification theTaskSpec = RL_init();
-  int theTaskSpecLength = 0;
-
-  if (theTaskSpec != NULL) {
-    theTaskSpecLength = strlen(theTaskSpec) + 1;
-  }
-
-  rlSendData(theConnection, &theTaskSpecLength, sizeof(int));
-
-  if (theTaskSpecLength > 0) {
-    rlSendData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
-  }
+  RL_init();
 }
 
 void onRLStart(rlSocket theConnection) {
