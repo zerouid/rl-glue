@@ -8,16 +8,14 @@ def onEnvInit(sock):
 	theTaskSpecLength = len(taskSpec)
 	
 	sock.sendInt(theTaskSpecLength)
-	sock.sendString(taskSpec)
-	sys.stderr.write('finished env_init\n')
+	if theTaskSpecLength > 0:
+		sock.sendString(taskSpec)
 
 def onEnvStart(sock):
 	theObservation = env_start()
 	sock.sendADT(theObservation)
-	sys.stderr.write('finished env_start\n')
 
 def onEnvStep(sock):
-	sys.stderr.write('starting env_step\n')
 	theAction = sock.recvADTHeader()
 	theAction = sock.recvADTBody(theAction)
 	
@@ -25,7 +23,6 @@ def onEnvStep(sock):
 	sock.sendDouble(ro.r)
 	sock.sendADT(ro.o)
 	sock.sendInt(ro.terminal)
-	sys.stderr.write('finished env_step\n')
 
 def onEnvCleanup(sock):
 	env_cleanup()
