@@ -35,7 +35,7 @@ void rlSetExperimentConnection(int theConnection) {
 }
 
 int rlIsExperimentConnected() {
-	return theExperimentConnection != 0;
+  return theExperimentConnection != 0;
 }
 
 
