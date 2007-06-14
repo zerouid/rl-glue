@@ -150,14 +150,22 @@ static void runAgentEventLoop(rlSocket theConnection) {
 int main(int argc, char** argv) {
   const int theConnectionType = kAgentConnection;
   rlSocket theConnection = 0;
+  int arg = 0;
+  int isDaemon = 0;
 
-  while(1) {
+  for (arg = 0; arg < argc; ++arg) {
+    if (strcmp(argv[arg], "--stayalive") == 0) {
+      isDaemon = 1;
+    }
+  }
+
+  do {
     theConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
     /* we need to tell RL-Glue what type of object is connecting */
     rlSendData(theConnection, &theConnectionType, sizeof(int)); 
     runAgentEventLoop(theConnection);
     rlClose(theConnection);
-  }
+  } while(isDaemon);
 
   return 0;
 }
