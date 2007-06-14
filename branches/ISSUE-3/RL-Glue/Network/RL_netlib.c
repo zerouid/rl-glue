@@ -230,15 +230,19 @@ void rlRecvADTBody(rlSocket socket, RL_abstract_type* data) {
   }
 }
 
-void rlAllocADT(RL_abstract_type *data) {
+RL_abstract_type* rlAllocADT(RL_abstract_type *data, unsigned int numInts, unsigned int numDoubles) {
   if (data != 0) {
-    if (data->numInts > 0) {
+    data->numInts    = numInts;
+    data->numDoubles = numDoubles;
+    if (numInts > 0) {
       data->intArray = (int*)calloc(data->numInts, sizeof(int));
     }
-    if (data->numDoubles > 0) {
+    if (numDoubles > 0) {
       data->doubleArray = (double*)calloc(data->numDoubles, sizeof(double));
     }
   }
+
+  return data;
 }
 
 void rlFreeADT(RL_abstract_type *data) {
