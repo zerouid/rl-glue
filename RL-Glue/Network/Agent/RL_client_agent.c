@@ -96,8 +96,9 @@ static void onAgentMessage(rlSocket theConnection) {
   }
   theOutMessage = agent_message(theInMessage);
 
-  if (theOutMessage != NULL)
+  if (theOutMessage != NULL) {
    theOutMessageLength = strlen(theOutMessage)+1;
+  }
 
   rlSendData(theConnection, &theOutMessageLength, sizeof(int));
   if (theOutMessageLength > 0) {
