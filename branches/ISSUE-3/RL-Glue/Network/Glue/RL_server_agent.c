@@ -18,7 +18,7 @@ void rlSetAgentConnection(int theConnection) {
 }
 
 int rlIsAgentConnected() {
-	return theAgentConnection != 0;
+  return theAgentConnection != 0;
 }
 
 /* Send the task spec to the agent */
@@ -97,16 +97,22 @@ char* agent_message(const char* inMessage) {
   const int agentState = kAgentMessage;
   rlSendData(theAgentConnection, &agentState, sizeof(int));
 
-  if (inMessage != NULL)
+  if (inMessage != NULL) {
     theInMessageLength = strlen(inMessage) + 1;
+  }
+
   rlSendData(theAgentConnection, &theInMessageLength, sizeof(int));
-  if (theInMessageLength > 0)
+
+  if (theInMessageLength > 0) {
 	rlSendData(theAgentConnection, inMessage, sizeof(char)*theInMessageLength);
+  }
 
   rlRecvData(theAgentConnection, &theOutMessageLength, sizeof(int));
+
   if (theOutMessageLength > 0) {
     theOutMessage = (char*)calloc(theOutMessageLength, sizeof(char));
     rlRecvData(theAgentConnection, theOutMessage, sizeof(char)*theOutMessageLength);
   }
+
   return theOutMessage;
 }

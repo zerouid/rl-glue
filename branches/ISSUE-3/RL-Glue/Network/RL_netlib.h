@@ -45,10 +45,6 @@
 #define kDefaultPort 4096
 #define kRetryTimeout 10
 
-#define ntohll(x) (((long long)(ntohl((int)((x << 32) >> 32))) << 32) | (unsigned int)ntohl(((int)(x >> 32))))
-#define htonll(x) ntohll(x)
-
-
 /* Data types */
 typedef int rlSocket;
 
@@ -57,14 +53,6 @@ typedef struct rlBuffer_t {
   unsigned int capacity;
   unsigned char *data;
 } rlBuffer;
-
-/* rlBuffer API */
-void rlSwapData(unsigned char* out, const void* in, const unsigned int size);
-void rlCreateBuffer(rlBuffer *buffer, unsigned int capacity);
-void rlDestroyBuffer(rlBuffer *buffer);
-void rlBufferWrite(rlBuffer *buffer, unsigned char *data, unsigned int count, unsigned int size);
-void rlBufferRead(rlBuffer *buffer, unsigned int offset, unsigned char *data, unsigned int count, unsigned int size);
-void rlBufferClear(rlBuffer *buffer);
 
 /* Basic network functionality */
 rlSocket rlOpen(short thePort);
@@ -78,12 +66,23 @@ int rlIsValidSocket(rlSocket theSocket);
 int rlSendData(rlSocket socket, const void* data, int length);
 int rlRecvData(rlSocket socket, void* data, int length);
 
-void rlAllocADT(RL_abstract_type *data, unsigned int numInts, unsigned int numDoubles);
-void rlFreeADT(RL_abstract_type *data);
+int rlGetSystemByteOrder();
+void rlSwapData(unsigned char* out, const void* in, const unsigned int size);
 
 rlSocket rlWaitForConnection(const char *address, const short port, const int retryTimeout);
 
-int rlGetSystemByteOrder();
+/* rlBuffer API */
+void rlBufferCreate(rlBuffer *buffer, unsigned int capacity);
+void rlBufferDestroy(rlBuffer *buffer);
+void rlBufferWrite(rlBuffer *buffer, unsigned char *data, unsigned int count, unsigned int size);
+void rlBufferRead(rlBuffer *buffer, unsigned int offset, unsigned char *data, unsigned int count, unsigned int size);
+void rlBufferClear(rlBuffer *buffer);
+void rlBufferReserve(rlBuffer *buffer, unsigned int capacity);
 
+void rlBufferSendData(rlSocket theSocket, const void* sendData, unsigned int count, unsigned int sendTypeSize);
+void rlBufferRecvData(rlSocket theSocket, void* recvData, unsigned int recvTypeSize);
+
+void rlBufferSendADT(rlSocket theSocket, const RL_abstract_type* data);
+void rlBufferRecvADT(rlSocket theSocket, RL_abstract_type* data);
 
 #endif

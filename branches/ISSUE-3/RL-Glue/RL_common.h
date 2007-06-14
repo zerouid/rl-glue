@@ -8,8 +8,8 @@ typedef struct RL_abstract_type_t
 {
   unsigned int numInts;
   unsigned int numDoubles;
-  int *intArray;
-  double *doubleArray;
+  int* intArray;
+  double* doubleArray;
 } RL_abstract_type;
 
 typedef RL_abstract_type Observation;
