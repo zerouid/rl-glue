@@ -18,6 +18,96 @@ extern void rlSetAgentConnection(int);
 extern void rlSetEnvironmentConnection(int);
 extern void rlSetExperimentConnection(int);
 
+void rlSwapData(unsigned char* out, const void* in, const unsigned int size) {
+  const unsigned char *src = (const unsigned char *)&in;
+  unsigned int i = 0;
+  for (i = 0; i < size; ++i) {
+    out[i] = src[size-i];
+  }
+}
+
+void rlCreateBuffer(rlBuffer *buffer, unsigned int capacity) {
+  buffer->size     = 0;
+  buffer->capacity = capacity;
+  
+  if (capacity > 0) {
+    buffer->data = (unsigned char*)calloc(capacity, sizeof(unsigned char*));
+  }
+}
+
+void rlDestroyBuffer(rlBuffer *buffer) {
+  free(buffer->data);
+}
+
+void rlBufferWrite(rlBuffer *buffer, unsigned char *data, unsigned int count, unsigned int size) {
+  static int littleEndian = -1;
+
+  unsigned int i = 0;
+  unsigned char* new_data = 0;
+  unsigned char* data_ptr = 0;
+
+  if (littleEndian == -1) {
+    littleEndian = rlGetSystemByteOrder();
+  }
+  
+  /* Ensure the buffer can hold the new data */
+  if (count * size > buffer->capacity - buffer->size) {
+
+    /* Allocate enough memory for the additional data */
+    new_data = (unsigned char*)malloc((count * size) + (buffer->size * 2));
+
+    /* Copy the existing data into the the larger memory allocation */
+    memcpy(new_data, buffer->data, buffer->size);
+
+    /* Free the original data */
+    free(buffer->data);
+
+    /* Set the buffers data to the new data pointer */
+    buffer->data = new_data;
+
+    /* Set the new capacity */
+    buffer->capacity = (count * size) + (buffer->size * 2);
+  }
+
+  /* Get the offset to the place in the buffer we want to start inserting */
+  data_ptr = buffer->data + buffer->size;
+
+  /* For each of the new data items, swap the endianness and add them to the buffer */
+  for (i = 0; i < count; ++i) {
+    if (littleEndian) {
+      rlSwapData(&data_ptr[i * size], &data[i * size], size);
+    }
+    else {
+      memcpy(&data_ptr[i * size], &data[i * size], size);
+    }
+  }
+
+  buffer->size += count * size;
+}
+
+void rlBufferRead(rlBuffer *buffer, unsigned int offset, unsigned char *data, unsigned int count, unsigned int size) {
+  static int littleEndian = -1;   
+  unsigned int i = 0;
+
+  if (littleEndian == -1) {
+    rlGetSystemByteOrder();
+  }
+
+  /* For each of the new data items, swap the endianness and read them from the buffer */
+  for (i = 0; i < count; ++i) {
+    if (littleEndian) {
+      rlSwapData(&data[i * size], &buffer->data[(i * size) + offset], size);
+    }
+    else {
+      memcpy(&data[i * size], &buffer->data[(i * size) + offset], size);
+    }
+  }
+}
+
+void rlBufferClear(rlBuffer *buffer) {
+  buffer->size = 0;
+}
+
 rlSocket rlOpen(short thePort) {
   int flag = 1;
   rlSocket theSocket = 0;

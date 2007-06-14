@@ -45,8 +45,26 @@
 #define kDefaultPort 4096
 #define kRetryTimeout 10
 
+#define ntohll(x) (((long long)(ntohl((int)((x << 32) >> 32))) << 32) | (unsigned int)ntohl(((int)(x >> 32))))
+#define htonll(x) ntohll(x)
+
+
 /* Data types */
 typedef int rlSocket;
+
+typedef struct rlBuffer_t {
+  unsigned int size;
+  unsigned int capacity;
+  unsigned char *data;
+} rlBuffer;
+
+/* rlBuffer API */
+void rlSwapData(unsigned char* out, const void* in, const unsigned int size);
+void rlCreateBuffer(rlBuffer *buffer, unsigned int capacity);
+void rlDestroyBuffer(rlBuffer *buffer);
+void rlBufferWrite(rlBuffer *buffer, unsigned char *data, unsigned int count, unsigned int size);
+void rlBufferRead(rlBuffer *buffer, unsigned int offset, unsigned char *data, unsigned int count, unsigned int size);
+void rlBufferClear(rlBuffer *buffer);
 
 /* Basic network functionality */
 rlSocket rlOpen(short thePort);
