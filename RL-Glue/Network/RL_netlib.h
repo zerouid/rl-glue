@@ -81,7 +81,7 @@ int rlRecvData(rlSocket socket, void* data, int length);
 void rlSendADT(rlSocket socket, RL_abstract_type* data);
 void rlRecvADTHeader(rlSocket socket, RL_abstract_type* data);
 void rlRecvADTBody(rlSocket socket, RL_abstract_type* data);
-void rlAllocADT(RL_abstract_type *data);
+void rlAllocADT(RL_abstract_type *data, unsigned int numInts, unsigned int numDoubles);
 void rlFreeADT(RL_abstract_type *data);
 
 rlSocket rlWaitForConnection(const char *address, const short port, const int retryTimeout);
