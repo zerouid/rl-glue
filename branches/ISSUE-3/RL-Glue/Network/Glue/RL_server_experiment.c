@@ -3,6 +3,7 @@
 #include <signal.h> /* handle ctrl-C */
 #include <stdlib.h> /* exit */
 #include <string.h> /* strlen */
+#include <unistd.h> /* getopt */
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -209,13 +210,24 @@ void runGlueEventLoop(rlSocket theConnection) {
 
 int main(int argc, char** argv) {
   rlSocket theConnection = 0;
+  int arg = 0;
+  int isDaemon = 0;
+
   signal (SIGINT, termination_handler);
-  while(1) {
+
+  for (arg = 0; arg < argc; ++arg) {
+    if (strcmp(argv[arg], "--stayalive") == 0) {
+      isDaemon = 1;
+    }
+  }
+
+  do {
     theConnection = rlConnectSystems();
     assert(rlIsValidSocket(theConnection));
     runGlueEventLoop(theConnection);
     rlClose(theConnection);
-	theExperimentConnection = 0;
-  }
+    theExperimentConnection = 0;
+  } while (isDaemon);
+
   return 0;
 }

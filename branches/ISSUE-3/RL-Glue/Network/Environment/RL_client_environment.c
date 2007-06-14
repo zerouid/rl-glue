@@ -195,13 +195,22 @@ int main(int argc, char** argv) {
   const int theConnectionType = kEnvironmentConnection;
   rlSocket theConnection = 0;
 
-  while(1) {
+  int arg = 0;
+  int isDaemon = 0;
+
+  for (arg = 0; arg < argc; ++arg) {
+    if (strcmp(argv[arg], "--stayalive") == 0) {
+      isDaemon = 1;
+    }
+  }
+
+  do {
     theConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
     /* we need to tell RL-Glue what type of object is connecting */
     rlSendData(theConnection, &theConnectionType, sizeof(int)); 
     runEnvironmentEventLoop(theConnection);
     rlClose(theConnection);
-  }
+  } while (isDaemon);
 
   return 0;
 }
