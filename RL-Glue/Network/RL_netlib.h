@@ -78,9 +78,6 @@ int rlIsValidSocket(rlSocket theSocket);
 int rlSendData(rlSocket socket, const void* data, int length);
 int rlRecvData(rlSocket socket, void* data, int length);
 
-void rlSendADT(rlSocket socket, RL_abstract_type* data);
-void rlRecvADTHeader(rlSocket socket, RL_abstract_type* data);
-void rlRecvADTBody(rlSocket socket, RL_abstract_type* data);
 void rlAllocADT(RL_abstract_type *data, unsigned int numInts, unsigned int numDoubles);
 void rlFreeADT(RL_abstract_type *data);
 

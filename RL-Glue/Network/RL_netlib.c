@@ -202,34 +202,6 @@ int rlRecvData(rlSocket theSocket, void* theData, int theLength) {
   return theBytesRecv;
 }
 
-void rlSendADT(rlSocket socket, RL_abstract_type* data) {
-  rlSendData(socket, &data->numInts, sizeof(int));
-  rlSendData(socket, &data->numDoubles, sizeof(int));
-
-  if (data->numInts > 0) {
-    rlSendData(socket, data->intArray, sizeof(int) * data->numInts);
-  }
-
-  if (data->numDoubles > 0) {
-    rlSendData(socket, data->doubleArray, sizeof(double) * data->numDoubles);
-  }
-}
-
-void rlRecvADTHeader(rlSocket socket, RL_abstract_type* data) {
-  rlRecvData(socket, &data->numInts, sizeof(int));
-  rlRecvData(socket, &data->numDoubles, sizeof(int));
-}
-
-void rlRecvADTBody(rlSocket socket, RL_abstract_type* data) {
-  if (data->numInts > 0) {
-    rlRecvData(socket, data->intArray, sizeof(int) * data->numInts);
-  }
-
-  if (data->numDoubles > 0) {
-    rlRecvData(socket, data->doubleArray, sizeof(double) * data->numDoubles);
-  }
-}
-
 RL_abstract_type* rlAllocADT(RL_abstract_type *data, unsigned int numInts, unsigned int numDoubles) {
   if (data != 0) {
     data->numInts    = numInts;
