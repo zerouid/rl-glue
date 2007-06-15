@@ -1,4 +1,5 @@
 #include <stdlib.h> /* calloc */
+#include <string.h> /* strlen */
 
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
@@ -10,8 +11,10 @@ static Action theAction                 = {0};
 static State_key theStateKey            = {0};
 static Random_seed_key theRandomSeedKey = {0};
 static rlBuffer theBuffer               = {0};
-
 static Task_specification theTaskSpec = 0;
+
+static char* theMessage = 0;
+static int theMessageCapacity = 0;
 
 void RL_init() {
   const int theConnectionType = kExperimentConnection;
@@ -102,6 +105,7 @@ void RL_cleanup() {
   free(theRandomSeedKey.intArray);
   free(theRandomSeedKey.doubleArray);
   free(theTaskSpec);
+  free(theMessage);
 
   theObservation.numInts = 0;
   theObservation.numDoubles = 0;
@@ -112,6 +116,8 @@ void RL_cleanup() {
   theRandomSeedKey.numInts = 0;
   theRandomSeedKey.numDoubles = 0;
   theTaskSpec = 0;
+  theMessage = 0;
+  theMessageCapacity = 0;
 }
 
 Reward RL_return() {
@@ -143,6 +149,77 @@ int RL_num_steps() {
 
   return numSteps;
 }
+
+
+char* RL_agent_message(const char* message) {
+  const int experimentState = kRLAgentMessage;
+  int messageLength = strlen(message) + 1;
+  int offset = 0;
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &experimentState, 1, sizeof(int));
+  rlSendBufferData(theExperimentConnection, &theBuffer);
+
+  offset = 0;
+  rlBufferClear(&theBuffer);
+  offset = rlBufferWrite(&theBuffer, offset, &messageLength, 1, sizeof(int));
+  if (messageLength > 0) {
+    offset = rlBufferWrite(&theBuffer, offset, message, messageLength, sizeof(char));
+  }
+  rlSendBufferData(theExperimentConnection, &theBuffer);
+  
+  offset = 0;
+  rlBufferClear(&theBuffer);
+  offset = rlBufferRead(&theBuffer, offset, &messageLength, 1, sizeof(int));
+
+  if (messageLength > theMessageCapacity) {
+    free(theMessage);
+    theMessage = (char*)calloc(messageLength, sizeof(char));
+    theMessageCapacity = messageLength;
+  }
+
+  if (messageLength > 0) {
+    offset = rlBufferRead(&theBuffer, offset, theMessage, messageLength, sizeof(char));
+  }
+
+  return theMessage;
+}
+
+
+char* RL_env_message(const char* message) {
+  const int experimentState = kRLEnvMessage;
+  int messageLength = strlen(message) + 1;
+  int offset = 0;
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &experimentState, 1, sizeof(int));
+  rlSendBufferData(theExperimentConnection, &theBuffer);
+
+  offset = 0;
+  rlBufferClear(&theBuffer);
+  offset = rlBufferWrite(&theBuffer, offset, &messageLength, 1, sizeof(int));
+  if (messageLength > 0) {
+    offset = rlBufferWrite(&theBuffer, offset, message, messageLength, sizeof(char));
+  }
+  rlSendBufferData(theExperimentConnection, &theBuffer);
+  
+  offset = 0;
+  rlBufferClear(&theBuffer);
+  offset = rlBufferRead(&theBuffer, offset, &messageLength, 1, sizeof(int));
+
+  if (messageLength > theMessageCapacity) {
+    free(theMessage);
+    theMessage = (char*)calloc(messageLength, sizeof(char));
+    theMessageCapacity = messageLength;
+  }
+
+  if (messageLength > 0) {
+    offset = rlBufferRead(&theBuffer, offset, theMessage, messageLength, sizeof(char));
+  }
+
+  return theMessage;
+}
+
 
 int RL_num_episodes() {
   const int experimentState = kRLNumEpisodes;

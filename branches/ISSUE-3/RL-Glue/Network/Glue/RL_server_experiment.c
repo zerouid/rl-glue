@@ -24,6 +24,8 @@ extern State_key RL_get_state();
 extern Random_seed_key RL_get_random_seed();
 extern void RL_cleanup();
 extern void RL_freeze();
+extern char* RL_agent_message(const char* message);
+extern char* RL_env_message(const char* message);
 
 void onRLCleanup(rlSocket theConnection);
 
@@ -181,6 +183,72 @@ void onRLFreeze(rlSocket theConnection) {
   RL_freeze();
 }
 
+void onRLAgentMessage(rlSocket theConnection) {
+  char* inMessage = 0;
+  char* outMessage = 0;
+  int messageLength = 0;
+  int offset = 0;
+
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  
+  offset = 0;
+  offset = rlBufferRead(&theBuffer, offset, &messageLength, 1, sizeof(int));
+
+  if (messageLength > 0) {
+    inMessage = (char*)calloc(messageLength, sizeof(char));
+    offset = rlBufferRead(&theBuffer, offset, inMessage, messageLength, sizeof(char));
+  }
+  
+  outMessage = RL_agent_message(inMessage);
+  if (outMessage != 0) {
+    messageLength = strlen(outMessage) + 1;
+  }
+
+  offset = 0;
+  rlBufferClear(&theBuffer);
+  offset = rlBufferWrite(&theBuffer, offset, &messageLength, 1, sizeof(int));
+  if (messageLength > 0) {
+    offset = rlBufferWrite(&theBuffer, offset, outMessage, messageLength, sizeof(char));
+  } 
+  rlSendBufferData(theConnection, &theBuffer);
+
+  free(inMessage);
+}
+
+void onRLEnvMessage(rlSocket theConnection) {
+  char* inMessage = 0;
+  char* outMessage = 0;
+  int messageLength = 0;
+  int offset = 0;
+
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  
+  offset = 0;
+  offset = rlBufferRead(&theBuffer, offset, &messageLength, 1, sizeof(int));
+
+  if (messageLength > 0) {
+    inMessage = (char*)calloc(messageLength, sizeof(char));
+    offset = rlBufferRead(&theBuffer, offset, inMessage, messageLength, sizeof(char));
+  }
+  
+  outMessage = RL_env_message(inMessage);
+  if (outMessage != 0) {
+    messageLength = strlen(outMessage) + 1;
+  }
+
+  offset = 0;
+  rlBufferClear(&theBuffer);
+  offset = rlBufferWrite(&theBuffer, offset, &messageLength, 1, sizeof(int));
+  if (messageLength > 0) {
+    offset = rlBufferWrite(&theBuffer, offset, outMessage, messageLength, sizeof(char));
+  } 
+  rlSendBufferData(theConnection, &theBuffer);
+
+  free(inMessage);
+}
+
 void runGlueEventLoop(rlSocket theConnection) {
   int glueState = 0;
 
@@ -241,6 +309,15 @@ void runGlueEventLoop(rlSocket theConnection) {
     case kRLFreeze:
       onRLFreeze(theConnection);
       break;
+
+    case kRLAgentMessage:
+      onRLAgentMessage(theConnection);
+      break;
+
+    case kRLEnvMessage:
+      onRLEnvMessage(theConnection);
+      break;
+
 
     default:
       fprintf(stderr, kUnknownMessage, glueState);
