@@ -8,8 +8,11 @@ Observation theObservation;
 void agent_init(Task_specification task_spec) {
   fprintf(stderr, "ZeroAgent: %s\n", task_spec);
 
-  theAction.numInts = 1;
+  theAction.numInts  = 1;
   theAction.intArray = (int*)malloc(sizeof(int) * theAction.numInts);
+
+  theAction.numDoubles  = 0;
+  theAction.doubleArray = 0;
 }
 
 Action agent_start(Observation o) {

@@ -1,5 +1,8 @@
 #include <stdlib.h> /* calloc */
 #include <string.h> /* strlen */
+
+#include <stdio.h> /* fprintf : Debug only! */
+
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -69,6 +72,8 @@ Reward_observation env_step(Action theAction) {
   rlBufferClear(&theBuffer);
   rlBufferWrite(&theBuffer, 0, &envState, 1, sizeof(int));
   rlSendBufferData(theEnvironmentConnection, &theBuffer);
+
+  fprintf(stderr, "%s : %s i=%d d=%d\n", __FILE__, __FUNCTION__, theAction.numInts, theAction.numDoubles);
 
   rlBufferClear(&theBuffer);
   rlCopyADTToBuffer(&theAction, &theBuffer);

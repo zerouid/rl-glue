@@ -59,6 +59,8 @@ static void onEnvStep(rlSocket theConnection) {
   rlRecvBufferData(theConnection, &theBuffer);
   rlCopyBufferToADT(&theBuffer, &theAction);
 
+  fprintf(stderr, "%s : %s i=%d d=%d\n", __FILE__, __FUNCTION__, theAction.numInts, theAction.numDoubles);
+
   ro = env_step(theAction);
 
   rlBufferClear(&theBuffer);
