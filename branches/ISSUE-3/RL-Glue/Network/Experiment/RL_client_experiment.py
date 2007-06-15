@@ -28,7 +28,19 @@ def RL_return():
 def RL_num_steps():
 	sock.sendInt(kRLNumSteps)
 	return sock.recvInt()
-	
+
+def RL_env_message(inMessage):
+	sock.sendInt(kRLEnvMessage)
+	sock.sendString(inMessage)
+	outMessage = sock.recvString()
+	return outMessage
+
+def RL_agent_message(inMessage):
+	sock.sendInt(kRLAgentMessage)
+	sock.sendString(inMessage)
+	outMessage = sock.recvString()
+	return outMessage
+
 def RL_num_episodes():
 	sock.sendInt(kRLNumEpisodes)
 	return sock.recvInt()
