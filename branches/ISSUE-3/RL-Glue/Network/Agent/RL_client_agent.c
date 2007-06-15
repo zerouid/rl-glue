@@ -88,12 +88,15 @@ static void onAgentCleanup(rlSocket theConnection) {
   free(theObservation.intArray);
   free(theObservation.doubleArray);
   free(theTaskSpec);
-
+  free(theInMessage);
+  
   theObservation.numInts    = 0;
   theObservation.numDoubles = 0;
   theObservation.intArray   = 0;
   theObservation.doubleArray= 0;
   theTaskSpec = 0;
+  theInMessage = 0;
+  theInMessageCapacity = 0;
 }
 
 static void onAgentFreeze(rlSocket theConnection) {
