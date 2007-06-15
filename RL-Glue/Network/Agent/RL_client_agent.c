@@ -21,6 +21,8 @@ static const char* kUnknownMessage = "Unknown Message: %d\n";
 static char* theTaskSpec = 0;
 static Observation theObservation = {0};
 static rlBuffer theBuffer = {0};
+static char* theInMessage = 0;
+static int theInMessageCapacity = 0;
 
 static void onAgentInit(rlSocket theConnection) {
   unsigned int theTaskSpecLength = 0;
@@ -99,36 +101,44 @@ static void onAgentFreeze(rlSocket theConnection) {
 }
 
 static void onAgentMessage(rlSocket theConnection) {
-  int theInMessageLength = 0;
-  int theOutMessageLength = 0;
-  char* theInMessage = NULL;
-  char* theOutMessage = NULL;
+  int inMessageLength = 0;
+  int outMessageLength = 0;
+  char* inMessage = 0;
+  char* outMessage = NULL;
 
   int offset = 0;
 
   rlBufferClear(&theBuffer);
   rlRecvBufferData(theConnection, &theBuffer);
 
-  offset = rlBufferRead(&theBuffer, offset, &theInMessageLength, 1, sizeof(int));
-  if (theInMessageLength > 0) {
-    theInMessage = (char*)calloc(theInMessageLength, sizeof(char));
-    offset = rlBufferRead(&theBuffer, offset, theInMessage, theInMessageLength, sizeof(char));
+  offset = rlBufferRead(&theBuffer, offset, &inMessageLength, 1, sizeof(int));
+
+  if (inMessageLength > theInMessageCapacity) {
+    inMessage = (char*)calloc(inMessageLength, sizeof(char));
+    free(theInMessage);
+
+    theInMessage = inMessage;
+    theInMessageCapacity = inMessageLength;
   }
 
-  theOutMessage = agent_message(theInMessage);
+  if (inMessageLength > 0) {
+    offset = rlBufferRead(&theBuffer, offset, theInMessage, inMessageLength, sizeof(char));
+  }
 
-  if (theOutMessage != NULL) {
-   theOutMessageLength = strlen(theOutMessage)+1;
+  outMessage = agent_message(theInMessage);
+
+  if (outMessage != NULL) {
+   outMessageLength = strlen(outMessage)+1;
   }
   
   /* we want to start sending now, so we're going to reset the offset to 0 so we write the the beginning of the buffer */
   offset = 0;
 
   rlBufferClear(&theBuffer);
-  offset = rlBufferWrite(&theBuffer, offset, &theOutMessageLength, 1, sizeof(int));
+  offset = rlBufferWrite(&theBuffer, offset, &outMessageLength, 1, sizeof(int));
   
-  if (theOutMessageLength > 0) {
-    offset = rlBufferWrite(&theBuffer, offset, theOutMessage, theOutMessageLength, sizeof(char));
+  if (outMessageLength > 0) {
+    offset = rlBufferWrite(&theBuffer, offset, outMessage, outMessageLength, sizeof(char));
   }
 
   rlSendBufferData(theConnection, &theBuffer);
