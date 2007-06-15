@@ -1,6 +1,5 @@
 import random
 import sys
-
 from RL_common import *
 
 class MineEnv:
