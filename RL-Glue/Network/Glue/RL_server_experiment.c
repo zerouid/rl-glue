@@ -55,8 +55,6 @@ int rlIsExperimentConnected() {
 
 
 void onRLInit(rlSocket theConnection) {
-  rlBufferCreate(&theBuffer, 4096);
-
   RL_init();
 }
 
@@ -161,8 +159,6 @@ void onRLGetRandomSeed(rlSocket theConnection) {
 void onRLCleanup(rlSocket theConnection) {
   RL_cleanup();
   
-  rlBufferDestroy(&theBuffer);
-
   free(theStateKey.intArray);
   free(theStateKey.doubleArray);
   free(theRandomSeedKey.intArray);
@@ -265,6 +261,8 @@ int main(int argc, char** argv) {
     }
   }
 
+  rlBufferCreate(&theBuffer, 4096);
+
   do {
     theConnection = rlConnectSystems();
     assert(rlIsValidSocket(theConnection));
@@ -272,6 +270,8 @@ int main(int argc, char** argv) {
     rlClose(theConnection);
     theExperimentConnection = 0;
   } while (isDaemon);
+
+  rlBufferDestroy(&theBuffer);
 
   return 0;
 }
