@@ -17,6 +17,8 @@ extern int rlIsExperimentConnected();
    If all components are written in C, we can link to RL_direct.o instead of using this implementation.
 */
 
+short rlConnectPort = kDefaultPort;
+
 int rlConnectSystems() {
   int isAgentConnected       = rlIsAgentConnected();
   int isEnvironmentConnected = rlIsEnvironmentConnected(); 
@@ -31,8 +33,8 @@ int rlConnectSystems() {
   rlBufferCreate(&theBuffer, sizeof(int) * 2);
 
   if (!isAgentConnected || !isEnvironmentConnected || !isExperimentConnected) {
-    theServer = rlOpen(kDefaultPort);
-    rlListen(theServer, kDefaultPort);
+    theServer = rlOpen(rlConnectPort);
+    rlListen(theServer, rlConnectPort);
   }
 
   while(!isAgentConnected || !isEnvironmentConnected || !isExperimentConnected) {

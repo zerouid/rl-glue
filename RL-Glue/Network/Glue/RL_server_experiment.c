@@ -2,8 +2,16 @@
 #include <assert.h> /* assert */
 #include <signal.h> /* handle ctrl-C */
 #include <stdlib.h> /* exit */
-#include <string.h> /* strlen */
+#include <string.h> /* strlen, strncmp */
 #include <unistd.h> /* getopt */
+#include <ctype.h> /* isdigit */
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
+
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
@@ -26,6 +34,8 @@ extern void RL_cleanup();
 extern void RL_freeze();
 extern char* RL_agent_message(const char* message);
 extern char* RL_env_message(const char* message);
+
+extern short rlConnectPort;
 
 void onRLCleanup(rlSocket theConnection);
 
@@ -330,12 +340,34 @@ int main(int argc, char** argv) {
   rlSocket theConnection = 0;
   int arg = 0;
   int isDaemon = 0;
+  /*short port = kDefaultPort;*/
+  char host[1024] = {0};
+  struct hostent *host_ent;
+
+  rlConnectPort = kDefaultPort;
 
   signal (SIGINT, termination_handler);
 
+  strncpy(host, kLocalHost, 1024);
+
+  /* less gross than getlongopt */
   for (arg = 0; arg < argc; ++arg) {
-    if (strcmp(argv[arg], "--stayalive") == 0) {
+    if (strncmp(argv[arg], "--stayalive", 12) == 0) {
       isDaemon = 1;
+    }
+    else if (sscanf(argv[arg], "--port = %hd", &rlConnectPort) != 0) {
+    }
+    else if (sscanf(argv[arg], "--host = %s", host) != 0) {
+      if (isdigit(host[0])) {
+	/* assume we got an ip address */
+      }
+      else if (isalpha(host[0])) {
+	/* assume we got a host name */
+	host_ent = gethostbyname(host);
+	if (host_ent != 0) {
+	  strncpy(host, inet_ntoa(*((struct in_addr*)host_ent->h_addr)), 1024);
+	}
+      }
     }
   }
 
