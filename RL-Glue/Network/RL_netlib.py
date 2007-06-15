@@ -41,6 +41,8 @@ kRLSetRandomSeed  = 26
 kRLGetState       = 27
 kRLGetRandomSeed  = 28
 kRLFreeze         = 29
+kRLAgentMessage   = 33
+kRLEnvMessage     = 34
 
 kLocalHost = "127.0.0.1"
 kDefaultPort = 4096
