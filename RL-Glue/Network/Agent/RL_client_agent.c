@@ -134,7 +134,7 @@ static void onAgentMessage(rlSocket theConnection) {
    outMessageLength = strlen(outMessage)+1;
   }
   
-  /* we want to start sending now, so we're going to reset the offset to 0 so we write the the beginning of the buffer */
+  /* we want to start sending now, so we're going to reset the offset to 0 so we write to the beginning of the buffer */
   offset = 0;
 
   rlBufferClear(&theBuffer);

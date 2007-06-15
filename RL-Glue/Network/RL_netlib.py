@@ -2,6 +2,7 @@ import socket
 import struct
 import array
 import time
+import sys
 from RL_common import *
 
 # RL-Glue needs to know what type of object is trying to connect.
@@ -79,74 +80,117 @@ class rlSocket:
 		return self.socket == None
 	
 	def sendString(self, string):
+		sys.stderr.write("sending string %s, length is %d\n" % (string, len(string)))
+		
+		self._sendInt(4 + len(string))
+		self._sendInt(len(string))
 		self.socket.sendall(string)
 	
-	def sendInt(self, data):
-		packet = struct.pack('i',data)
+	def _sendInt(self, data):
+		packet = struct.pack('i',socket.htonl(data))
 		self.socket.sendall(packet)
 	
-	def sendDouble(self,data):
+	def _sendDouble(self,data):
 		packet = struct.pack('d',data)
 		self.socket.sendall(packet)
 	
-	def sendInts(self, data):
+	def _sendInts(self, data):
 		packet = array.array('l',data)
 		self.socket.sendall(packet)
 
-	def sendDoubles(self,data):
+	def _sendDoubles(self,data):
 		packet = array.array('d',data)
 		self.socket.sendall(packet)
 	
-	def recvString(self,length):
+	def recvString(self):
 		s = ''
+		length = self._recvInt()
 		while len(s) < length:
 			s += self.socket.recv(length)
 		return s
 	
-	def recvInt(self):
+	def _recvInt(self):
 		s = ''
 		while len(s) < 4:
 			s += self.socket.recv(4)
 		return struct.unpack('i',s)[0]
 		
-	def recvDouble(self):
+	def _recvDouble(self):
 		s = ''
 		while len(s) < 8:
 			s += self.socket.recv(8)
 		return struct.unpack('d',s)[0]
 	
-	def recvInts(self,num):
+	def _recvInts(self,num):
 		s = ''
 		while len(s) < num*4:
 			s += self.socket.recv(num*4)
 		return struct.unpack("%di" % (num),s)
 
-	def recvDoubles(self,num):
+	def _recvDoubles(self,num):
 		s = ''
 		while len(s) < num*8:
 			s += self.socket.recv(num*8)
 		return struct.unpack("%dd" % (num),s)
 
 	def sendADT(self, data):
-		self.sendInt(data.numInts)
-		self.sendInt(data.numDoubles)
+		self._sendInt(8 + 4*data.numInts + 8*data.numDoubles)
+		self._sendInt(data.numInts)
+		self._sendInt(data.numDoubles)
 		if data.numInts > 0:
-			self.sendInts(data.intArray)
+			self._sendInts(data.intArray)
 		if data.numDoubles > 0:
-			self.sendData(data.doubleArray)
+			self._sendData(data.doubleArray)
 
-	def recvADTHeader(self):
+	def recvADT(self):
 		data = RL_abstract_type()
-		data.numInts = self.recvInt()
-		data.numDoubles = self.recvInt()
+		size = self._recvInt()
+		data.numInts = self._recvInt()
+		data.numDoubles = self._recvInt()
+		if data.numInts > 0:
+			data.intArray = self._recvInts(data.numInts)
+		if data.numDoubles > 0:
+			data.doubleArray = self._recvDoubles(data.numDoubles)
 		return data
 
-	def recvADTBody(self,data):
-		if data.numInts > 0:
-			data.intArray = self.recvInts(data.numInts)
-		if data.numDoubles > 0:
-			data.doubleArray = self.recvDoubles(data.numDoubles)
-		return data
+	def sendRewardObservation(self, ro):
+		self._sendInt(12)
+		self._sendInt(ro.terminal)
+		self._sendDouble(ro.r)
+		self.sendADT(ro.o)
+
+	def recvRewardObservation(self):
+		ro = Reward_observation()
+		size = self._recvInt()
+		ro.r = self._recvDouble()
+		ro.o = self.recvADT()
+		return ro
+
+	def recvDouble(self):
+		size = self._recvInt()
+		return self._recvDouble()
+
+	def recvInt(self):
+		size = self._recvInt()
+		return self._recvInt()
+
+	def sendInt(self, i):
+		self._sendInt(4)
+		self._sendInt(i)
+
+	def recvObservationAction(self):
+		oa = Observation_action()
+		oa.o = self.recvADT()
+		oa.a = self.recvADT()
+		return oa
+
+	def recvRewardObservationActionTerm(self):
+		roat = Reward_observation_action_terminal()
+		size = self._recvInt()
+		roat.terminal = self._recvInt()
+		roat.r = self._recvDouble()
+		roat.o = self.recvADT()
+		roat.a = self.recvADT()
 
 def waitForConnection(address,port,retryTimeout):
 	sock = rlSocket()

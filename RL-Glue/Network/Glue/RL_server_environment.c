@@ -38,15 +38,14 @@ Task_specification env_init() {
   rlBufferWrite(&theBuffer, 0, &envState, 1, sizeof(int));
   rlSendBufferData(theEnvironmentConnection, &theBuffer);
 
+
   rlBufferClear(&theBuffer);
   rlRecvBufferData(theEnvironmentConnection, &theBuffer);
-
   offset = rlBufferRead(&theBuffer, offset, &theTaskSpecLength, 1, sizeof(int));  
   if (theTaskSpecLength > 0) {
     theTaskSpec = (char*)calloc(theTaskSpecLength, sizeof(char));
     offset = rlBufferRead(&theBuffer, offset, theTaskSpec, theTaskSpecLength, sizeof(char));
   }
-  
   return theTaskSpec;
 }
 
@@ -60,7 +59,6 @@ Observation env_start() {
   rlBufferClear(&theBuffer);
   rlRecvBufferData(theEnvironmentConnection, &theBuffer);
   rlCopyBufferToADT(&theBuffer, &theObservation);
-
   return theObservation;
 }
 

@@ -1,4 +1,5 @@
 from RL_netlib import *
+import sys
 
 sock = None
 
@@ -7,29 +8,16 @@ def RL_init():
 	sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
 	sock.sendInt(kExperimentConnection)
 	sock.sendInt(kRLInit)
+	sys.stderr.write('sent rl_init to rl_glue\n')
 
 def RL_start():
-	oa = Observation_action()
 	sock.sendInt(kRLStart)
-	theObservation = sock.recvADTHeader()
-	theObservation = sock.recvADTBody(theObservation)
-	theAction = sock.recvADTHeader()
-	theAction = sock.recvADTBody(theAction)
-	
-	oa.o = theObservation
-	oa.a = theAction
-	return oa
+	sys.stderr.write('sending rl_start to rl_glue\n')
+	return sock.recvObservationAction()
 
 def RL_step():
-	roat = Reward_observation_action_terminal()
 	sock.sendInt(kRLStep)
-	roat.r = sock.recvDouble()
-	roat.o = sock.recvADTHeader()
-	roat.o = sock.recvADTBody(roat.o)
-	roat.a = sock.recvADTHeader()
-	roat.a = sock.recvADTBody(roat.a)
-	roat.terminal = sock.recvInt()
-	return roat
+	return sock.recvRewardObservationActionTerm()
 
 def RL_cleanup():
 	sock.sendInt(kRLCleanup)
@@ -61,12 +49,10 @@ def RL_set_random_seed(theRandomSeedKey):
 
 def RL_get_state():
 	sock.sendInt(kRLGetState)
-	theStateKey = sock.recvADTHeader()
-	theStateKey = sock.recvADTBody(theStateKey)
+	theStateKey = sock.recvADT()
 	return theStateKey
 
 def RL_get_random_seed():
 	sock.sendInt(kRLGetRandomSeed)
-	theRandomSeedKey = sock.recvADTHeader()
-	theRandomSeedKey = sock.recvADTBody(theRandomSeedKey)
+	theRandomSeedKey = sock.recvADT()
 	return theRandomSeedKey

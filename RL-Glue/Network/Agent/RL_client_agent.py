@@ -4,23 +4,17 @@ from RL_agent import *
 from RL_netlib import *
 
 def onAgentInit(sock):
-	theTaskSpecLength = sock.recvInt()
-	taskSpec = ''
-	if theTaskSpecLength > 0:
-		taskSpec = sock.recvString(theTaskSpecLength)
+	taskSpec = sock.recvString()
 	agent_init(taskSpec)
 
 def onAgentStart(sock):
-	theObservation = sock.recvADTHeader()
-	theObservation = sock.recvADTBody(theObservation)
+	theObservation = sock.recvADT()
 	theAction = agent_start(theObservation)
 	sock.sendADT(theAction)
 
 def onAgentStep(sock):
-	theReward = sock.recvDouble()
-	theObservation = sock.recvADTHeader()
-	theObservation = sock.recvADTBody(theObservation)
-	theAction = agent_step(theReward, theObservation)
+	ro = sock.recvRewardObservation()
+	theAction = agent_step(ro.r, ro.o)
 	sock.sendADT(theAction)
 
 def onAgentEnd(sock):
@@ -34,18 +28,9 @@ def onAgentFreeze(sock):
 	agent_freeze()
 
 def onAgentMessage(sock):
-	theInMessageLength = sock.recvInt()
-	inMessage = None
-	theOutMessageLength = 0
-	
-	if theInMessageLength > 0:
-		inMessage = sock.recvString(theInMessageLength)
+	inMessage = sock.recvString()
 	outMessage = agent_message(inMessage)
-	if outMessage != None:
-		theOutMessageLength = len(outMessage)
-	sock.sendInt(theOutMessageLength)
-	if theOutMessageLength > 0:
-		sock.sendString(outMessage)
+	sock.sendString(outMessage)
 
 def runAgentEventLoop(sock):
 	agentState = 0
@@ -68,7 +53,15 @@ def runAgentEventLoop(sock):
 		else:
 			sys.stderr.write(kUnknownMessage % (agentState))
 
-while True:
+isDaemon = 0
+for arg in sys.argv:
+	if arg == "--stayalive":
+		isDaemon = True
+sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
+sock.sendInt(kAgentConnection)
+runAgentEventLoop(sock)
+sock.close()
+while isDaemon:
 	sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
 	sock.sendInt(kAgentConnection)
 	runAgentEventLoop(sock)
