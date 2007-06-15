@@ -21,8 +21,8 @@ EXPERIMENT_LDFLAGS  =
 
 # Uncomment next line to use network agent
 AGENT_NET       = yes
-#ENVIRONMENT_NET = yes
-#EXPERIMENT_NET  = yes
+ENVIRONMENT_NET = yes
+EXPERIMENT_NET  = yes
 
 all: ZeroAgent.o mines.o experiment.o RL_GLUE
 
