@@ -24,6 +24,8 @@ static Action theAction                 = {0};
 static State_key theStateKey            = {0};
 static Random_seed_key theRandomSeedKey = {0};
 static rlBuffer theBuffer               = {0};
+static char* theInMessage = 0;
+static int theInMessageCapacity = 0;
 
 static void onEnvInit(rlSocket theConnection) {
   Task_specification theTaskSpec = 0;
@@ -80,6 +82,7 @@ static void onEnvCleanup(rlSocket theConnection) {
   free(theRandomSeedKey.doubleArray);
   free(theStateKey.intArray);
   free(theStateKey.doubleArray);
+  free(theInMessage);
 
   theAction.intArray           = 0;
   theAction.doubleArray        = 0;
@@ -94,6 +97,9 @@ static void onEnvCleanup(rlSocket theConnection) {
   theRandomSeedKey.numDoubles = 0;
   theStateKey.numInts = 0;
   theStateKey.numDoubles = 0;
+
+  theInMessage = 0;
+  theInMessageCapacity = 0;
 }
 
 static void onEnvSetState(rlSocket theConnection) {
@@ -129,32 +135,44 @@ static void onEnvGetRandomSeed(rlSocket theConnection) {
 }
 
 static void onEnvMessage(rlSocket theConnection) {
-  int theInMessageLength = 0;
-  int theOutMessageLength = 0;
-  char* theInMessage = NULL;
-  char* theOutMessage = NULL;
+  int inMessageLength = 0;
+  int outMessageLength = 0;
+  char* inMessage = 0;
+  char* outMessage = 0;
   int offset = 0;
 
   rlBufferClear(&theBuffer);
   rlRecvBufferData(theConnection, &theBuffer);
 
   offset = 0;
-  offset = rlBufferRead(&theBuffer, offset, &theInMessageLength, 1, sizeof(int));
-  if (theInMessageLength > 0) {
-    offset = rlBufferRead(&theBuffer, offset, theInMessage, theInMessageLength, sizeof(char));
+  offset = rlBufferRead(&theBuffer, offset, &inMessageLength, 1, sizeof(int));
+
+  if (inMessageLength > theInMessageCapacity) {
+    inMessage = (char*)calloc(inMessageLength, sizeof(char));
+    free(theInMessage);
+
+    theInMessage = inMessage;
+    theInMessageCapacity = inMessageLength;
   }
 
-  theOutMessage = env_message(theInMessage);
-  if (theOutMessage != NULL) {
-   theOutMessageLength = strlen(theOutMessage)+1;
+  if (inMessageLength > 0) {
+    offset = rlBufferRead(&theBuffer, offset, theInMessage, inMessageLength, sizeof(char));
   }
 
-  /* We want to write, so we reset the offset to 0 */
+  outMessage = env_message(theInMessage);
+
+  if (outMessage != NULL) {
+   outMessageLength = strlen(outMessage)+1;
+  }
+  
+  /* we want to start sending now, so we're going to reset the offset to 0 so we write the the beginning of the buffer */
   offset = 0;
+
   rlBufferClear(&theBuffer);
-  offset = rlBufferWrite(&theBuffer, offset, &theOutMessageLength, 1, sizeof(int));
-  if (theOutMessageLength > 0) {
-    offset = rlBufferWrite(&theBuffer, offset, theOutMessage, theOutMessageLength, sizeof(char));
+  offset = rlBufferWrite(&theBuffer, offset, &outMessageLength, 1, sizeof(int));
+  
+  if (outMessageLength > 0) {
+    offset = rlBufferWrite(&theBuffer, offset, outMessage, outMessageLength, sizeof(char));
   }
 
   rlSendBufferData(theConnection, &theBuffer);

@@ -107,13 +107,13 @@ static void onAgentMessage(rlSocket theConnection) {
   int inMessageLength = 0;
   int outMessageLength = 0;
   char* inMessage = 0;
-  char* outMessage = NULL;
-
+  char* outMessage = 0;
   int offset = 0;
 
   rlBufferClear(&theBuffer);
   rlRecvBufferData(theConnection, &theBuffer);
 
+  offset = 0;
   offset = rlBufferRead(&theBuffer, offset, &inMessageLength, 1, sizeof(int));
 
   if (inMessageLength > theInMessageCapacity) {
