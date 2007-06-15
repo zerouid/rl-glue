@@ -1,5 +1,5 @@
 #include <assert.h> /* assert  */
-#include <stdlib.h> /* malloc */
+#include <stdlib.h> /* malloc, exit */
 #include <stdio.h>  /* fprintf */
 #include <unistd.h> /* sleep   */
 #include <string.h> /* strlen */
@@ -24,14 +24,18 @@ static rlBuffer theBuffer = {0};
 
 static void onAgentInit(rlSocket theConnection) {
   unsigned int theTaskSpecLength = 0;
+  int offset = 0;
 
   rlBufferClear(&theBuffer);
-  theTaskSpecLength = rlRecvBufferData(theConnection, &theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  offset = rlBufferRead(&theBuffer, offset, &theTaskSpecLength, 1, sizeof(int));
 
   if (theTaskSpecLength > 0) {
     theTaskSpec = (char*)malloc(theTaskSpecLength);
-    rlBufferRead(&theBuffer, 0, theTaskSpec, theTaskSpecLength, sizeof(char));
+    offset = rlBufferRead(&theBuffer, offset, theTaskSpec, theTaskSpecLength, sizeof(char));
   }
+
+  fprintf(stderr, "%s:%s length = %d spec = %s\n", __FILE__, __FUNCTION__, theTaskSpecLength, theTaskSpec);
 
   agent_init(theTaskSpec);
 }
@@ -136,13 +140,8 @@ static void runAgentEventLoop(rlSocket theConnection) {
   int agentState = 0;
 
   do {
-    fprintf(stderr, "clearing the buffer\n");
     rlBufferClear(&theBuffer);
-
-    fprintf(stderr, "receiving the buffer\n");
     rlRecvBufferData(theConnection, &theBuffer);
-
-    fprintf(stderr, "reading from the buffer\n");
     rlBufferRead(&theBuffer, 0, &agentState, 1, sizeof(int));
 
     switch(agentState) {
@@ -176,6 +175,7 @@ static void runAgentEventLoop(rlSocket theConnection) {
     
     default:
       fprintf(stderr, kUnknownMessage, agentState);
+      exit(0);
       break;
     };
   } while (agentState != kAgentCleanup);
@@ -187,7 +187,6 @@ int main(int argc, char** argv) {
   int arg = 0;
   int isDaemon = 0;
 
-  fprintf(stderr, "Parsing for --stayalive...\n");
   for (arg = 0; arg < argc; ++arg) {
     if (strcmp(argv[arg], "--stayalive") == 0) {
       isDaemon = 1;
@@ -195,27 +194,18 @@ int main(int argc, char** argv) {
   }
 
   /* Allocate what should be plenty of space for the buffer - it will dynamically resize if it is too small */
-  fprintf(stderr, "Creating the buffer\n");
   rlBufferCreate(&theBuffer, 4096);
   
   do {
-    fprintf(stderr, "waiting for connection\n");
     theConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
     /* we need to tell RL-Glue what type of object is connecting */
 
-    fprintf(stderr, "clearing the buffer\n");
     rlBufferClear(&theBuffer);
-
-    fprintf(stderr, "writing the connection type to the buffer\n");
     rlBufferWrite(&theBuffer, 0, &theConnectionType, 1, sizeof(int));
-
-    fprintf(stderr, "sending the buffer\n");
     rlSendBufferData(theConnection, &theBuffer);
 
-    fprintf(stderr, "starting the agent event loop\n");
     runAgentEventLoop(theConnection);
 
-    fprintf(stderr, "closing the connection\n");
     rlClose(theConnection);
 
   } while(isDaemon);

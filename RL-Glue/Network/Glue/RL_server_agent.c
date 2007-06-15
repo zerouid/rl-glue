@@ -27,16 +27,9 @@ void agent_init(Task_specification theTaskSpec) {
   const int theTaskSpecLength = strlen(theTaskSpec)+1;
   int offset = 0;
 
-  fprintf(stderr, "%s: creating the buffer\n", __FUNCTION__);
   rlBufferCreate(&theBuffer, 4096);
-
-  fprintf(stderr, "%s: clearing the buffer\n", __FUNCTION__);
   rlBufferClear(&theBuffer);
-
-  fprintf(stderr, "%s: writing to the buffer\n", __FUNCTION__);
   rlBufferWrite(&theBuffer, 0, &agentState, 1, sizeof(int));
-
-  fprintf(stderr, "%s: sending the buffer\n", __FUNCTION__);
   rlSendBufferData(theAgentConnection, &theBuffer);
 
   rlBufferClear(&theBuffer);
@@ -46,6 +39,7 @@ void agent_init(Task_specification theTaskSpec) {
   }
   rlSendBufferData(theAgentConnection, &theBuffer);
 
+  fprintf(stderr, "%s : %s: length = %d spec = %s\n", __FILE__, __FUNCTION__, theTaskSpecLength, theTaskSpec);
 }
 
 /* Send the observation to the agent, receive the action and return it */
