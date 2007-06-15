@@ -3,6 +3,8 @@
 #include <stdlib.h> /* calloc */
 #include <string.h> /* memset */
 
+#include <stdio.h> /* fprintf : Debug only */
+
 /* Network Headers */
 #include <unistd.h>
 #include <sys/types.h>
@@ -179,7 +181,7 @@ unsigned int rlBufferWrite(rlBuffer *buffer, unsigned int offset, const void* se
   }
 
   buffer->size += count * size;
-  return buffer->size;
+  return offset + count * size;
 }
 
 unsigned int rlBufferRead(const rlBuffer *buffer, unsigned int offset, void* recvData, unsigned int count, unsigned int size) {
@@ -278,8 +280,12 @@ void rlCopyADTToBuffer(const RL_abstract_type* src, rlBuffer* dst) {
   int offset = 0;
 
   rlBufferReserve(dst, headerSize + intSize + doubleSize);
+
+  fprintf(stderr, "send 1 offset = %d\n", offset);
   offset = rlBufferWrite(dst, offset, &src->numInts, 1, sizeof(unsigned int));
+  fprintf(stderr, "send 2 offset = %d\n", offset);
   offset = rlBufferWrite(dst, offset, &src->numDoubles, 1, sizeof(unsigned int));
+  fprintf(stderr, "send 3 offset = %d\n", offset);
 
   if (src->numInts > 0) {
     offset = rlBufferWrite(dst, offset, src->intArray, src->numInts, sizeof(int));
@@ -299,8 +305,11 @@ void rlCopyBufferToADT(const rlBuffer* src, RL_abstract_type* dst) {
 
   int offset = 0;
 
+  fprintf(stderr, "recv 1 offset = %d\n", offset);
   offset = rlBufferRead(src, offset, &numInts, 1, sizeof(unsigned int));
+  fprintf(stderr, "recv 2 offset = %d\n", offset);
   offset = rlBufferRead(src, offset, &numDoubles, 1, sizeof(unsigned int));
+  fprintf(stderr, "recv 3 offset = %d\n", offset);
 
   if (numInts > dst->numInts) {
     intArray = (int*)calloc(dst->numInts, sizeof(int));
@@ -308,6 +317,7 @@ void rlCopyBufferToADT(const rlBuffer* src, RL_abstract_type* dst) {
     free(dst->intArray);
     dst->intArray = intArray;
   }
+  dst->numInts = numInts;
 
   if (numDoubles > dst->numDoubles) {
     doubleArray = (double*)calloc(dst->numDoubles, sizeof(double));
@@ -315,6 +325,7 @@ void rlCopyBufferToADT(const rlBuffer* src, RL_abstract_type* dst) {
     free(dst->doubleArray);
     dst->doubleArray = doubleArray;
   }
+  dst->numDoubles = numDoubles;
 
   if (dst->numInts > 0) {
     offset = rlBufferRead(src, offset, dst->intArray, dst->numInts, sizeof(int));

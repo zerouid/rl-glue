@@ -166,9 +166,10 @@ void onRLCleanup(rlSocket theConnection) {
 
   theStateKey.intArray = 0;
   theStateKey.doubleArray = 0;
+
   theRandomSeedKey.intArray = 0;
   theRandomSeedKey.doubleArray = 0;
-
+  
   theStateKey.numInts = 0;
   theStateKey.numDoubles = 0;
 

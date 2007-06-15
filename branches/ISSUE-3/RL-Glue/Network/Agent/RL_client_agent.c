@@ -35,8 +35,6 @@ static void onAgentInit(rlSocket theConnection) {
     offset = rlBufferRead(&theBuffer, offset, theTaskSpec, theTaskSpecLength, sizeof(char));
   }
 
-  fprintf(stderr, "%s:%s length = %d spec = %s\n", __FILE__, __FUNCTION__, theTaskSpecLength, theTaskSpec);
-
   agent_init(theTaskSpec);
 }
 
