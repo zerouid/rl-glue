@@ -78,6 +78,14 @@ void RL_cleanup() {
   agent_cleanup();
 }
 
+char* RL_agent_message(const char* message) {
+  return agent_message(message);
+}
+
+char* RL_env_message(const char* message) {
+  return env_message(message);
+}
+
 void RL_freeze() {
   agent_freeze();
 }

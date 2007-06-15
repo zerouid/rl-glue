@@ -9,6 +9,9 @@ Observation_action RL_start();
 Reward_observation_action_terminal RL_step();
 void RL_cleanup();
 
+char* RL_agent_message(const char* message);
+char* RL_env_message(const char* message);
+
 Reward RL_return();
 int RL_num_steps();
 int RL_num_episodes();

@@ -40,6 +40,8 @@
 #define kRLGetState       27
 #define kRLGetRandomSeed  28
 #define kRLFreeze         29
+#define kRLAgentMessage   33
+#define kRLEnvMessage     34
 
 #define kLocalHost "127.0.0.1"
 #define kDefaultPort 4096
