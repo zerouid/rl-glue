@@ -7,7 +7,7 @@
 
 static rlSocket theAgentConnection = 0;
 static Action theAction = {0};
-static int isActionAllocated = 0;
+static rlBuffer theBuffer = {0};
 
 void rlSetAgentConnection(int theConnection) {
   if (theAgentConnection) {
@@ -25,29 +25,44 @@ int rlIsAgentConnected() {
 void agent_init(Task_specification theTaskSpec) {
   const int agentState = kAgentInit;
   const int theTaskSpecLength = strlen(theTaskSpec)+1;
+  int offset = 0;
 
-  rlSendData(theAgentConnection, &agentState, sizeof(int));
-  rlSendData(theAgentConnection, &theTaskSpecLength, sizeof(int));
+  fprintf(stderr, "%s: creating the buffer\n", __FUNCTION__);
+  rlBufferCreate(&theBuffer, 4096);
 
+  fprintf(stderr, "%s: clearing the buffer\n", __FUNCTION__);
+  rlBufferClear(&theBuffer);
+
+  fprintf(stderr, "%s: writing to the buffer\n", __FUNCTION__);
+  rlBufferWrite(&theBuffer, 0, &agentState, 1, sizeof(int));
+
+  fprintf(stderr, "%s: sending the buffer\n", __FUNCTION__);
+  rlSendBufferData(theAgentConnection, &theBuffer);
+
+  rlBufferClear(&theBuffer);
+  offset = rlBufferWrite(&theBuffer, offset, &theTaskSpecLength, 1, sizeof(int));
   if (theTaskSpecLength > 0) {
-    rlSendData(theAgentConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+    offset = rlBufferWrite(&theBuffer, offset, theTaskSpec, theTaskSpecLength, sizeof(char));
   }
+  rlSendBufferData(theAgentConnection, &theBuffer);
+
 }
 
 /* Send the observation to the agent, receive the action and return it */
 Action agent_start(Observation theObservation) {
   const int agentState = kAgentStart;
 
-  rlSendData(theAgentConnection, &agentState, sizeof(int));
-  rlSendADT(theAgentConnection, (RL_abstract_type*)&theObservation);
-  rlRecvADTHeader(theAgentConnection, (RL_abstract_type*)&theAction);
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &agentState, 1, sizeof(int));
+  rlSendBufferData(theAgentConnection, &theBuffer);
 
-  if (!isActionAllocated) {
-    rlAllocADT(&theAction);
-    isActionAllocated = 1;
-  }
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&theObservation, &theBuffer);
+  rlSendBufferData(theAgentConnection, &theBuffer);
 
-  rlRecvADTBody(theAgentConnection, (RL_abstract_type*)&theAction);
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theAgentConnection, &theBuffer);
+  rlCopyBufferToADT(&theBuffer, &theAction);
 
   return theAction;
 }
@@ -56,11 +71,21 @@ Action agent_start(Observation theObservation) {
 Action agent_step(Reward theReward, Observation theObservation) {
   const int agentState = kAgentStep;
 
-  rlSendData(theAgentConnection, &agentState, sizeof(int));
-  rlSendData(theAgentConnection, &theReward, sizeof(Reward));
-  rlSendADT(theAgentConnection, (RL_abstract_type*)&theObservation);
-  rlRecvADTHeader(theAgentConnection, (RL_abstract_type*)&theAction);
-  rlRecvADTBody(theAgentConnection, (RL_abstract_type*)&theAction);
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &agentState, 1, sizeof(int));
+  rlSendBufferData(theAgentConnection, &theBuffer);
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &theReward, 1, sizeof(Reward));
+  rlSendBufferData(theAgentConnection, &theBuffer);
+
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&theObservation, &theBuffer);
+  rlSendBufferData(theAgentConnection, &theBuffer);
+
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theAgentConnection, &theBuffer);
+  rlCopyBufferToADT(&theBuffer, &theAction);
 
   return theAction;
 }
@@ -69,24 +94,42 @@ Action agent_step(Reward theReward, Observation theObservation) {
 void agent_end(Reward theReward) { 
   const int agentState = kAgentEnd;
 
-  rlSendData(theAgentConnection, &agentState, sizeof(int));
-  rlSendData(theAgentConnection, &theReward, sizeof(Reward));
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &agentState, 1, sizeof(int));
+  rlSendBufferData(theAgentConnection, &theBuffer);
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &theReward, 1, sizeof(Reward));
+  rlSendBufferData(theAgentConnection, &theBuffer);
 }
 
 /* Tell the agent that we're cleaning up */
 void agent_cleanup() {
   const int agentState = kAgentCleanup;
-  rlSendData(theAgentConnection, &agentState, sizeof(int));
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &agentState, 1, sizeof(int));
+  rlSendBufferData(theAgentConnection, &theBuffer);
+
   rlClose(theAgentConnection);
   theAgentConnection = 0;
 
-  rlFreeADT(&theAction);
-  isActionAllocated = 0;
+  free(theAction.intArray);
+  free(theAction.doubleArray);
+  theAction.numInts     = 0;
+  theAction.numDoubles  = 0;
+  theAction.intArray    = 0;
+  theAction.doubleArray = 0;
+
+  rlBufferDestroy(&theBuffer);
 }
 
 void agent_freeze() {
   const int agentState = kAgentFreeze;
-  rlSendData(theAgentConnection, &agentState, sizeof(int));
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &agentState, 1, sizeof(int));
+  rlSendBufferData(theAgentConnection, &theBuffer);
 }
 
 char* agent_message(const char* inMessage) {
@@ -95,23 +138,30 @@ char* agent_message(const char* inMessage) {
   char * theOutMessage = NULL;
 
   const int agentState = kAgentMessage;
-  rlSendData(theAgentConnection, &agentState, sizeof(int));
+  int offset = 0;
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &agentState, 1, sizeof(int));
+  rlSendBufferData(theAgentConnection, &theBuffer);
 
   if (inMessage != NULL) {
     theInMessageLength = strlen(inMessage) + 1;
   }
 
-  rlSendData(theAgentConnection, &theInMessageLength, sizeof(int));
-
+  rlBufferClear(&theBuffer);
+  offset = rlBufferWrite(&theBuffer, offset, &theInMessageLength, 1, sizeof(int));
   if (theInMessageLength > 0) {
-	rlSendData(theAgentConnection, inMessage, sizeof(char)*theInMessageLength);
+    offset = rlBufferWrite(&theBuffer, offset, inMessage, theInMessageLength, sizeof(char));
   }
+  rlSendBufferData(theAgentConnection, &theBuffer);
 
-  rlRecvData(theAgentConnection, &theOutMessageLength, sizeof(int));
-
+  offset = 0;
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theAgentConnection, &theBuffer);
+  offset = rlBufferRead(&theBuffer, offset, &theOutMessageLength, 1, sizeof(int));
   if (theOutMessageLength > 0) {
     theOutMessage = (char*)calloc(theOutMessageLength, sizeof(char));
-    rlRecvData(theAgentConnection, theOutMessage, sizeof(char)*theOutMessageLength);
+    offset = rlBufferRead(&theBuffer, offset, theOutMessage, theOutMessageLength, sizeof(char));
   }
 
   return theOutMessage;

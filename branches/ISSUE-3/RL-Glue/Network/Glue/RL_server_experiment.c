@@ -30,14 +30,14 @@ void onRLCleanup(rlSocket theConnection);
 int theExperimentConnection = 0;
 State_key theStateKey = {0};
 Random_seed_key theRandomSeedKey = {0};
-int isStateKeyAllocated = 0;
-int isRandomSeedKeyAllocated = 0;
+rlBuffer theBuffer = {0};
 
 void termination_handler(int signum) {
   onRLCleanup(theExperimentConnection);
   if (theExperimentConnection != 0) {
     rlClose(theExperimentConnection);
   }
+  rlBufferDestroy(&theBuffer);
   exit(0);
 }
 
@@ -55,87 +55,129 @@ int rlIsExperimentConnected() {
 
 
 void onRLInit(rlSocket theConnection) {
+  rlBufferCreate(&theBuffer, 4096);
+
   RL_init();
 }
 
 void onRLStart(rlSocket theConnection) {
   Observation_action obsAct = RL_start();
 
-  rlSendADT(theConnection, &obsAct.o);
-  rlSendADT(theConnection, &obsAct.a);
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&obsAct.o, &theBuffer);
+  rlSendBufferData(theConnection, &theBuffer);
+
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&obsAct.a, &theBuffer);
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 void onRLStep(rlSocket theConnection) {
   Reward_observation_action_terminal roat = RL_step();
-  
-  rlSendData(theConnection, &roat.r, sizeof(Reward));
-  rlSendADT(theConnection, &roat.o);
-  rlSendADT(theConnection, &roat.a);
-  rlSendData(theConnection, &roat.terminal, sizeof(int));
+  int offset = 0;
+
+  offset = 0;
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  offset = rlBufferRead(&theBuffer, offset, &roat.terminal, 1, sizeof(int));
+  offset = rlBufferRead(&theBuffer, offset, &roat.r, 1, sizeof(Reward));
+  rlSendBufferData(theConnection, &theBuffer);
+
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&roat.o, &theBuffer);
+  rlSendBufferData(theConnection, &theBuffer);
+
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&roat.a, &theBuffer);
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 void onRLReturn(rlSocket theConnection) {
   Reward theReward = RL_return();
-  rlSendData(theConnection, &theReward, sizeof(int));
+  
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &theReward, 1, sizeof(Reward));
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 void onRLNumSteps(rlSocket theConnection) {
   int numSteps = RL_num_steps();
-  rlSendData(theConnection, &numSteps, sizeof(int));
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &numSteps, 1, sizeof(int));
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 void onRLNumEpisodes(rlSocket theConnection) {
   int numEpisodes = RL_num_episodes();
-  rlSendData(theConnection, &numEpisodes, sizeof(int));
+
+  rlBufferClear(&theBuffer);
+  rlBufferWrite(&theBuffer, 0, &numEpisodes, 1, sizeof(int));
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 void onRLEpisode(rlSocket theConnection) {
   int numEpisodes = 0;
   
-  rlRecvData(theConnection, &numEpisodes, sizeof(int));
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  rlBufferRead(&theBuffer, 0, &numEpisodes, 1, sizeof(int));
+
   RL_episode(numEpisodes);
 }
 
 void onRLSetState(rlSocket theConnection) {
-  rlRecvADTHeader(theConnection, &theStateKey);
-  if (!isStateKeyAllocated) {
-    rlAllocADT(&theStateKey);
-    isStateKeyAllocated = 1;
-  }
-  rlRecvADTBody(theConnection, &theStateKey);
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  rlCopyBufferToADT(&theBuffer, &theStateKey);
   
   RL_set_state(theStateKey);
 }
 
-void onRLSetRandomSeed(rlSocket theConnection) {	
-  rlRecvADTHeader(theConnection, &theRandomSeedKey);
-  if (!isRandomSeedKeyAllocated) {
-    rlAllocADT(&theRandomSeedKey);
-    isRandomSeedKeyAllocated = 1;
-  }
-  rlRecvADTBody(theConnection, &theRandomSeedKey);
+void onRLSetRandomSeed(rlSocket theConnection) {
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  rlCopyBufferToADT(&theBuffer, &theRandomSeedKey);
   
   RL_set_random_seed(theRandomSeedKey);
 }
 
 void onRLGetState(rlSocket theConnection) {
   State_key theStateKey = RL_get_state();
-  rlSendADT(theConnection, &theStateKey);
+
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&theStateKey, &theBuffer);
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 void onRLGetRandomSeed(rlSocket theConnection) {
   Random_seed_key theRandomSeedKey = RL_get_random_seed();
-  rlSendADT(theConnection, &theRandomSeedKey);
+
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&theRandomSeedKey, &theBuffer);
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 void onRLCleanup(rlSocket theConnection) {
   RL_cleanup();
   
-  rlFreeADT(&theStateKey);
-  rlFreeADT(&theRandomSeedKey);
-  
-  isStateKeyAllocated      = 0;
-  isRandomSeedKeyAllocated = 0;
+  rlBufferDestroy(&theBuffer);
+
+  free(theStateKey.intArray);
+  free(theStateKey.doubleArray);
+  free(theRandomSeedKey.intArray);
+  free(theRandomSeedKey.doubleArray);
+
+  theStateKey.intArray = 0;
+  theStateKey.doubleArray = 0;
+  theRandomSeedKey.intArray = 0;
+  theRandomSeedKey.doubleArray = 0;
+
+  theStateKey.numInts = 0;
+  theStateKey.numDoubles = 0;
+
+  theRandomSeedKey.numInts = 0;
+  theRandomSeedKey.numDoubles = 0;
 }
 
 void onRLFreeze(rlSocket theConnection) {
@@ -146,7 +188,9 @@ void runGlueEventLoop(rlSocket theConnection) {
   int glueState = 0;
 
   do { 
-    rlRecvData(theConnection, &glueState, sizeof(int));
+    rlBufferClear(&theBuffer);
+    rlRecvBufferData(theConnection, &theBuffer);
+    rlBufferRead(&theBuffer, 0, &glueState, 1, sizeof(int));
 
     switch(glueState) {
     case kRLInit:

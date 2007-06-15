@@ -1,5 +1,5 @@
 #include <assert.h> /* assert  */
-#include <stdlib.h> /* calloc */
+#include <stdlib.h> /* malloc */
 #include <stdio.h>  /* fprintf */
 #include <unistd.h> /* sleep   */
 #include <string.h> /* strlen */
@@ -20,15 +20,17 @@ static const char* kUnknownMessage = "Unknown Message: %d\n";
 
 static char* theTaskSpec = 0;
 static Observation theObservation = {0};
-static int isObservationAllocated = 0;
+static rlBuffer theBuffer = {0};
 
 static void onAgentInit(rlSocket theConnection) {
-  int theTaskSpecLength = 0;
+  unsigned int theTaskSpecLength = 0;
 
-  rlRecvData(theConnection, &theTaskSpecLength, sizeof(int));
+  rlBufferClear(&theBuffer);
+  theTaskSpecLength = rlRecvBufferData(theConnection, &theBuffer);
+
   if (theTaskSpecLength > 0) {
-    theTaskSpec = (char*)calloc(theTaskSpecLength, sizeof(char));
-    rlRecvData(theConnection, theTaskSpec, sizeof(char) * theTaskSpecLength);
+    theTaskSpec = (char*)malloc(theTaskSpecLength);
+    rlBufferRead(&theBuffer, 0, theTaskSpec, theTaskSpecLength, sizeof(char));
   }
 
   agent_init(theTaskSpec);
@@ -37,45 +39,56 @@ static void onAgentInit(rlSocket theConnection) {
 static void onAgentStart(rlSocket theConnection) {
   Action theAction = {0};
 
-  rlRecvADTHeader(theConnection, (RL_abstract_type*)&theObservation);
-
-  if (!isObservationAllocated) {
-    rlAllocADT(&theObservation);
-    isObservationAllocated = 1;
-  }
-
-  rlRecvADTBody(theConnection, (RL_abstract_type*)&theObservation);
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  rlCopyBufferToADT(&theBuffer, &theObservation);
 
   theAction = agent_start(theObservation);
-  rlSendADT(theConnection, (RL_abstract_type*)&theAction);
+
+  rlBufferClear(&theBuffer);
+  rlCopyADTToBuffer(&theAction, &theBuffer);
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 static void onAgentStep(rlSocket theConnection) {
   Reward theReward = 0;
   Action theAction = {0};
 
-  rlRecvData(theConnection, &theReward, sizeof(Reward));
-  rlRecvADTHeader(theConnection, (RL_abstract_type*)&theObservation);
-  rlRecvADTBody(theConnection, (RL_abstract_type*)&theObservation);
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  rlBufferRead(&theBuffer, 0, &theReward, 1, sizeof(theReward));
+
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  rlCopyBufferToADT(&theBuffer, &theObservation);
 
   theAction = agent_step(theReward, theObservation);
-  rlSendADT(theConnection, (RL_abstract_type*)&theAction);
+
+  rlCopyADTToBuffer(&theAction, &theBuffer);
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 static void onAgentEnd(rlSocket theConnection) {
   Reward theReward = 0;
 
-  rlRecvData(theConnection, &theReward, sizeof(Reward));
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+  rlBufferRead(&theBuffer, 0, &theReward, 1, sizeof(Reward));
+
   agent_end(theReward);
 }
 
 static void onAgentCleanup(rlSocket theConnection) {
   agent_cleanup();
 
-  rlFreeADT(&theObservation);
-  isObservationAllocated = 0;
-
+  free(theObservation.intArray);
+  free(theObservation.doubleArray);
   free(theTaskSpec);
+
+  theObservation.numInts    = 0;
+  theObservation.numDoubles = 0;
+  theObservation.intArray   = 0;
+  theObservation.doubleArray= 0;
   theTaskSpec = 0;
 }
 
@@ -89,28 +102,48 @@ static void onAgentMessage(rlSocket theConnection) {
   char* theInMessage = NULL;
   char* theOutMessage = NULL;
 
-  rlRecvData(theConnection, &theInMessageLength, sizeof(int));
+  int offset = 0;
+
+  rlBufferClear(&theBuffer);
+  rlRecvBufferData(theConnection, &theBuffer);
+
+  offset = rlBufferRead(&theBuffer, offset, &theInMessageLength, 1, sizeof(int));
   if (theInMessageLength > 0) {
     theInMessage = (char*)calloc(theInMessageLength, sizeof(char));
-    rlRecvData(theConnection, theInMessage, sizeof(char) * theInMessageLength);
+    offset = rlBufferRead(&theBuffer, offset, theInMessage, theInMessageLength, sizeof(char));
   }
+
   theOutMessage = agent_message(theInMessage);
 
   if (theOutMessage != NULL) {
    theOutMessageLength = strlen(theOutMessage)+1;
   }
+  
+  /* we want to start sending now, so we're going to reset the offset to 0 so we write the the beginning of the buffer */
+  offset = 0;
 
-  rlSendData(theConnection, &theOutMessageLength, sizeof(int));
+  rlBufferClear(&theBuffer);
+  offset = rlBufferWrite(&theBuffer, offset, &theOutMessageLength, 1, sizeof(int));
+  
   if (theOutMessageLength > 0) {
-	rlSendData(theConnection, theOutMessage, sizeof(char)*theOutMessageLength);
-  } 
+    offset = rlBufferWrite(&theBuffer, offset, theOutMessage, theOutMessageLength, sizeof(char));
+  }
+
+  rlSendBufferData(theConnection, &theBuffer);
 }
 
 static void runAgentEventLoop(rlSocket theConnection) {
   int agentState = 0;
 
-  do { 
-    rlRecvData(theConnection, &agentState, sizeof(int));
+  do {
+    fprintf(stderr, "clearing the buffer\n");
+    rlBufferClear(&theBuffer);
+
+    fprintf(stderr, "receiving the buffer\n");
+    rlRecvBufferData(theConnection, &theBuffer);
+
+    fprintf(stderr, "reading from the buffer\n");
+    rlBufferRead(&theBuffer, 0, &agentState, 1, sizeof(int));
 
     switch(agentState) {
     case kAgentInit:
@@ -154,19 +187,40 @@ int main(int argc, char** argv) {
   int arg = 0;
   int isDaemon = 0;
 
+  fprintf(stderr, "Parsing for --stayalive...\n");
   for (arg = 0; arg < argc; ++arg) {
     if (strcmp(argv[arg], "--stayalive") == 0) {
       isDaemon = 1;
     }
   }
 
+  /* Allocate what should be plenty of space for the buffer - it will dynamically resize if it is too small */
+  fprintf(stderr, "Creating the buffer\n");
+  rlBufferCreate(&theBuffer, 4096);
+  
   do {
+    fprintf(stderr, "waiting for connection\n");
     theConnection = rlWaitForConnection(kLocalHost, kDefaultPort, kRetryTimeout);
     /* we need to tell RL-Glue what type of object is connecting */
-    rlSendData(theConnection, &theConnectionType, sizeof(int)); 
+
+    fprintf(stderr, "clearing the buffer\n");
+    rlBufferClear(&theBuffer);
+
+    fprintf(stderr, "writing the connection type to the buffer\n");
+    rlBufferWrite(&theBuffer, 0, &theConnectionType, 1, sizeof(int));
+
+    fprintf(stderr, "sending the buffer\n");
+    rlSendBufferData(theConnection, &theBuffer);
+
+    fprintf(stderr, "starting the agent event loop\n");
     runAgentEventLoop(theConnection);
+
+    fprintf(stderr, "closing the connection\n");
     rlClose(theConnection);
+
   } while(isDaemon);
+
+  rlBufferDestroy(&theBuffer);
 
   return 0;
 }

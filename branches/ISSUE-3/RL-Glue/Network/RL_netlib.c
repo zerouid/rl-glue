@@ -3,6 +3,8 @@
 #include <stdlib.h> /* calloc */
 #include <string.h> /* memset */
 
+#include <stdio.h> /* fprintf: Debug only! */
+
 /* Network Headers */
 #include <unistd.h>
 #include <sys/types.h>
@@ -112,6 +114,128 @@ int rlRecvData(rlSocket theSocket, void* theData, int theLength) {
   return theBytesRecv;
 }
 
+/* rlBuffer API */
+void rlBufferCreate(rlBuffer *buffer, unsigned int capacity) {
+  buffer->size     = 0;
+  buffer->capacity = 0;
+  
+  if (capacity > 0) {
+    rlBufferReserve(buffer, capacity);
+  }
+}
+
+void rlBufferDestroy(rlBuffer *buffer) {
+  free(buffer->data);
+}
+
+void rlBufferClear(rlBuffer *buffer) {
+  buffer->size = 0;
+}
+
+void rlBufferReserve(rlBuffer *buffer, unsigned int capacity) {
+  unsigned char* new_data = 0;
+
+  /* Ensure the buffer can hold the new data */
+  if (capacity > buffer->capacity) {
+
+    /* Allocate enough memory for the additional data */
+    new_data = (unsigned char*)malloc(capacity + (capacity - buffer->capacity) * 2);
+    assert(new_data != 0);
+
+    /* Copy the existing data into the the larger memory allocation */
+    if (buffer->size > 0) {
+      memcpy(new_data, buffer->data, buffer->size);
+    }
+
+    /* Free the original data */
+    free(buffer->data);
+
+    /* Set the buffers data to the new data pointer */
+    buffer->data = new_data;
+
+    /* Set the new capacity */
+    buffer->capacity = capacity + (capacity - buffer->capacity) * 2;
+  }
+}
+
+unsigned int rlBufferWrite(rlBuffer *buffer, unsigned int offset, const void* sendData, unsigned int count, unsigned int size) {
+  const unsigned char* data = (const unsigned char*)sendData;
+  unsigned char* data_ptr = 0;
+  unsigned int i = 0;
+
+  if (buffer->capacity < offset + count * size ) {
+    rlBufferReserve(buffer, offset + count * size);
+  }
+
+  /* Get the offset to the place in the buffer we want to start inserting */
+  data_ptr = buffer->data + offset;
+
+  /* For each of the new data items, swap the endianness and add them to the buffer */
+  for (i = 0; i < count; ++i) {
+    if (rlGetSystemByteOrder() == 1) {
+      rlSwapData(&data_ptr[i * size], &data[i * size], size);
+    }
+    else {
+      memcpy(&data_ptr[i * size], &data[i * size], size);
+    }
+  }
+
+  buffer->size += count * size;
+  return buffer->size;
+}
+
+unsigned int rlBufferRead(const rlBuffer *buffer, unsigned int offset, void* recvData, unsigned int count, unsigned int size) {
+  unsigned char* data = (unsigned char*)recvData;
+  unsigned int i = 0;
+
+  /* For each of the new data items, swap the endianness and read them from the buffer */
+  for (i = 0; i < count; ++i) {
+    if (rlGetSystemByteOrder() == 1) {
+      rlSwapData(&data[i * size], &buffer->data[(i * size) + offset], size);
+    }
+    else {
+      memcpy(&data[i * size], &buffer->data[(i * size) + offset], size);
+    }
+  }
+
+  return offset + (count * size);
+}
+
+unsigned int rlSendBufferData(rlSocket theSocket, const rlBuffer* buffer) {
+  int sendSize = buffer->size;
+  
+  /* sendSize needs to go across in network byte order, swap it if we're little endian */
+  if (rlGetSystemByteOrder() == 1) {
+    rlSwapData(&sendSize, &buffer->size, sizeof(int));
+  }
+  
+  rlSendData(theSocket, &sendSize, sizeof(int));
+  rlSendData(theSocket, buffer->data, buffer->size);
+
+  return buffer->size; /* Returns payload size, not actual data sent ! */
+}
+
+unsigned int rlRecvBufferData(rlSocket theSocket, rlBuffer* buffer) {
+  int recvSize = 0;
+  rlRecvData(theSocket, &recvSize, sizeof(int));
+
+  /* recvSize came across in network byte order, swap it if we're little endian */
+  if (rlGetSystemByteOrder() == 1) {
+    rlSwapData(&buffer->size, &recvSize, sizeof(int));
+  }
+  else {
+    buffer->size = recvSize;
+  }
+
+  fprintf(stderr, "rlRecvBufferData wants to reserve %d bytes in the buffer\n", recvSize);
+
+  rlBufferReserve(buffer, buffer->size);
+  rlRecvData(theSocket, buffer->data, buffer->size);
+
+  return buffer->size; /* Returns payload size, not actual data received ! */
+}
+
+/* Utilities */
 int rlGetSystemByteOrder() {
   /*
     Endian will be 1 when we are on a little endian machine,
@@ -124,11 +248,13 @@ int rlGetSystemByteOrder() {
   return endian;
 }
 
-void rlSwapData(unsigned char* out, const void* in, const unsigned int size) {
-  const unsigned char *src = (const unsigned char *)&in;
+void rlSwapData(void* out, const void* in, const unsigned int size) {
+  const unsigned char *src = (const unsigned char *)in;
+  unsigned char *dst = (unsigned char *)out;
   unsigned int i = 0;
+
   for (i = 0; i < size; ++i) {
-    out[i] = src[size-i];
+    dst[i] = src[size-i];
   }
 }
 
@@ -149,158 +275,56 @@ rlSocket rlWaitForConnection(const char *address, const short port, const int re
   return theConnection;
 }
 
+void rlCopyADTToBuffer(const RL_abstract_type* src, rlBuffer* dst) {
+  const int headerSize = sizeof(unsigned int) * 2;
+  const int intSize    = src->numInts * sizeof(int);
+  const int doubleSize = src->numDoubles * sizeof(double);
+  int offset = 0;
 
-/* rlBuffer API */
-void rlBufferCreate(rlBuffer *buffer, unsigned int capacity) {
-  buffer->size     = 0;
-  buffer->capacity = 0;
-  
-  if (capacity > 0) {
-    rlBufferReseve(buffer, capacity);
+  rlBufferReserve(dst, headerSize + intSize + doubleSize);
+  offset = rlBufferWrite(dst, offset, &src->numInts, 1, sizeof(unsigned int));
+  offset = rlBufferWrite(dst, offset, &src->numDoubles, 1, sizeof(unsigned int));
+
+  if (src->numInts > 0) {
+    offset = rlBufferWrite(dst, offset, src->intArray, src->numInts, sizeof(int));
+  }
+
+  if (src->numDoubles > 0) {
+    offset = rlBufferWrite(dst, offset, src->doubleArray, src->numDoubles, sizeof(double));  
   }
 }
 
-void rlBufferDestroy(rlBuffer *buffer) {
-  free(buffer->data);
-}
+void rlCopyBufferToADT(const rlBuffer* src, RL_abstract_type* dst) {
+  int numInts    = 0;
+  int numDoubles = 0;
 
-void rlBufferWrite(rlBuffer *buffer, unsigned char *data, unsigned int count, unsigned int size) {
-  static int littleEndian = -1;
+  int* intArray = 0;
+  double * doubleArray = 0;
 
-  unsigned int i = 0;
-  unsigned char* data_ptr = 0;
+  int offset = 0;
 
-  if (littleEndian == -1) {
-    littleEndian = rlGetSystemByteOrder();
+  offset = rlBufferRead(src, offset, &numInts, 1, sizeof(unsigned int));
+  offset = rlBufferRead(src, offset, &numDoubles, 1, sizeof(unsigned int));
+
+  if (numInts > dst->numInts) {
+    intArray = (int*)calloc(dst->numInts, sizeof(int));
+    memcpy(intArray, dst->intArray, dst->numInts * sizeof(int));
+    free(dst->intArray);
+    dst->intArray = intArray;
   }
 
-  if (buffer->capacity < count * size + buffer->size) {
-    rlBufferReserve(&buffer, count * size + buffer->size);
+  if (numDoubles > dst->numDoubles) {
+    doubleArray = (double*)calloc(dst->numDoubles, sizeof(double));
+    memcpy(doubleArray, dst->doubleArray, dst->numDoubles * sizeof(double));
+    free(dst->doubleArray);
+    dst->doubleArray = doubleArray;
   }
 
-  /* Get the offset to the place in the buffer we want to start inserting */
-  data_ptr = buffer->data + buffer->size;
-
-  /* For each of the new data items, swap the endianness and add them to the buffer */
-  for (i = 0; i < count; ++i) {
-    if (littleEndian) {
-      rlSwapData(&data_ptr[i * size], &data[i * size], size);
-    }
-    else {
-      memcpy(&data_ptr[i * size], &data[i * size], size);
-    }
+  if (dst->numInts > 0) {
+    offset = rlBufferRead(src, offset, dst->intArray, dst->numInts, sizeof(int));
   }
 
-  buffer->size += count * size;
-}
-
-void rlBufferRead(rlBuffer *buffer, unsigned int offset, unsigned char *data, unsigned int count, unsigned int size) {
-  static int littleEndian = -1;   
-  unsigned int i = 0;
-
-  if (littleEndian == -1) {
-    rlGetSystemByteOrder();
+  if (dst->numDoubles > 0) {
+    offset = rlBufferRead(src, offset, dst->doubleArray, dst->numDoubles, sizeof(double));
   }
-
-  /* For each of the new data items, swap the endianness and read them from the buffer */
-  for (i = 0; i < count; ++i) {
-    if (littleEndian) {
-      rlSwapData(&data[i * size], &buffer->data[(i * size) + offset], size);
-    }
-    else {
-      memcpy(&data[i * size], &buffer->data[(i * size) + offset], size);
-    }
-  }
-}
-
-void rlBufferClear(rlBuffer *buffer) {
-  buffer->size = 0;
-}
-
-void rlBufferReserve(rlBuffer *buffer, unsigned int capacity) {
-  unsigned char* new_data = 0;
-
-  /* Ensure the buffer can hold the new data */
-  if (capacity > buffer->capacity) {
-
-    /* Allocate enough memory for the additional data */
-    new_data = (unsigned char*)malloc(capacity + (capacity - buffer->capacity) * 2);
-
-    /* Copy the existing data into the the larger memory allocation */
-    memcpy(new_data, buffer->data, buffer->size);
-
-    /* Free the original data */
-    free(buffer->data);
-
-    /* Set the buffers data to the new data pointer */
-    buffer->data = new_data;
-
-    /* Set the new capacity */
-    buffer->capacity = capacity + (capacity - buffer->capacity) * 2;
-  }
-}
-
-void rlBufferSendData(rlSocket theSocket, const void* sendData, unsigned int count, unsigned int sendTypeSize) {
-  const unsigned char* data = (const unsigned char*)sendData;
-  rlBuffer buffer = {0};
-  
-  rlBufferCreate(&buffer, sizeof(unsigned int) + count * sendTypeSize);
-  rlBufferWrite(&buffer, &buffer->size, 1, sizeof(unsigned int));
-  rlBufferWrite(&buffer + sizeof(unsigned int), data, count, sendTypeSize);
-  rlSendData(socket, buffer->data, buffer->size);
-  rlBufferDestroy(&buffer);
-}
-
-void rlBufferRecvData(rlSocket theSocket, void* recvData, unsigned int recvTypeSize) {
-  unsigned int count = 0;  
-  rlBuffer buffer = {0};
-
-  rlBufferCreate(&buffer, sizeof(unsigned int));
-  rlRecvData(socket, buffer->data, sizeof(unsigned int));
-  rlBufferRead(&buffer, 0, &count, 1, sizeof(unsigned int));
-  rlBufferClear(&buffer);
-
-  rlBufferReserve(&buffer, count);
-  rlRecvData(socket, buffer->data, count * recvTypeSize);
-  rlBufferRead(&buffer, 0, recvData, count, recvTypeSize);
-  rlBufferDestroy(&buffer);
-}
-
-void rlBufferSendADT(rlSocket socket, RL_abstract_type *data) {
-  rlBuffer buffer = {0};
-  
-  rlBufferCreate(&buffer, sizeof(unsigned int * 2) + data->numInts * sizeof(int) + data->numDoubles * sizeof(double));
-  rlBufferWrite(&buffer, &data->numInts, 1, sizeof(unsigned int));
-  rlBufferWrite(&buffer, &data->numDoubles, 1, sizeof(unsigned int));
-  rlBufferWrite(&buffer, data->intArray, data->numInts, sizeof(int));
-  rlBufferWrite(&buffer, data->doubleArray, data->numDoubles, sizeof(double));
-  rlSendData(socket, buffer->data, buffer->size);
-  rlBufferDestroy(&buffer);
-}
-
-void rlBufferRecvADT(rlSocket socket, RL_abstract_type *data) {
-  unsigned int recvSize = 0;
-  rlBuffer buffer = {0};
-
-  rlBufferCreate(&buffer, sizeof(unsigned int * 2));
-  rlRecvData(socket, buffer->data, sizeof(unsigned int) * 2);
-  rlBufferRead(&buffer, 0, &data->numInts, 1, sizeof(unsigned int));
-  rlBufferRead(&buffer, sizeof(unsigned int), &data->numDoubles, 1, sizeof(unsigned int));
-  rlBufferClear(&buffer);
-
-  /* we assume that the ADT is = {0} on initalization! */
-  if (data->intArray == 0 && data->doubleArray == 0) {
-    if (data->numInts > 0) {
-      data->intArray = (int*)calloc(data->numInts, sizeof(int));
-    }
-    if (data->numDoubles > 0) {
-      data->doubleArray = (double*)calloc(data->numDoubles, sizeof(double));
-    }
-  }
-  
-  rlRecvData(socket, buffer->data, data->numInts * sizeof(int) + data->numDoubles * sizeof(double));
-  rlBufferRead(&buffer, 0, data->intArray, data->numInts, sizeof(int));
-  rlBufferRead(&buffer, sizeof(int) * data->numInts, data->doubleArray, data->numDoubles, sizeof(double));
-
-  rlBufferDestroy(&buffer);
 }
