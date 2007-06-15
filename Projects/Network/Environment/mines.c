@@ -105,10 +105,10 @@ Task_specification env_init()
   M.agentRow = M.startRow;
   M.agentColumn = M.startCol;
   
-  o.numInts = 1;
+  o.numInts    = 1;
   o.numDoubles = 0;
 
-  o.intArray = (int*)malloc(sizeof(int)*o.numInts);
+  o.intArray    = (int*)malloc(sizeof(int)*o.numInts);
   o.doubleArray = 0;
 
   /* Return task specification */

@@ -38,8 +38,6 @@ void agent_init(Task_specification theTaskSpec) {
     offset = rlBufferWrite(&theBuffer, offset, theTaskSpec, theTaskSpecLength, sizeof(char));
   }
   rlSendBufferData(theAgentConnection, &theBuffer);
-
-  fprintf(stderr, "%s : %s: length = %d spec = %s\n", __FILE__, __FUNCTION__, theTaskSpecLength, theTaskSpec);
 }
 
 /* Send the observation to the agent, receive the action and return it */

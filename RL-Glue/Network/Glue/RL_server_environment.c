@@ -73,8 +73,6 @@ Reward_observation env_step(Action theAction) {
   rlBufferWrite(&theBuffer, 0, &envState, 1, sizeof(int));
   rlSendBufferData(theEnvironmentConnection, &theBuffer);
 
-  fprintf(stderr, "%s : %s i=%d d=%d\n", __FILE__, __FUNCTION__, theAction.numInts, theAction.numDoubles);
-
   rlBufferClear(&theBuffer);
   rlCopyADTToBuffer(&theAction, &theBuffer);
   rlSendBufferData(theEnvironmentConnection, &theBuffer);
