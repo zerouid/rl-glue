@@ -1,7 +1,10 @@
+#! /usr/local/bin/python
 import sys
+sys.path = sys.path + ['./Build']
 import time
 from RL_agent import *
 from RL_netlib import *
+
 
 def onAgentInit(sock):
 	taskSpec = sock.recvString()

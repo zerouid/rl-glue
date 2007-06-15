@@ -1,5 +1,7 @@
-from RL_client_experiment import *
+#! /usr/local/bin/python
 import sys
+sys.path = sys.path + ['./Build']
+from RL_client_experiment import *
 
 def run(num_episodes):
   for x in range(num_episodes):

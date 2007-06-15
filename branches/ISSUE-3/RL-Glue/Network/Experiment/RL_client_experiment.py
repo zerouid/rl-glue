@@ -1,5 +1,5 @@
-from RL_netlib import *
 import sys
+from RL_netlib import *
 
 sock = None
 
@@ -8,11 +8,9 @@ def RL_init():
 	sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
 	sock.sendInt(kExperimentConnection)
 	sock.sendInt(kRLInit)
-	sys.stderr.write('sent rl_init to rl_glue\n')
 
 def RL_start():
 	sock.sendInt(kRLStart)
-	sys.stderr.write('sending rl_start to rl_glue\n')
 	return sock.recvObservationAction()
 
 def RL_step():

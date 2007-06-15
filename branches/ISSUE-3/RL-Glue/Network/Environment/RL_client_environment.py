@@ -1,5 +1,7 @@
+#! /usr/local/bin/python
 import sys
 import time
+sys.path = sys.path + ['./Build']
 from RL_environment import *
 from RL_netlib import *
 

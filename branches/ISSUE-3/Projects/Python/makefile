@@ -24,18 +24,25 @@ RL_glue: RL_interface.o RL_network.o RL_netlib.o RL_server_experiment.o RL_serve
 # -------------------------------------------------------------------------------------------
 
 # ------------------------- Compile And Link the Agent (Network) ----------------------------
-RL_agent: $(AGENT) RL_client_agent.py RL_netlib.py RL_common.py
+
+RL_agent: $(AGENT) RL_netlib.py RL_common.py
 	cp $(AGENT) Build/$@.py
+	cp $(RLGLUE_PATH)/Network/Agent/RL_client_agent.py $@
+	chmod u+x $@
 # -------------------------------------------------------------------------------------------
 
 # ---------------------- Compile And Link the Environment (Network) -------------------------
-RL_environment: $(ENVIRONMENT) RL_client_environment.py RL_netlib.py RL_common.py
+RL_environment: $(ENVIRONMENT) RL_netlib.py RL_common.py
 	cp $(ENVIRONMENT) Build/$@.py
+	cp $(RLGLUE_PATH)/Network/Environment/RL_client_environment.py $@
+	chmod u+x $@
 # -------------------------------------------------------------------------------------------
 
 # ---------------------- Compile And Link the Experiment (Network) --------------------------
 RL_experiment: $(EXPERIMENT) RL_client_experiment.py RL_netlib.py
-	cp $(EXPERIMENT) Build/$@.py
+	cp $(RLGLUE_PATH)/Network/Experiment/RL_client_experiment.py Build/
+	cp $(EXPERIMENT) $@
+	chmod u+x $@
 # -------------------------------------------------------------------------------------------
 # ===========================================================================================
 
