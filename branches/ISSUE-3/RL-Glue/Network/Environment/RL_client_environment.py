@@ -5,36 +5,26 @@ from RL_netlib import *
 
 def onEnvInit(sock):
 	taskSpec = env_init()
-	theTaskSpecLength = len(taskSpec)
-	
-	sock.sendInt(theTaskSpecLength)
-	if theTaskSpecLength > 0:
-		sock.sendString(taskSpec)
+	sock.sendString(taskSpec)
 
 def onEnvStart(sock):
 	theObservation = env_start()
 	sock.sendADT(theObservation)
 
 def onEnvStep(sock):
-	theAction = sock.recvADTHeader()
-	theAction = sock.recvADTBody(theAction)
-	
+	theAction = sock.recvADT()
 	ro = env_step(theAction)
-	sock.sendDouble(ro.r)
-	sock.sendADT(ro.o)
-	sock.sendInt(ro.terminal)
+	sock.sendRewardObservation(ro)
 
 def onEnvCleanup(sock):
 	env_cleanup()
 
 def onEnvSetState(sock):
-	theStateKey = sock.recvADTHeader()
-	theStateKey = sock.recvADTBody(theStateKey)
+	theStateKey = sock.recvADT()
 	env_set_state(theStateKey)
 	
 def onEnvSetRandomSeed(sock):
-	theRandomSeed = sock.recvADTHeader()
-	theRandomSeed = sock.recvADTBody(theRandomSeed)
+	theRandomSeed = sock.recvADT()
 	env_set_random_seed(theRandomSeed)
 
 def onEnvGetState(sock):
@@ -46,18 +36,9 @@ def onEnvGetRandomSeed(sock):
 	sock.sendADT(theRandomSeed)
 
 def onEnvMessage(sock):
-	theInMessageLength = sock.recvInt()
-	inMessage = None
-	theOutMessageLength = 0
-
-	if theInMessageLength > 0:
-		inMessage = sock.recvString(theInMessageLength)
+	inMessage = sock.recvString()
 	outMessage = env_message(inMessage)
-	if outMessage != None:
-		theOutMessageLength = len(outMessage)
-	sock.sendInt(theOutMessageLength)
-	if theOutMessageLength > 0:
-		sock.sendString(outMessage)
+	sock.sendString(outMessage)
 
 def runEnvironmentEventLoop(sock):
 	envState = 0
@@ -85,7 +66,16 @@ def runEnvironmentEventLoop(sock):
 		else:
 			sys.stderr.write(kUnknownMessage % (agentState))
 
-while True:
+isDaemon = 0
+for arg in sys.argv:
+	if arg == "--stayalive":
+		isDaemon = True
+
+sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
+sock.sendInt(kEnvironmentConnection)
+runEnvironmentEventLoop(sock)
+sock.close()
+while isDaemon:
 	sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
 	sock.sendInt(kEnvironmentConnection)
 	runEnvironmentEventLoop(sock)

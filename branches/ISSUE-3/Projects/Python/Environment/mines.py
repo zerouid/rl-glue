@@ -1,5 +1,7 @@
-from RL_common import *
 import random
+import sys
+
+from RL_common import *
 
 class MineEnv:
 	START = 0					# Start marker in grid
@@ -110,7 +112,7 @@ def env_start():
 	M.agentRow = M.startRow
 
 	mine_observation.intArray = [M.startRow * M.col + M.startCol]
-
+	sys.stderr.write('env_start observation %d\n' % (mine_observation.intArray[0]))
 	return mine_observation
 	
 def env_step(action):
@@ -125,7 +127,9 @@ def env_step(action):
 		mine_ro.terminal = 1
 	else:
 		mine_ro.terminal = 0
-  
+	
+  	sys.stderr.write('env_step action %d\n' % (action.intArray[0]))
+	sys.stderr.write('env_step observation %d\n' % (mine_observation.intArray[0]))
 	return mine_ro
 
 def env_cleanup():

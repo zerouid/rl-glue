@@ -3,7 +3,7 @@
 #include <stdlib.h> /* calloc */
 #include <string.h> /* memset */
 
-/* #include <stdio.h> */ /* fprintf : Debug only */
+/*#include <stdio.h>*/ /* fprintf : Debug only */
 
 /* Network Headers */
 #include <unistd.h>
@@ -218,7 +218,6 @@ unsigned int rlSendBufferData(rlSocket theSocket, const rlBuffer* buffer) {
 unsigned int rlRecvBufferData(rlSocket theSocket, rlBuffer* buffer) {
   int recvSize = 0;
   rlRecvData(theSocket, &recvSize, sizeof(int));
-
   /* recvSize came across in network byte order, swap it if we're little endian */
   if (rlGetSystemByteOrder() == 1) {
     rlSwapData(&buffer->size, &recvSize, sizeof(int));
