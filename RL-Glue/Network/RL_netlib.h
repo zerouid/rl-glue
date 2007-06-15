@@ -66,23 +66,22 @@ int rlIsValidSocket(rlSocket theSocket);
 int rlSendData(rlSocket socket, const void* data, int length);
 int rlRecvData(rlSocket socket, void* data, int length);
 
-int rlGetSystemByteOrder();
-void rlSwapData(unsigned char* out, const void* in, const unsigned int size);
-
-rlSocket rlWaitForConnection(const char *address, const short port, const int retryTimeout);
-
 /* rlBuffer API */
 void rlBufferCreate(rlBuffer *buffer, unsigned int capacity);
 void rlBufferDestroy(rlBuffer *buffer);
-void rlBufferWrite(rlBuffer *buffer, unsigned char *data, unsigned int count, unsigned int size);
-void rlBufferRead(rlBuffer *buffer, unsigned int offset, unsigned char *data, unsigned int count, unsigned int size);
 void rlBufferClear(rlBuffer *buffer);
 void rlBufferReserve(rlBuffer *buffer, unsigned int capacity);
+unsigned int rlBufferWrite(rlBuffer *buffer, unsigned int offset, const void* sendData, unsigned int count, unsigned int size);
+unsigned int rlBufferRead(const rlBuffer *buffer, unsigned int offset, void* recvData, unsigned int count, unsigned int size);
 
-void rlBufferSendData(rlSocket theSocket, const void* sendData, unsigned int count, unsigned int sendTypeSize);
-void rlBufferRecvData(rlSocket theSocket, void* recvData, unsigned int recvTypeSize);
+/* Utilities */
+unsigned int rlSendBufferData(rlSocket theSocket, const rlBuffer* buffer);
+unsigned int rlRecvBufferData(rlSocket theSocket, rlBuffer* buffer);
 
-void rlBufferSendADT(rlSocket theSocket, const RL_abstract_type* data);
-void rlBufferRecvADT(rlSocket theSocket, RL_abstract_type* data);
+int rlGetSystemByteOrder();
+void rlSwapData(void* out, const void* in, const unsigned int size);
+rlSocket rlWaitForConnection(const char *address, const short port, const int retryTimeout);
+void rlCopyADTToBuffer(const RL_abstract_type* src, rlBuffer* dst);
+void rlCopyBufferToADT(const rlBuffer* src, RL_abstract_type* dst);
 
 #endif

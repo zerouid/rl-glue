@@ -27,6 +27,9 @@ int rlConnectSystems() {
 
   rlSocket theExperimentConnection = 0;
 
+  rlBuffer theBuffer = {0};
+  rlBufferCreate(&theBuffer, sizeof(int) * 2);
+
   if (!isAgentConnected || !isEnvironmentConnected || !isExperimentConnected) {
     theServer = rlOpen(kDefaultPort);
     rlListen(theServer, kDefaultPort);
@@ -34,7 +37,8 @@ int rlConnectSystems() {
 
   while(!isAgentConnected || !isEnvironmentConnected || !isExperimentConnected) {
     theClient = rlAcceptConnection(theServer);
-    rlRecvData(theClient, &theClientType, sizeof(int));
+    rlRecvBufferData(theClient, &theBuffer);
+    rlBufferRead(&theBuffer, 0, &theClientType, 1, sizeof(int));
 
     switch(theClientType) {
     case kAgentConnection:
@@ -60,6 +64,7 @@ int rlConnectSystems() {
   }
 
   rlClose(theServer);
+  rlBufferDestroy(&theBuffer);
 
   return theExperimentConnection;
 }
