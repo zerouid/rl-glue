@@ -3,8 +3,6 @@
 #include <stdlib.h> /* calloc */
 #include <string.h> /* memset */
 
-#include <stdio.h> /* fprintf: Debug only! */
-
 /* Network Headers */
 #include <unistd.h>
 #include <sys/types.h>
@@ -226,8 +224,6 @@ unsigned int rlRecvBufferData(rlSocket theSocket, rlBuffer* buffer) {
   else {
     buffer->size = recvSize;
   }
-
-  fprintf(stderr, "rlRecvBufferData wants to reserve %d bytes in the buffer\n", recvSize);
 
   rlBufferReserve(buffer, buffer->size);
   rlRecvData(theSocket, buffer->data, buffer->size);

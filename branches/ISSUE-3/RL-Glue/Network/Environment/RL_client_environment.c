@@ -2,7 +2,7 @@
 #include <unistd.h> /* sleep   */
 #include <string.h> /* strlen  */
 #include <stdio.h>  /* fprintf */
-#include <stdlib.h> /* calloc */
+#include <stdlib.h> /* calloc, exit */
 
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
@@ -207,6 +207,7 @@ static void runEnvironmentEventLoop(rlSocket theConnection) {
 
     default:
       fprintf(stderr, kUnknownMessage, envState);
+      exit(0);
       break;
     };
   } while (envState != kEnvCleanup);
