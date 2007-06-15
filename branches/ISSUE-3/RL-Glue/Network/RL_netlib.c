@@ -3,7 +3,7 @@
 #include <stdlib.h> /* calloc */
 #include <string.h> /* memset */
 
-#include <stdio.h> /* fprintf : Debug only */
+/* #include <stdio.h> */ /* fprintf : Debug only */
 
 /* Network Headers */
 #include <unistd.h>
@@ -281,11 +281,11 @@ void rlCopyADTToBuffer(const RL_abstract_type* src, rlBuffer* dst) {
 
   rlBufferReserve(dst, headerSize + intSize + doubleSize);
 
-  fprintf(stderr, "send 1 offset = %d\n", offset);
+  /*  fprintf(stderr, "send 1 offset = %d\n", offset); */
   offset = rlBufferWrite(dst, offset, &src->numInts, 1, sizeof(unsigned int));
-  fprintf(stderr, "send 2 offset = %d\n", offset);
+  /*  fprintf(stderr, "send 2 offset = %d\n", offset); */
   offset = rlBufferWrite(dst, offset, &src->numDoubles, 1, sizeof(unsigned int));
-  fprintf(stderr, "send 3 offset = %d\n", offset);
+  /*  fprintf(stderr, "send 3 offset = %d\n", offset); */
 
   if (src->numInts > 0) {
     offset = rlBufferWrite(dst, offset, src->intArray, src->numInts, sizeof(int));
@@ -305,11 +305,11 @@ void rlCopyBufferToADT(const rlBuffer* src, RL_abstract_type* dst) {
 
   int offset = 0;
 
-  fprintf(stderr, "recv 1 offset = %d\n", offset);
+  /*  fprintf(stderr, "recv 1 offset = %d\n", offset); */
   offset = rlBufferRead(src, offset, &numInts, 1, sizeof(unsigned int));
-  fprintf(stderr, "recv 2 offset = %d\n", offset);
+  /*  fprintf(stderr, "recv 2 offset = %d\n", offset); */
   offset = rlBufferRead(src, offset, &numDoubles, 1, sizeof(unsigned int));
-  fprintf(stderr, "recv 3 offset = %d\n", offset);
+  /*  fprintf(stderr, "recv 3 offset = %d\n", offset); */
 
   if (numInts > dst->numInts) {
     intArray = (int*)calloc(dst->numInts, sizeof(int));

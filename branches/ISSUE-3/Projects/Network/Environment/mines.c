@@ -34,6 +34,22 @@ int env_map[6][19] =
   { 3, 3, 3, 3, 3, 3 ,3 ,3, 3, 3 ,3 ,3 ,3, 3, 3, 3, 3, 3 }
 };
 
+
+void env_print(const char* header, RL_abstract_type* data) {
+  int i = 0;
+  fprintf(stderr, "%s", header);
+  fprintf(stderr, "%d %d\n", data->numInts, data->numDoubles);
+
+  for (i = 0; i < data->numInts; ++i)
+    fprintf(stderr, "%d ", data->intArray[i]);
+  fprintf(stderr, "\n");
+
+  for (i = 0; i < data->numDoubles; ++i)
+    fprintf(stderr, "%f ", data->doubleArray[i]);
+  fprintf(stderr, "\n");
+}
+
+
 int getPosition()
 {
   if (env_map[M.agentRow][M.agentColumn] != M.GOAL && env_map[M.agentRow][M.agentColumn] != M.MINE)
@@ -145,6 +161,8 @@ Observation env_start()
 
   o.intArray[0] = M.startRow * M.col + M.startCol;
   
+  env_print("env_start observation: ", &o);
+
   return o;
 }
 
@@ -161,7 +179,10 @@ Reward_observation env_step(Action a)
     ro.terminal = 1;
   else
     ro.terminal = 0;
-  
+
+  env_print("env_step action ", &a);  
+  env_print("env_step observation ", &o);
+
   return ro;
 }
 
