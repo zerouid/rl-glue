@@ -1,6 +1,8 @@
 #! /usr/local/bin/python
 import sys
 import time
+import socket
+import getopt
 sys.path = sys.path + ['./Build']
 from RL_environment import *
 from RL_netlib import *
@@ -68,17 +70,29 @@ def runEnvironmentEventLoop(sock):
 		else:
 			sys.stderr.write(kUnknownMessage % (agentState))
 
-isDaemon = 0
-for arg in sys.argv:
-	if arg == "--stayalive":
-		isDaemon = True
+first = True
+isDaemon = False
+port = kDefaultPort
+host = kLocalHost
 
-sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
-sock.sendInt(kEnvironmentConnection)
-runEnvironmentEventLoop(sock)
-sock.close()
-while isDaemon:
-	sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
+try:
+	opts, args = getopt.getopt(sys.argv[1:], "", ["stayalive","port=","host="])
+except getopt.GetoptError:
+	# print help information and exit:
+	print "Invalid args"
+	sys.exit(2)
+
+for o, a in opts:
+	if o == "--stayalive":
+		isDaemon = True
+	if o == "--port":
+		port = int(a)
+	if o == "--host":
+		host = socket.gethostbyname(a)
+
+while isDaemon or first:
+	first = False
+	sock = waitForConnection(host,port,kRetryTimeout)
 	sock.sendInt(kEnvironmentConnection)
 	runEnvironmentEventLoop(sock)
 	sock.close()

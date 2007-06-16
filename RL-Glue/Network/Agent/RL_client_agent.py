@@ -1,5 +1,7 @@
 #! /usr/local/bin/python
 import sys
+import getopt
+import socket
 sys.path = sys.path + ['./Build']
 import time
 from RL_agent import *
@@ -56,16 +58,29 @@ def runAgentEventLoop(sock):
 		else:
 			sys.stderr.write(kUnknownMessage % (agentState))
 
-isDaemon = 0
-for arg in sys.argv:
-	if arg == "--stayalive":
+first = True
+isDaemon = False
+port = kDefaultPort
+host = kLocalHost
+
+try:
+	opts, args = getopt.getopt(sys.argv[1:], "", ["stayalive","port=","host="])
+except getopt.GetoptError:
+	# print help information and exit:
+	print "Invalid args"
+	sys.exit(2)
+
+for o, a in opts:
+	if o == "--stayalive":
 		isDaemon = True
-sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
-sock.sendInt(kAgentConnection)
-runAgentEventLoop(sock)
-sock.close()
-while isDaemon:
-	sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
+	if o == "--port":
+		port = int(a)
+	if o == "--host":
+		host = socket.gethostbyname(a)
+
+while isDaemon or first:
+	first = False
+	sock = waitForConnection(host,port,kRetryTimeout)
 	sock.sendInt(kAgentConnection)
 	runAgentEventLoop(sock)
 	sock.close()

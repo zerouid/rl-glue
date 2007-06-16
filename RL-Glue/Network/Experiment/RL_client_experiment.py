@@ -1,11 +1,33 @@
 import sys
+import getopt
+import socket
 from RL_netlib import *
 
 sock = None
 
 def RL_init():
 	global sock
-	sock = waitForConnection(kLocalHost,kDefaultPort,kRetryTimeout)
+	first = True
+	isDaemon = False
+	port = kDefaultPort
+	host = kLocalHost
+
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], "", ["stayalive","port=","host="])
+	except getopt.GetoptError:
+		# print help information and exit:
+		print "Invalid args"
+		sys.exit(2)
+
+	for o, a in opts:
+		if o == "--stayalive":
+			isDaemon = True
+		if o == "--port":
+			port = int(a)
+		if o == "--host":
+			host = socket.gethostbyname(a)
+
+	sock = waitForConnection(host,port,kRetryTimeout)
 	sock.sendInt(kExperimentConnection)
 	sock.sendInt(kRLInit)
 
