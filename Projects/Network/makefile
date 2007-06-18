@@ -82,8 +82,8 @@ endif
 RL_GLUE: RL_glue $(AGENT_TARGET) $(ENVIRONMENT_TARGET) $(EXPERIMENT_TARGET)
 
 # ------------------------------- Compile And Link RL-Glue 2.0 ------------------------------
-RL_glue: RL_interface.o $(NETWORK_OBJECT) $(NETLIB_OBJECT) $(GLUE_EXPERIMENT) $(GLUE_ENVIRONMENT) $(GLUE_AGENT) 
-	$(CC) $(LDFLAGS) -o $@  $(addprefix $(BUILD_PATH), RL_interface.o)      \
+RL_glue: RL_glue.o $(NETWORK_OBJECT) $(NETLIB_OBJECT) $(GLUE_EXPERIMENT) $(GLUE_ENVIRONMENT) $(GLUE_AGENT) 
+	$(CC) $(LDFLAGS) -o $@  $(addprefix $(BUILD_PATH), RL_glue.o)      \
 				$(addprefix $(BUILD_PATH), $(NETWORK_OBJECT))   \
 				$(addprefix $(BUILD_PATH), $(NETLIB_OBJECT))    \
 				$(addprefix $(BUILD_PATH), $(GLUE_EXPERIMENT))  \
@@ -115,7 +115,7 @@ endif
 
 # ===================================== INTERFACE ============================================
 # ------------------------------- Compile The RL-Interface ----------------------------------
-RL_interface.o: $(RL-GLUE)/RL_interface.c $(RL-GLUE)/RL_interface.h
+RL_glue.o: $(RL-GLUE)/RL_glue.c $(RL-GLUE)/RL_glue.h
 	$(CC) $(CFLAGS) -c $< -o $(addprefix $(BUILD_PATH), $@)
 # -------------------------------------------------------------------------------------------
 
