@@ -16,6 +16,7 @@ typedef RL_abstract_type Observation;
 typedef RL_abstract_type Action;
 typedef RL_abstract_type Random_seed_key;
 typedef RL_abstract_type State_key;
+typedef char* Message;
 
 typedef struct {
   Observation o;

@@ -338,38 +338,22 @@ void runGlueEventLoop(rlSocket theConnection) {
 
 int main(int argc, char** argv) {
   rlSocket theConnection = 0;
-  int arg = 0;
-  int isDaemon = 0;
-  /*short port = kDefaultPort;*/
-  char host[1024] = {0};
-  struct hostent *host_ent;
 
-  rlConnectPort = kDefaultPort;
+  char* host = kLocalHost;
+  short port = kDefaultPort;
+  int autoReconnect = 0;
 
-  signal (SIGINT, termination_handler);
-
-  strncpy(host, kLocalHost, 1024);
-
-  /* less gross than getlongopt */
-  for (arg = 0; arg < argc; ++arg) {
-    if (strncmp(argv[arg], "--stayalive", 12) == 0) {
-      isDaemon = 1;
-    }
-    else if (sscanf(argv[arg], "--port = %hd", &rlConnectPort) != 0) {
-    }
-    else if (sscanf(argv[arg], "--host = %s", host) != 0) {
-      if (isdigit(host[0])) {
-	/* assume we got an ip address */
-      }
-      else if (isalpha(host[0])) {
-	/* assume we got a host name */
-	host_ent = gethostbyname(host);
-	if (host_ent != 0) {
-	  strncpy(host, inet_ntoa(*((struct in_addr*)host_ent->h_addr)), 1024);
-	}
-      }
-    }
+  host = getenv("RLGLUE_HOST");
+  if (host == 0) {
+    host = kLocalHost;
   }
+
+  port = strtol(getenv("RLGLUE_PORT"), 0, 10);
+  if (port == 0) {
+    port = kDefaultPort;
+  }
+
+  autoReconnect = strtol(getenv("RLGLUE_AUTORECONNECT"), 0, 10);
 
   rlBufferCreate(&theBuffer, 4096);
 
@@ -379,7 +363,7 @@ int main(int argc, char** argv) {
     runGlueEventLoop(theConnection);
     rlClose(theConnection);
     theExperimentConnection = 0;
-  } while (isDaemon);
+  } while (autoReconnect);
 
   rlBufferDestroy(&theBuffer);
 

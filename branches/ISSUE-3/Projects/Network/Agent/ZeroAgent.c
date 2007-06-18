@@ -63,6 +63,6 @@ void agent_cleanup() {
 void agent_freeze() {
 }
 
-char* agent_message(const char* inMessage) {
+Message agent_message(const Message inMessage) {
   return NULL;
 }

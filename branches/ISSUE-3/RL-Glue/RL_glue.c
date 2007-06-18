@@ -74,11 +74,11 @@ void RL_cleanup() {
   agent_cleanup();
 }
 
-char* RL_agent_message(const char* message) {
+Message RL_agent_message(const Message message) {
   return agent_message(message);
 }
 
-char* RL_env_message(const char* message) {
+Message RL_env_message(const Message message) {
   return env_message(message);
 }
 
