@@ -6,10 +6,10 @@
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
+extern int rlConnectSystems();
+
 static rlSocket theEnvironmentConnection = 0;
-
 static Task_specification theTaskSpec = 0;
-
 static Observation theObservation       = {0};
 static State_key theStateKey            = {0};
 static Random_seed_key theRandomSeedKey = {0};
@@ -32,12 +32,13 @@ Task_specification env_init() {
   int theTaskSpecLength = 0;
   int offset = 0;
 
+  rlConnectSystems();
+
   rlBufferCreate(&theBuffer, 4096);
 
   rlBufferClear(&theBuffer);
   rlBufferWrite(&theBuffer, 0, &envState, 1, sizeof(int));
   rlSendBufferData(theEnvironmentConnection, &theBuffer);
-
 
   rlBufferClear(&theBuffer);
   rlRecvBufferData(theEnvironmentConnection, &theBuffer);
