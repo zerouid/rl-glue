@@ -1,4 +1,4 @@
-#include <RL_interface.h>
+#include <RL_glue.h>
 
 Action last_action     = {0};
 Observation last_state = {0};
@@ -14,12 +14,8 @@ int num_episodes    = 0;
 Reward_observation_action_terminal roa;
 Observation_action oa;
 
-/* Call into the direct call or network libraries */
-extern int rlConnectSystems();
-
 void RL_init() {
   Task_specification task_spec = 0;
-  rlConnectSystems();
 
   task_spec = env_init();
   agent_init(task_spec);

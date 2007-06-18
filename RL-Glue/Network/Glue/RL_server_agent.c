@@ -5,6 +5,7 @@
 #include <RL_common.h>
 #include <Network/RL_netlib.h>
 
+extern int rlConnectSystems();
 static rlSocket theAgentConnection = 0;
 static Action theAction = {0};
 static rlBuffer theBuffer = {0};
@@ -26,6 +27,8 @@ void agent_init(Task_specification theTaskSpec) {
   const int agentState = kAgentInit;
   const int theTaskSpecLength = strlen(theTaskSpec)+1;
   int offset = 0;
+
+  rlConnectSystems();
 
   rlBufferCreate(&theBuffer, 4096);
   rlBufferClear(&theBuffer);
