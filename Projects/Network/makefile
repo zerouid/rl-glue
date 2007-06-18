@@ -8,14 +8,17 @@ LDFLAGS    =
 BUILD_PATH = Build/
 
 # Object files and libraries required for linking our agent
+# Simply leave these blank if you are not using a C agent.
 AGENT_OBJECTS       = ZeroAgent.o
 AGENT_LDFLAGS       =
 
 # Object files and libraries required for linking our environment
+# Simply leave these blank if you are not using a C environment
 ENVIRONMENT_OBJECTS = mines.o
 ENVIRONMENT_LDFLAGS =
 
 # Object files and libraries required for linking our experiment
+# Simply leave these blank if you are not using a C experiment
 EXPERIMENT_OBJECTS  = experiment.o
 EXPERIMENT_LDFLAGS  =
 
