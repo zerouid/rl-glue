@@ -1,13 +1,13 @@
 # Agent Source Files
-AGENTC = ./Agent/LeahAgent.c
-AGENTH = ./Agent/LeahAgent.h
+AGENTC = ./Agent/SarsaAgent.c
+AGENTH = ./Agent/SarsaAgent.h
 
 # Environment Source Files
-ENVIRONMENTC = ./Environment/LeahEnv.c
-ENVIRONMENTH = ./Environment/LeahEnv.h
+ENVIRONMENTC = ./Environment/mines.c
+ENVIRONMENTH = ./Environment/mines.h
 
 # Experiment Source Files
-EXPERIMENTC = ./Experiment/main.c
+EXPERIMENTC = ./Experiment/experiment.c
 EXPERIMENTH = 
 
 # Path to RL-Glue to find RL_interface and related files.

@@ -34,73 +34,6 @@ int env_map[6][19] =
   { 3, 3, 3, 3, 3, 3 ,3 ,3, 3, 3 ,3 ,3 ,3, 3, 3, 3, 3, 3 }
 };
 
-
-void env_print(const char* header, RL_abstract_type* data) {
-  int i = 0;
-  fprintf(stderr, "%s", header);
-  fprintf(stderr, "%d %d\n", data->numInts, data->numDoubles);
-
-  for (i = 0; i < data->numInts; ++i)
-    fprintf(stderr, "%d ", data->intArray[i]);
-  fprintf(stderr, "\n");
-
-  for (i = 0; i < data->numDoubles; ++i)
-    fprintf(stderr, "%f ", data->doubleArray[i]);
-  fprintf(stderr, "\n");
-}
-
-
-int getPosition()
-{
-  if (env_map[M.agentRow][M.agentColumn] != M.GOAL && env_map[M.agentRow][M.agentColumn] != M.MINE)
-  {    
-    /* The episode terminates if the agent hits a mine */
-    return M.agentRow*M.col + M.agentColumn;
-  }
-  else
-  {
-    env_terminal = 1;
-    return -1;
-  }
-}
-
-void getNextPosition(Action a)
-{
-  /* When the move would result in hitting an obstacles, the agent simply doesn't move */
-  int newRow = M.agentRow;
-  int newColumn = M.agentColumn;
-  
-  if (a.intArray[0] == 0)
-    newColumn = M.agentColumn - 1;
-  else if (a.intArray[0] == 1)
-    newColumn = M.agentColumn + 1;
-  else if (a.intArray[0] == 2)
-    newRow = M.agentRow - 1;
-  else if (a.intArray[0] == 3)
-    newRow = M.agentRow + 1;
-  
-  if(newRow >= M.row || newRow < 0 || newColumn >= M.col || newColumn < 0)
-  {
-    M.agentColumn = M.agentColumn;
-    M.agentRow = M.agentRow;
-  }
-  else if (env_map[newRow][newColumn] != M.OBSTACLE)
-  {
-    M.agentRow = newRow;
-    M.agentColumn = newColumn;
-  }
-}
-
-Reward getReward()
-{
-  if (env_map[M.agentRow][M.agentColumn] == M.GOAL){
-    return 10;}
-  else if (env_map[M.agentRow][M.agentColumn] == M.MINE){
-    return -10;}
-  else
-    return -1;
-}
-
 /* RL-Glue Interface */
 
 Task_specification env_init()
@@ -217,4 +150,74 @@ Random_seed_key env_get_random_seed()
 
 char* env_message(const char* inMessage) {
   return NULL;
+}
+
+
+/* mines utitily functions */
+
+
+void env_print(const char* header, RL_abstract_type* data) {
+  int i = 0;
+  fprintf(stderr, "%s", header);
+  fprintf(stderr, "%d %d\n", data->numInts, data->numDoubles);
+
+  for (i = 0; i < data->numInts; ++i)
+    fprintf(stderr, "%d ", data->intArray[i]);
+  fprintf(stderr, "\n");
+
+  for (i = 0; i < data->numDoubles; ++i)
+    fprintf(stderr, "%f ", data->doubleArray[i]);
+  fprintf(stderr, "\n");
+}
+
+
+int getPosition()
+{
+  if (env_map[M.agentRow][M.agentColumn] != M.GOAL && env_map[M.agentRow][M.agentColumn] != M.MINE)
+  {    
+    /* The episode terminates if the agent hits a mine */
+    return M.agentRow*M.col + M.agentColumn;
+  }
+  else
+  {
+    env_terminal = 1;
+    return -1;
+  }
+}
+
+void getNextPosition(Action a)
+{
+  /* When the move would result in hitting an obstacles, the agent simply doesn't move */
+  int newRow = M.agentRow;
+  int newColumn = M.agentColumn;
+  
+  if (a.intArray[0] == 0)
+    newColumn = M.agentColumn - 1;
+  else if (a.intArray[0] == 1)
+    newColumn = M.agentColumn + 1;
+  else if (a.intArray[0] == 2)
+    newRow = M.agentRow - 1;
+  else if (a.intArray[0] == 3)
+    newRow = M.agentRow + 1;
+  
+  if(newRow >= M.row || newRow < 0 || newColumn >= M.col || newColumn < 0)
+  {
+    M.agentColumn = M.agentColumn;
+    M.agentRow = M.agentRow;
+  }
+  else if (env_map[newRow][newColumn] != M.OBSTACLE)
+  {
+    M.agentRow = newRow;
+    M.agentColumn = newColumn;
+  }
+}
+
+Reward getReward()
+{
+  if (env_map[M.agentRow][M.agentColumn] == M.GOAL){
+    return 10;}
+  else if (env_map[M.agentRow][M.agentColumn] == M.MINE){
+    return -10;}
+  else
+    return -1;
 }
