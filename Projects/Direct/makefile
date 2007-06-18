@@ -1,6 +1,6 @@
 # Agent Source Files
-AGENTC = ./Agent/SarsaAgent.c
-AGENTH = ./Agent/SarsaAgent.h
+AGENTC = ./Agent/ZeroAgent.c
+AGENTH = ./Agent/ZeroAgent.h
 
 # Environment Source Files
 ENVIRONMENTC = ./Environment/mines.c
@@ -10,7 +10,7 @@ ENVIRONMENTH = ./Environment/mines.h
 EXPERIMENTC = ./Experiment/experiment.c
 EXPERIMENTH = 
 
-# Path to RL-Glue to find RL_interface and related files.
+# Path to RL-Glue to find RL_glue and related files.
 RL-GLUE = ../../RL-Glue
 
 # Compiler flags
@@ -18,9 +18,9 @@ CC      = gcc
 CFLAGS  = -I$(RL-GLUE)/ -ansi -pedantic -Wall
 LDFLAGS =
 
-# An example of RL-Glue compiled without using sockets 
-all: agent.o environment.o experiment.o glue.o direct.o
-	$(CC) -o RL_main Build/agent.o Build/environment.o Build/experiment.o Build/glue.o Build/direct.o
+# An example of RL-Glue compiled together in C
+all: agent.o environment.o experiment.o glue.o
+	$(CC) -o RL_main Build/agent.o Build/environment.o Build/experiment.o Build/glue.o
 
 # Dependencies
 agent.o: $(AGENTC) $(AGENTH)
@@ -32,11 +32,8 @@ environment.o: $(ENVIRONMENTC) $(ENVIRONMENTH)
 experiment.o: $(EXPERIMENTC) $(EXPERIMENTH)
 	$(CC) -c $(CFLAGS) $(EXPERIMENTC) -o Build/experiment.o
 
-glue.o: $(RL-GLUE)/RL_interface.c $(RL-GLUE)/RL_interface.h
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/RL_interface.c -o Build/glue.o
-
-direct.o: $(RL-GLUE)/Direct/Glue/RL_direct_glue.c
-	$(CC) -c $(CFLAGS) $(RL-GLUE)/Direct/Glue/RL_direct_glue.c -o Build/direct.o
+glue.o: $(RL-GLUE)/RL_glue.c $(RL-GLUE)/RL_glue.h
+	$(CC) -c $(CFLAGS) $(RL-GLUE)/RL_glue.c -o Build/glue.o
 
 clean:
 	rm -fr Build/*.o

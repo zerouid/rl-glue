@@ -9,8 +9,8 @@ Observation_action RL_start();
 Reward_observation_action_terminal RL_step();
 void RL_cleanup();
 
-char* RL_agent_message(const char* message);
-char* RL_env_message(const char* message);
+Message RL_agent_message(Message message);
+Message RL_env_message(Message message);
 
 Reward RL_return();
 int RL_num_steps();
@@ -30,7 +30,7 @@ Action agent_step(Reward r, Observation o);
 void agent_end(Reward r);  
 void agent_cleanup();
 void agent_freeze();
-char* agent_message(const char* message);
+Message agent_message(const Message message);
 
 /* Environment Interface */
 Task_specification env_init();
@@ -41,6 +41,6 @@ void env_set_state(State_key sk);
 void env_set_random_seed(Random_seed_key rsk);
 State_key env_get_state();
 Random_seed_key env_get_random_seed();
-char* env_message(const char* message);
+Message env_message(const Message message);
 
 #endif
