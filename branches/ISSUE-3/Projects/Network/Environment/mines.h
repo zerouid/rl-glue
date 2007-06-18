@@ -12,4 +12,17 @@ State_key env_get_State();
 Random_seed_key env_get_random_seek();
 char* env_message(const char* inMessage);
 
+
+
+
+
+
+
+void env_print(const char* header, RL_abstract_type* data);
+int getPosition();
+void getNextPosition(Action a);
+Reward getReward();
+
+
+
 #endif
