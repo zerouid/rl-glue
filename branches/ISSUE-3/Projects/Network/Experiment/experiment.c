@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "RL_glue.h"
+#include <RL_glue.h>
 
 void run(int num_episodes)
 {        
