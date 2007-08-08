@@ -12,4 +12,4 @@ Add your content here.  Format your content with:
   * Headings, paragraphs, and lists
   * Automatic links to other wiki pages
 
-<iframe src="http://www.google.com/calendar/embed?src=dlizotte%40gmail.com&amp;chrome=NAVIGATION&amp;height=588" style=" border-width:0 " width="735" frameborder="0" height="620"></iframe>
+[<iframe src="http://www.google.com/calendar/embed?src=dlizotte%40gmail.com&amp;chrome=NAVIGATION&amp;height=588" style=" border-width:0 " width="735" frameborder="0" height="620"></iframe>]
