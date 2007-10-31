@@ -32,7 +32,7 @@ ifndef RL_GLUE_PATH
 endif
 
 ifndef CFLAGS
-	CFLAGS = -I$(RL_GLUE_PATH) -ansi -pedantic -Wall
+	CFLAGS = -I$(RL_GLUE_PATH) -ansi -pedantic -Wall -O2
 endif
 
 EXTRA_OBJECTS = 
