@@ -15,4 +15,4 @@ Our design and ongoing improvement to the RL-Glue software project is guided by 
 The RL-Glue interface should be how you'd want to implement your agents, environments, and experiments.  You should not have to contort your code in uncomfortable ways to implement traditional reinforcement learning.  This is a stronger statement than it might sound:
 
   * You should be able to use any programming language you want
-     * Caveat : you may have to write a [Codecs] so that RL-Glue components in other languages know how to talk to your agent.
+     * Caveat : you may have to write a [Codec] so that RL-Glue components in other languages know how to talk to your agent.
