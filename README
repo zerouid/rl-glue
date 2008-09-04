@@ -1,0 +1,4 @@
+MAke sure if you're on os x you do:
+export LIBTOOL=glibtool
+
+or make LIBTOOL=glibtool

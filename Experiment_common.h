@@ -19,8 +19,6 @@
 #define RL_interface_h
 
 #include <RL_common.h>
-#include <Environment_common.h>
-#include <Agent_common.h>
 
 /* Glue */
 void RL_init();
