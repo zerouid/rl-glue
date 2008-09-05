@@ -11,6 +11,8 @@ lib_LTLIBRARIES = librlglue.la
  
 #This might break things on linux
 #LIBTOOL=glibtool
+
+MYLIBTOOL=$(libtool_found)
  
 librlglue_la_SOURCES = src/RL_direct_experiment.c src/RL_direct_environment.c src/RL_direct_agent.c src/RL_glue.c RL_common.h Agent_common.h Environment_common.h Experiment_common.h 
 librlglue_la_LDFLAGS= -version-info $(EXAMPLE_LIBRARY_VERSION) -release $(EXAMPLE_RELEASE)
