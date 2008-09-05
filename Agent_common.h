@@ -18,7 +18,7 @@
 #ifndef Agent_common_h
 #define Agent_common_h
 
-#include <RL_common.h>
+#include <rlglue/RL_common.h>
 
 /*#ifdef __cplusplus
 extern "C" {
