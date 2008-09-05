@@ -18,7 +18,7 @@
 #ifndef RL_interface_h
 #define RL_interface_h
 
-#include <RL_common.h>
+#include <rlglue/RL_common.h>
 
 /* Glue */
 void RL_init();

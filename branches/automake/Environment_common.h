@@ -18,7 +18,7 @@
 #ifndef Environment_common_h
 #define Environment_common_h
 
-#include <RL_common.h>
+#include <rlglue/RL_common.h>
 
 /*
 #ifdef __cplusplus
