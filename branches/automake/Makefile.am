@@ -4,17 +4,14 @@ rlglue_SOURCES = src/RL_network.c src/RL_network_experiment.c src/RL_server_envi
 rlglue_CFLAGS = $(AM_CFLAGS)
 
 
-EXAMPLE_RELEASE=3:0:0
-EXAMPLE_LIBRARY_VERSION=3:0:0
+GLUE_RELEASE=3:0:0
+GLUE_VERSION=3:0:0
 
 lib_LTLIBRARIES = librlglue.la
  
-#This might break things on linux
-#LIBTOOL=glibtool
 
-MYLIBTOOL=$(libtool_found)
- 
 librlglue_la_SOURCES = src/RL_direct_experiment.c src/RL_direct_environment.c src/RL_direct_agent.c src/RL_glue.c RL_common.h Agent_common.h Environment_common.h Experiment_common.h 
-librlglue_la_LDFLAGS= -version-info $(EXAMPLE_LIBRARY_VERSION) -release $(EXAMPLE_RELEASE)
+
+librlglue_la_LDFLAGS= -version-info $(GLUE_VERSION) -release $(GLUE_RELEASE)
 librlglue_la_includedir=$(includedir)/rlglue
 librlglue_la_include_HEADERS = RL_common.h Agent_common.h Environment_common.h Experiment_common.h 
