@@ -38,7 +38,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = rlglue$(EXEEXT)
+bin_PROGRAMS = rl_glue$(EXEEXT)
 DIST_COMMON = README $(am__configure_deps) \
 	$(librlglue_la_include_HEADERS) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(top_srcdir)/configure AUTHORS COPYING \
@@ -69,16 +69,17 @@ am_librlglue_la_OBJECTS = RL_direct_experiment.lo \
 librlglue_la_OBJECTS = $(am_librlglue_la_OBJECTS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
-am_rlglue_OBJECTS = rlglue-RL_network.$(OBJEXT) \
-	rlglue-RL_network_experiment.$(OBJEXT) \
-	rlglue-RL_server_environment.$(OBJEXT) \
-	rlglue-RL_network_agent.$(OBJEXT) \
-	rlglue-RL_network_glue.$(OBJEXT) \
-	rlglue-RL_server_experiment.$(OBJEXT) rlglue-RL_glue.$(OBJEXT) \
-	rlglue-RL_network_environment.$(OBJEXT) \
-	rlglue-RL_server_agent.$(OBJEXT)
-rlglue_OBJECTS = $(am_rlglue_OBJECTS)
-rlglue_LDADD = $(LDADD)
+am_rl_glue_OBJECTS = rl_glue-RL_network.$(OBJEXT) \
+	rl_glue-RL_network_experiment.$(OBJEXT) \
+	rl_glue-RL_server_environment.$(OBJEXT) \
+	rl_glue-RL_network_agent.$(OBJEXT) \
+	rl_glue-RL_network_glue.$(OBJEXT) \
+	rl_glue-RL_server_experiment.$(OBJEXT) \
+	rl_glue-RL_glue.$(OBJEXT) \
+	rl_glue-RL_network_environment.$(OBJEXT) \
+	rl_glue-RL_server_agent.$(OBJEXT)
+rl_glue_OBJECTS = $(am_rl_glue_OBJECTS)
+rl_glue_LDADD = $(LDADD)
 DEFAULT_INCLUDES = -I. -I$(srcdir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -90,8 +91,8 @@ LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-SOURCES = $(librlglue_la_SOURCES) $(rlglue_SOURCES)
-DIST_SOURCES = $(librlglue_la_SOURCES) $(rlglue_SOURCES)
+SOURCES = $(librlglue_la_SOURCES) $(rl_glue_SOURCES)
+DIST_SOURCES = $(librlglue_la_SOURCES) $(rl_glue_SOURCES)
 librlglue_la_includeHEADERS_INSTALL = $(INSTALL_HEADER)
 HEADERS = $(librlglue_la_include_HEADERS)
 ETAGS = etags
@@ -211,17 +212,16 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-rlglue_SOURCES = src/RL_network.c src/RL_network_experiment.c src/RL_server_environment.c src/RL_network_agent.c src/RL_network_glue.c src/RL_server_experiment.c src/RL_glue.c src/RL_network_environment.c src/RL_server_agent.c src/rlglue/Agent_common.h src/rlglue/Environment_common.h src/rlglue/RL_common.h src/rlglue/Experiment_common.h src/RL_network.h
+rl_glue_SOURCES = src/RL_network.c src/RL_network_experiment.c src/RL_server_environment.c src/RL_network_agent.c src/RL_network_glue.c src/RL_server_experiment.c src/RL_glue.c src/RL_network_environment.c src/RL_server_agent.c rlglue/Agent_common.h rlglue/Environment_common.h rlglue/RL_common.h rlglue/Experiment_common.h src/RL_network.h
 #This is basically a no-op suggested by: http://www.gnu.org/software/libtool/manual/automake/Libtool-Issues.html to solve a problem where because both targets build rlglue.c
-rlglue_CFLAGS = $(AM_CFLAGS)
-INCLUDES = -Isrc
+rl_glue_CFLAGS = $(AM_CFLAGS)
 GLUE_RELEASE = 3:0:0
 GLUE_VERSION = 3:0:0
 lib_LTLIBRARIES = librlglue.la
-librlglue_la_SOURCES = src/RL_direct_experiment.c src/RL_direct_environment.c src/RL_direct_agent.c src/RL_glue.c src/rlglue/RL_common.h src/rlglue/Agent_common.h src/rlglue/Environment_common.h src/rlglue/Experiment_common.h 
+librlglue_la_SOURCES = src/RL_direct_experiment.c src/RL_direct_environment.c src/RL_direct_agent.c src/RL_glue.c rlglue/RL_common.h rlglue/Agent_common.h rlglue/Environment_common.h rlglue/Experiment_common.h 
 librlglue_la_LDFLAGS = -version-info $(GLUE_VERSION) -release $(GLUE_RELEASE)
 librlglue_la_includedir = $(includedir)/rlglue
-librlglue_la_include_HEADERS = src/rlglue/RL_common.h src/rlglue/Agent_common.h src/rlglue/Environment_common.h  src/rlglue/Experiment_common.h 
+librlglue_la_include_HEADERS = rlglue/RL_common.h rlglue/Agent_common.h rlglue/Environment_common.h  rlglue/Experiment_common.h 
 all: all-am
 
 .SUFFIXES:
@@ -316,9 +316,9 @@ clean-binPROGRAMS:
 	  echo " rm -f $$p $$f"; \
 	  rm -f $$p $$f ; \
 	done
-rlglue$(EXEEXT): $(rlglue_OBJECTS) $(rlglue_DEPENDENCIES) 
-	@rm -f rlglue$(EXEEXT)
-	$(LINK) $(rlglue_LDFLAGS) $(rlglue_OBJECTS) $(rlglue_LDADD) $(LIBS)
+rl_glue$(EXEEXT): $(rl_glue_OBJECTS) $(rl_glue_DEPENDENCIES) 
+	@rm -f rl_glue$(EXEEXT)
+	$(LINK) $(rl_glue_LDFLAGS) $(rl_glue_OBJECTS) $(rl_glue_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -330,15 +330,15 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RL_direct_environment.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RL_direct_experiment.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RL_glue.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_glue.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_network.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_network_agent.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_network_environment.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_network_experiment.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_network_glue.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_server_agent.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_server_environment.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rlglue-RL_server_experiment.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_glue.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_network.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_network_agent.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_network_environment.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_network_experiment.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_network_glue.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_server_agent.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_server_environment.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rl_glue-RL_server_experiment.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -c -o $@ $<; \
@@ -389,131 +389,131 @@ RL_glue.lo: src/RL_glue.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o RL_glue.lo `test -f 'src/RL_glue.c' || echo '$(srcdir)/'`src/RL_glue.c
 
-rlglue-RL_network.o: src/RL_network.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_network.Tpo" -c -o rlglue-RL_network.o `test -f 'src/RL_network.c' || echo '$(srcdir)/'`src/RL_network.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network.Tpo" "$(DEPDIR)/rlglue-RL_network.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network.c' object='rlglue-RL_network.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network.o: src/RL_network.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network.Tpo" -c -o rl_glue-RL_network.o `test -f 'src/RL_network.c' || echo '$(srcdir)/'`src/RL_network.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network.Tpo" "$(DEPDIR)/rl_glue-RL_network.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network.c' object='rl_glue-RL_network.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network.o `test -f 'src/RL_network.c' || echo '$(srcdir)/'`src/RL_network.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network.o `test -f 'src/RL_network.c' || echo '$(srcdir)/'`src/RL_network.c
 
-rlglue-RL_network.obj: src/RL_network.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_network.Tpo" -c -o rlglue-RL_network.obj `if test -f 'src/RL_network.c'; then $(CYGPATH_W) 'src/RL_network.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network.Tpo" "$(DEPDIR)/rlglue-RL_network.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network.c' object='rlglue-RL_network.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network.obj: src/RL_network.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network.Tpo" -c -o rl_glue-RL_network.obj `if test -f 'src/RL_network.c'; then $(CYGPATH_W) 'src/RL_network.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network.Tpo" "$(DEPDIR)/rl_glue-RL_network.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network.c' object='rl_glue-RL_network.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network.obj `if test -f 'src/RL_network.c'; then $(CYGPATH_W) 'src/RL_network.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network.obj `if test -f 'src/RL_network.c'; then $(CYGPATH_W) 'src/RL_network.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network.c'; fi`
 
-rlglue-RL_network_experiment.o: src/RL_network_experiment.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network_experiment.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_network_experiment.Tpo" -c -o rlglue-RL_network_experiment.o `test -f 'src/RL_network_experiment.c' || echo '$(srcdir)/'`src/RL_network_experiment.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network_experiment.Tpo" "$(DEPDIR)/rlglue-RL_network_experiment.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network_experiment.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_experiment.c' object='rlglue-RL_network_experiment.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network_experiment.o: src/RL_network_experiment.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network_experiment.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network_experiment.Tpo" -c -o rl_glue-RL_network_experiment.o `test -f 'src/RL_network_experiment.c' || echo '$(srcdir)/'`src/RL_network_experiment.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network_experiment.Tpo" "$(DEPDIR)/rl_glue-RL_network_experiment.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network_experiment.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_experiment.c' object='rl_glue-RL_network_experiment.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network_experiment.o `test -f 'src/RL_network_experiment.c' || echo '$(srcdir)/'`src/RL_network_experiment.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network_experiment.o `test -f 'src/RL_network_experiment.c' || echo '$(srcdir)/'`src/RL_network_experiment.c
 
-rlglue-RL_network_experiment.obj: src/RL_network_experiment.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network_experiment.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_network_experiment.Tpo" -c -o rlglue-RL_network_experiment.obj `if test -f 'src/RL_network_experiment.c'; then $(CYGPATH_W) 'src/RL_network_experiment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_experiment.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network_experiment.Tpo" "$(DEPDIR)/rlglue-RL_network_experiment.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network_experiment.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_experiment.c' object='rlglue-RL_network_experiment.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network_experiment.obj: src/RL_network_experiment.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network_experiment.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network_experiment.Tpo" -c -o rl_glue-RL_network_experiment.obj `if test -f 'src/RL_network_experiment.c'; then $(CYGPATH_W) 'src/RL_network_experiment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_experiment.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network_experiment.Tpo" "$(DEPDIR)/rl_glue-RL_network_experiment.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network_experiment.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_experiment.c' object='rl_glue-RL_network_experiment.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network_experiment.obj `if test -f 'src/RL_network_experiment.c'; then $(CYGPATH_W) 'src/RL_network_experiment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_experiment.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network_experiment.obj `if test -f 'src/RL_network_experiment.c'; then $(CYGPATH_W) 'src/RL_network_experiment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_experiment.c'; fi`
 
-rlglue-RL_server_environment.o: src/RL_server_environment.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_server_environment.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_server_environment.Tpo" -c -o rlglue-RL_server_environment.o `test -f 'src/RL_server_environment.c' || echo '$(srcdir)/'`src/RL_server_environment.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_server_environment.Tpo" "$(DEPDIR)/rlglue-RL_server_environment.Po"; else rm -f "$(DEPDIR)/rlglue-RL_server_environment.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_environment.c' object='rlglue-RL_server_environment.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_server_environment.o: src/RL_server_environment.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_server_environment.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_server_environment.Tpo" -c -o rl_glue-RL_server_environment.o `test -f 'src/RL_server_environment.c' || echo '$(srcdir)/'`src/RL_server_environment.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_server_environment.Tpo" "$(DEPDIR)/rl_glue-RL_server_environment.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_server_environment.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_environment.c' object='rl_glue-RL_server_environment.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_server_environment.o `test -f 'src/RL_server_environment.c' || echo '$(srcdir)/'`src/RL_server_environment.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_server_environment.o `test -f 'src/RL_server_environment.c' || echo '$(srcdir)/'`src/RL_server_environment.c
 
-rlglue-RL_server_environment.obj: src/RL_server_environment.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_server_environment.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_server_environment.Tpo" -c -o rlglue-RL_server_environment.obj `if test -f 'src/RL_server_environment.c'; then $(CYGPATH_W) 'src/RL_server_environment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_environment.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_server_environment.Tpo" "$(DEPDIR)/rlglue-RL_server_environment.Po"; else rm -f "$(DEPDIR)/rlglue-RL_server_environment.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_environment.c' object='rlglue-RL_server_environment.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_server_environment.obj: src/RL_server_environment.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_server_environment.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_server_environment.Tpo" -c -o rl_glue-RL_server_environment.obj `if test -f 'src/RL_server_environment.c'; then $(CYGPATH_W) 'src/RL_server_environment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_environment.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_server_environment.Tpo" "$(DEPDIR)/rl_glue-RL_server_environment.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_server_environment.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_environment.c' object='rl_glue-RL_server_environment.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_server_environment.obj `if test -f 'src/RL_server_environment.c'; then $(CYGPATH_W) 'src/RL_server_environment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_environment.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_server_environment.obj `if test -f 'src/RL_server_environment.c'; then $(CYGPATH_W) 'src/RL_server_environment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_environment.c'; fi`
 
-rlglue-RL_network_agent.o: src/RL_network_agent.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network_agent.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_network_agent.Tpo" -c -o rlglue-RL_network_agent.o `test -f 'src/RL_network_agent.c' || echo '$(srcdir)/'`src/RL_network_agent.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network_agent.Tpo" "$(DEPDIR)/rlglue-RL_network_agent.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network_agent.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_agent.c' object='rlglue-RL_network_agent.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network_agent.o: src/RL_network_agent.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network_agent.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network_agent.Tpo" -c -o rl_glue-RL_network_agent.o `test -f 'src/RL_network_agent.c' || echo '$(srcdir)/'`src/RL_network_agent.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network_agent.Tpo" "$(DEPDIR)/rl_glue-RL_network_agent.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network_agent.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_agent.c' object='rl_glue-RL_network_agent.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network_agent.o `test -f 'src/RL_network_agent.c' || echo '$(srcdir)/'`src/RL_network_agent.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network_agent.o `test -f 'src/RL_network_agent.c' || echo '$(srcdir)/'`src/RL_network_agent.c
 
-rlglue-RL_network_agent.obj: src/RL_network_agent.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network_agent.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_network_agent.Tpo" -c -o rlglue-RL_network_agent.obj `if test -f 'src/RL_network_agent.c'; then $(CYGPATH_W) 'src/RL_network_agent.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_agent.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network_agent.Tpo" "$(DEPDIR)/rlglue-RL_network_agent.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network_agent.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_agent.c' object='rlglue-RL_network_agent.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network_agent.obj: src/RL_network_agent.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network_agent.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network_agent.Tpo" -c -o rl_glue-RL_network_agent.obj `if test -f 'src/RL_network_agent.c'; then $(CYGPATH_W) 'src/RL_network_agent.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_agent.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network_agent.Tpo" "$(DEPDIR)/rl_glue-RL_network_agent.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network_agent.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_agent.c' object='rl_glue-RL_network_agent.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network_agent.obj `if test -f 'src/RL_network_agent.c'; then $(CYGPATH_W) 'src/RL_network_agent.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_agent.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network_agent.obj `if test -f 'src/RL_network_agent.c'; then $(CYGPATH_W) 'src/RL_network_agent.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_agent.c'; fi`
 
-rlglue-RL_network_glue.o: src/RL_network_glue.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network_glue.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_network_glue.Tpo" -c -o rlglue-RL_network_glue.o `test -f 'src/RL_network_glue.c' || echo '$(srcdir)/'`src/RL_network_glue.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network_glue.Tpo" "$(DEPDIR)/rlglue-RL_network_glue.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network_glue.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_glue.c' object='rlglue-RL_network_glue.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network_glue.o: src/RL_network_glue.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network_glue.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network_glue.Tpo" -c -o rl_glue-RL_network_glue.o `test -f 'src/RL_network_glue.c' || echo '$(srcdir)/'`src/RL_network_glue.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network_glue.Tpo" "$(DEPDIR)/rl_glue-RL_network_glue.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network_glue.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_glue.c' object='rl_glue-RL_network_glue.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network_glue.o `test -f 'src/RL_network_glue.c' || echo '$(srcdir)/'`src/RL_network_glue.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network_glue.o `test -f 'src/RL_network_glue.c' || echo '$(srcdir)/'`src/RL_network_glue.c
 
-rlglue-RL_network_glue.obj: src/RL_network_glue.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network_glue.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_network_glue.Tpo" -c -o rlglue-RL_network_glue.obj `if test -f 'src/RL_network_glue.c'; then $(CYGPATH_W) 'src/RL_network_glue.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_glue.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network_glue.Tpo" "$(DEPDIR)/rlglue-RL_network_glue.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network_glue.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_glue.c' object='rlglue-RL_network_glue.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network_glue.obj: src/RL_network_glue.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network_glue.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network_glue.Tpo" -c -o rl_glue-RL_network_glue.obj `if test -f 'src/RL_network_glue.c'; then $(CYGPATH_W) 'src/RL_network_glue.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_glue.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network_glue.Tpo" "$(DEPDIR)/rl_glue-RL_network_glue.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network_glue.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_glue.c' object='rl_glue-RL_network_glue.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network_glue.obj `if test -f 'src/RL_network_glue.c'; then $(CYGPATH_W) 'src/RL_network_glue.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_glue.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network_glue.obj `if test -f 'src/RL_network_glue.c'; then $(CYGPATH_W) 'src/RL_network_glue.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_glue.c'; fi`
 
-rlglue-RL_server_experiment.o: src/RL_server_experiment.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_server_experiment.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_server_experiment.Tpo" -c -o rlglue-RL_server_experiment.o `test -f 'src/RL_server_experiment.c' || echo '$(srcdir)/'`src/RL_server_experiment.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_server_experiment.Tpo" "$(DEPDIR)/rlglue-RL_server_experiment.Po"; else rm -f "$(DEPDIR)/rlglue-RL_server_experiment.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_experiment.c' object='rlglue-RL_server_experiment.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_server_experiment.o: src/RL_server_experiment.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_server_experiment.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_server_experiment.Tpo" -c -o rl_glue-RL_server_experiment.o `test -f 'src/RL_server_experiment.c' || echo '$(srcdir)/'`src/RL_server_experiment.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_server_experiment.Tpo" "$(DEPDIR)/rl_glue-RL_server_experiment.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_server_experiment.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_experiment.c' object='rl_glue-RL_server_experiment.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_server_experiment.o `test -f 'src/RL_server_experiment.c' || echo '$(srcdir)/'`src/RL_server_experiment.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_server_experiment.o `test -f 'src/RL_server_experiment.c' || echo '$(srcdir)/'`src/RL_server_experiment.c
 
-rlglue-RL_server_experiment.obj: src/RL_server_experiment.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_server_experiment.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_server_experiment.Tpo" -c -o rlglue-RL_server_experiment.obj `if test -f 'src/RL_server_experiment.c'; then $(CYGPATH_W) 'src/RL_server_experiment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_experiment.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_server_experiment.Tpo" "$(DEPDIR)/rlglue-RL_server_experiment.Po"; else rm -f "$(DEPDIR)/rlglue-RL_server_experiment.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_experiment.c' object='rlglue-RL_server_experiment.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_server_experiment.obj: src/RL_server_experiment.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_server_experiment.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_server_experiment.Tpo" -c -o rl_glue-RL_server_experiment.obj `if test -f 'src/RL_server_experiment.c'; then $(CYGPATH_W) 'src/RL_server_experiment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_experiment.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_server_experiment.Tpo" "$(DEPDIR)/rl_glue-RL_server_experiment.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_server_experiment.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_experiment.c' object='rl_glue-RL_server_experiment.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_server_experiment.obj `if test -f 'src/RL_server_experiment.c'; then $(CYGPATH_W) 'src/RL_server_experiment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_experiment.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_server_experiment.obj `if test -f 'src/RL_server_experiment.c'; then $(CYGPATH_W) 'src/RL_server_experiment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_experiment.c'; fi`
 
-rlglue-RL_glue.o: src/RL_glue.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_glue.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_glue.Tpo" -c -o rlglue-RL_glue.o `test -f 'src/RL_glue.c' || echo '$(srcdir)/'`src/RL_glue.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_glue.Tpo" "$(DEPDIR)/rlglue-RL_glue.Po"; else rm -f "$(DEPDIR)/rlglue-RL_glue.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_glue.c' object='rlglue-RL_glue.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_glue.o: src/RL_glue.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_glue.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_glue.Tpo" -c -o rl_glue-RL_glue.o `test -f 'src/RL_glue.c' || echo '$(srcdir)/'`src/RL_glue.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_glue.Tpo" "$(DEPDIR)/rl_glue-RL_glue.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_glue.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_glue.c' object='rl_glue-RL_glue.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_glue.o `test -f 'src/RL_glue.c' || echo '$(srcdir)/'`src/RL_glue.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_glue.o `test -f 'src/RL_glue.c' || echo '$(srcdir)/'`src/RL_glue.c
 
-rlglue-RL_glue.obj: src/RL_glue.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_glue.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_glue.Tpo" -c -o rlglue-RL_glue.obj `if test -f 'src/RL_glue.c'; then $(CYGPATH_W) 'src/RL_glue.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_glue.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_glue.Tpo" "$(DEPDIR)/rlglue-RL_glue.Po"; else rm -f "$(DEPDIR)/rlglue-RL_glue.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_glue.c' object='rlglue-RL_glue.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_glue.obj: src/RL_glue.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_glue.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_glue.Tpo" -c -o rl_glue-RL_glue.obj `if test -f 'src/RL_glue.c'; then $(CYGPATH_W) 'src/RL_glue.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_glue.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_glue.Tpo" "$(DEPDIR)/rl_glue-RL_glue.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_glue.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_glue.c' object='rl_glue-RL_glue.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_glue.obj `if test -f 'src/RL_glue.c'; then $(CYGPATH_W) 'src/RL_glue.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_glue.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_glue.obj `if test -f 'src/RL_glue.c'; then $(CYGPATH_W) 'src/RL_glue.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_glue.c'; fi`
 
-rlglue-RL_network_environment.o: src/RL_network_environment.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network_environment.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_network_environment.Tpo" -c -o rlglue-RL_network_environment.o `test -f 'src/RL_network_environment.c' || echo '$(srcdir)/'`src/RL_network_environment.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network_environment.Tpo" "$(DEPDIR)/rlglue-RL_network_environment.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network_environment.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_environment.c' object='rlglue-RL_network_environment.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network_environment.o: src/RL_network_environment.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network_environment.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network_environment.Tpo" -c -o rl_glue-RL_network_environment.o `test -f 'src/RL_network_environment.c' || echo '$(srcdir)/'`src/RL_network_environment.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network_environment.Tpo" "$(DEPDIR)/rl_glue-RL_network_environment.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network_environment.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_environment.c' object='rl_glue-RL_network_environment.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network_environment.o `test -f 'src/RL_network_environment.c' || echo '$(srcdir)/'`src/RL_network_environment.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network_environment.o `test -f 'src/RL_network_environment.c' || echo '$(srcdir)/'`src/RL_network_environment.c
 
-rlglue-RL_network_environment.obj: src/RL_network_environment.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_network_environment.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_network_environment.Tpo" -c -o rlglue-RL_network_environment.obj `if test -f 'src/RL_network_environment.c'; then $(CYGPATH_W) 'src/RL_network_environment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_environment.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_network_environment.Tpo" "$(DEPDIR)/rlglue-RL_network_environment.Po"; else rm -f "$(DEPDIR)/rlglue-RL_network_environment.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_environment.c' object='rlglue-RL_network_environment.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_network_environment.obj: src/RL_network_environment.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_network_environment.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_network_environment.Tpo" -c -o rl_glue-RL_network_environment.obj `if test -f 'src/RL_network_environment.c'; then $(CYGPATH_W) 'src/RL_network_environment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_environment.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_network_environment.Tpo" "$(DEPDIR)/rl_glue-RL_network_environment.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_network_environment.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_network_environment.c' object='rl_glue-RL_network_environment.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_network_environment.obj `if test -f 'src/RL_network_environment.c'; then $(CYGPATH_W) 'src/RL_network_environment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_environment.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_network_environment.obj `if test -f 'src/RL_network_environment.c'; then $(CYGPATH_W) 'src/RL_network_environment.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_network_environment.c'; fi`
 
-rlglue-RL_server_agent.o: src/RL_server_agent.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_server_agent.o -MD -MP -MF "$(DEPDIR)/rlglue-RL_server_agent.Tpo" -c -o rlglue-RL_server_agent.o `test -f 'src/RL_server_agent.c' || echo '$(srcdir)/'`src/RL_server_agent.c; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_server_agent.Tpo" "$(DEPDIR)/rlglue-RL_server_agent.Po"; else rm -f "$(DEPDIR)/rlglue-RL_server_agent.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_agent.c' object='rlglue-RL_server_agent.o' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_server_agent.o: src/RL_server_agent.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_server_agent.o -MD -MP -MF "$(DEPDIR)/rl_glue-RL_server_agent.Tpo" -c -o rl_glue-RL_server_agent.o `test -f 'src/RL_server_agent.c' || echo '$(srcdir)/'`src/RL_server_agent.c; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_server_agent.Tpo" "$(DEPDIR)/rl_glue-RL_server_agent.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_server_agent.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_agent.c' object='rl_glue-RL_server_agent.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_server_agent.o `test -f 'src/RL_server_agent.c' || echo '$(srcdir)/'`src/RL_server_agent.c
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_server_agent.o `test -f 'src/RL_server_agent.c' || echo '$(srcdir)/'`src/RL_server_agent.c
 
-rlglue-RL_server_agent.obj: src/RL_server_agent.c
-@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -MT rlglue-RL_server_agent.obj -MD -MP -MF "$(DEPDIR)/rlglue-RL_server_agent.Tpo" -c -o rlglue-RL_server_agent.obj `if test -f 'src/RL_server_agent.c'; then $(CYGPATH_W) 'src/RL_server_agent.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_agent.c'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rlglue-RL_server_agent.Tpo" "$(DEPDIR)/rlglue-RL_server_agent.Po"; else rm -f "$(DEPDIR)/rlglue-RL_server_agent.Tpo"; exit 1; fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_agent.c' object='rlglue-RL_server_agent.obj' libtool=no @AMDEPBACKSLASH@
+rl_glue-RL_server_agent.obj: src/RL_server_agent.c
+@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -MT rl_glue-RL_server_agent.obj -MD -MP -MF "$(DEPDIR)/rl_glue-RL_server_agent.Tpo" -c -o rl_glue-RL_server_agent.obj `if test -f 'src/RL_server_agent.c'; then $(CYGPATH_W) 'src/RL_server_agent.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_agent.c'; fi`; \
+@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/rl_glue-RL_server_agent.Tpo" "$(DEPDIR)/rl_glue-RL_server_agent.Po"; else rm -f "$(DEPDIR)/rl_glue-RL_server_agent.Tpo"; exit 1; fi
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='src/RL_server_agent.c' object='rl_glue-RL_server_agent.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rlglue_CFLAGS) $(CFLAGS) -c -o rlglue-RL_server_agent.obj `if test -f 'src/RL_server_agent.c'; then $(CYGPATH_W) 'src/RL_server_agent.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_agent.c'; fi`
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rl_glue_CFLAGS) $(CFLAGS) -c -o rl_glue-RL_server_agent.obj `if test -f 'src/RL_server_agent.c'; then $(CYGPATH_W) 'src/RL_server_agent.c'; else $(CYGPATH_W) '$(srcdir)/src/RL_server_agent.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -593,7 +593,7 @@ distclean-tags:
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkdir_p) $(distdir)/src/rlglue
+	$(mkdir_p) $(distdir)/rlglue
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
