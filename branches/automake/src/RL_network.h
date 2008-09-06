@@ -17,6 +17,9 @@
 
 #ifndef RL_network_h
 #define RL_network_h
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Defines types for RL-Glue */
 #include <rlglue/RL_common.h>
@@ -102,5 +105,8 @@ void rlSwapData(void* out, const void* in, const unsigned int size);
 int rlWaitForConnection(const char *address, const short port, const int retryTimeout);
 unsigned int rlCopyADTToBuffer(const RL_abstract_type* src, rlBuffer* dst, unsigned int offset);
 unsigned int rlCopyBufferToADT(const rlBuffer* src, unsigned int offset, RL_abstract_type* dst);
+#ifdef __cplusplus
+}
+#endif
 
 #endif
