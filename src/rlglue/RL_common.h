@@ -18,6 +18,11 @@
 #ifndef RLcommon_h
 #define RLcommon_h
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 typedef char* Task_specification;
 typedef double Reward;
 
@@ -53,5 +58,9 @@ typedef struct {
   Action a;
   int terminal;
 } Reward_observation_action_terminal;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
