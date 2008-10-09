@@ -38,8 +38,8 @@ extern "C" {
 */
 void agent_init(const char* task_spec);
 const action_t *agent_start(const observation_t *o);
-const action_t *agent_step(const reward_t r, const observation_t *o);
-void agent_end(const reward_t r);  
+const action_t *agent_step(const double r, const observation_t *o);
+void agent_end(const double r);  
 void agent_cleanup();
 const char* agent_message(const char* message);
 

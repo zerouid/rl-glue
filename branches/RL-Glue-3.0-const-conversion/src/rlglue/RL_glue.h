@@ -46,10 +46,10 @@ void RL_cleanup();
 const char* RL_agent_message(const char* message);
 const char* RL_env_message(const char* message);
 
-reward_t RL_return();
+double RL_return();
 int RL_num_steps();
 int RL_num_episodes();
-terminal_t RL_episode(const unsigned int num_steps);
+int RL_episode(const unsigned int num_steps);
 void RL_set_state(const state_key_t *sk);
 void RL_set_random_seed(const random_seed_key_t *rsk);
 const state_key_t *RL_get_state();

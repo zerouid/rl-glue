@@ -21,7 +21,7 @@ int whichEpisode=0;
 
 /* Run One Episode of length maximum cutOff*/
 void runEpisode(int stepLimit) {        
-    terminal_t terminal=RL_episode(stepLimit);
+    int terminal=RL_episode(stepLimit);
 	printf("Episode %d\t %d steps \t%f total reward\t %d natural end \n",whichEpisode,RL_num_steps(),RL_return(), terminal);
 	whichEpisode++;
 }

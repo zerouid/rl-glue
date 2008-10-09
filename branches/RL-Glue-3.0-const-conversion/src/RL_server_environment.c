@@ -37,7 +37,7 @@
 /* Convenience functions for manupulating RL Structs*/
 #include <rlglue/utils/C/RLStruct_util.h>
 
-static task_specification_t theTaskSpec   = 0;
+static char* theTaskSpec   = 0;
 static rlBuffer theBuffer               = {0};
 static observation_t *theObservation = 0;
 static state_key_t *globalStateKey            = 0;
@@ -121,7 +121,7 @@ const reward_observation_t *env_step(const action_t *theAction) {
   /* Receive theObservation from the client environment */
   offset = 0;
   offset = rlBufferRead(&theBuffer, offset, &ro.terminal, 1, sizeof(int));
-  offset = rlBufferRead(&theBuffer, offset, &ro.r, 1, sizeof(reward_t));
+  offset = rlBufferRead(&theBuffer, offset, &ro.r, 1, sizeof(double));
 
 	if(theObservation==0)theObservation=allocateRLStructPointer(0,0,0);
   offset = rlCopyBufferToADT(&theBuffer, offset, theObservation);

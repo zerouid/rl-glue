@@ -98,13 +98,13 @@ const action_t *agent_start(const observation_t *theObservation) {
 }
 
 /* Send the reward and the observation to the agent, receive the action and return it */
-const action_t *agent_step(const reward_t theReward, const observation_t *theObservation) {
+const action_t *agent_step(const double theReward, const observation_t *theObservation) {
   int agentState = kAgentStep;
   unsigned int offset = 0;
 
   rlBufferClear(&theBuffer);
   offset = 0;
-  offset = rlBufferWrite(&theBuffer, offset, &theReward, 1, sizeof(reward_t));
+  offset = rlBufferWrite(&theBuffer, offset, &theReward, 1, sizeof(double));
   offset = rlCopyADTToBuffer(theObservation, &theBuffer, offset);
   rlSendBufferData(rlGetAgentConnection(), &theBuffer, agentState);
 
@@ -121,13 +121,13 @@ const action_t *agent_step(const reward_t theReward, const observation_t *theObs
 }
 
 /* Send the final reward to the agent */
-void agent_end(const reward_t theReward) { 
+void agent_end(const double theReward) { 
   int agentState = kAgentEnd;
   unsigned int offset = 0;
 
   rlBufferClear(&theBuffer);
   /*offset = rlBufferWrite(&theBuffer, offset, &agentState, 1, sizeof(int));*/ /* Removed, shouldn't have been sent. */
-  offset = rlBufferWrite(&theBuffer, offset, &theReward, 1, sizeof(reward_t));
+  offset = rlBufferWrite(&theBuffer, offset, &theReward, 1, sizeof(double));
   rlSendBufferData(rlGetAgentConnection(), &theBuffer, agentState);
 
   rlBufferClear(&theBuffer);
