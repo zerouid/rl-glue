@@ -76,23 +76,25 @@ void agent_init(const char * theTaskSpec) {
 
 /* Send the observation to the agent, receive the action and return it */
 const action_t *agent_start(const observation_t *theObservation) {
-  int agentState = kAgentStart;
-  unsigned int offset = 0;
+	int agentState = kAgentStart;
+	unsigned int offset = 0;
 
 	__RL_CHECK_STRUCT(theObservation);
-  rlBufferClear(&theBuffer);
-  offset = 0;
-  offset = rlCopyADTToBuffer(theObservation, &theBuffer, offset);
-  rlSendBufferData(rlGetAgentConnection(), &theBuffer, agentState);
+	rlBufferClear(&theBuffer);
+	offset = 0;
+	offset = rlCopyADTToBuffer(theObservation, &theBuffer, offset);
+	rlSendBufferData(rlGetAgentConnection(), &theBuffer, agentState);
 
-  rlBufferClear(&theBuffer);
-  rlRecvBufferData(rlGetAgentConnection(), &theBuffer, &agentState);
-  assert(agentState == kAgentStart);
-    
-  offset = 0;
-  offset = rlCopyBufferToADT(&theBuffer, offset, globalAction);
+	rlBufferClear(&theBuffer);
+	rlRecvBufferData(rlGetAgentConnection(), &theBuffer, &agentState);
+	assert(agentState == kAgentStart);
+  
+	offset = 0;
 
-  return globalAction;
+	if(globalAction==0)globalAction=allocateRLStructPointer(0,0,0);
+	offset = rlCopyBufferToADT(&theBuffer, offset, globalAction);
+
+	return globalAction;
 }
 
 /* Send the reward and the observation to the agent, receive the action and return it */
@@ -112,6 +114,7 @@ const action_t *agent_step(const reward_t theReward, const observation_t *theObs
   assert(agentState == kAgentStep);
 
   offset = 0;
+	if(globalAction==0)globalAction=allocateRLStructPointer(0,0,0);
   offset = rlCopyBufferToADT(&theBuffer, offset, globalAction);
 
   return globalAction;
@@ -144,6 +147,7 @@ void agent_cleanup() {
 	assert(agentState == kAgentCleanup);
 
 	clearRLStruct(globalAction);
+	globalAction=0;
 
 	if (theOutMessage != 0) {
 	  free(theOutMessage);

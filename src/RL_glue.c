@@ -37,7 +37,7 @@ I'm a little worried that some of my changes in this file
 (using stack variables for structs and returning them)
  might go terribly wrong*/
 
-static const action_t *last_action;
+static const action_t *last_action=0;
 static reward_t total_reward = 0;
 static int num_steps       = 0;
 static int num_episodes    = 0;
@@ -56,7 +56,7 @@ const char* RL_init() {
 }
 
 const observation_action_t *RL_start() {
-	const observation_t *last_state;
+	const observation_t *last_state=0;
 	/*Make this static so that it is safe to return it*/
 	static observation_action_t oa;
 
@@ -114,8 +114,8 @@ void RL_cleanup() {
 }
 
 const char* RL_agent_message(const char* message) {
-	const char *theAgentResponse;
-	const char *messageToSend;
+	const char *theAgentResponse=0;
+	const char *messageToSend=0;
 
 	if(message!=0){
 		messageToSend=message;
@@ -132,8 +132,8 @@ const char* RL_agent_message(const char* message) {
 }
 
 const char* RL_env_message(const char* message) {
-	const char *theEnvResponse;
-	const char *messageToSend;
+	const char *theEnvResponse=0;
+	const char *messageToSend=0;
 
 	if(message!=0){
 		messageToSend=message;
@@ -150,7 +150,7 @@ const char* RL_env_message(const char* message) {
 }
 
 terminal_t RL_episode(const unsigned int maxStepsThisEpisode) {
-	const reward_observation_action_terminal_t *rl_step_result;
+	const reward_observation_action_terminal_t *rl_step_result=0;
 	int isTerminal=0;
 
 	
