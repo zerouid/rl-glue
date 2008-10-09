@@ -45,7 +45,6 @@ int agent_stepCount=0;
 
 
 void agent_init(const char * task_spec){
-	__RL_CHECK_STRUCT(action)
 }
 
 const action_t *agent_start(const observation_t *o) {
