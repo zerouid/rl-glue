@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	/*We could run one step at a time instead of one episode at a time */
 	/*Start the episode */
 	startResponse=RL_start();
-	printf("First observation and action were: %d %d\n",startResponse->o->intArray[0],startResponse->a->intArray[0]);
+	printf("First observation and action were: %d %d\n",startResponse->observation->intArray[0],startResponse->action->intArray[0]);
 
 	/*Run one step */
 	stepResponse=RL_step();

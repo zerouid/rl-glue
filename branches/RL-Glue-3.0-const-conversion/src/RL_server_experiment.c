@@ -99,28 +99,28 @@ void onRLInit(int theConnection) {
 void onRLStart(int theConnection) {
 	unsigned int offset = 0;
 	const observation_action_t *obsAct = RL_start();
-	__RL_CHECK_STRUCT(obsAct->o)
-	__RL_CHECK_STRUCT(obsAct->a)
+	__RL_CHECK_STRUCT(obsAct->observation)
+	__RL_CHECK_STRUCT(obsAct->action)
 
 	rlBufferClear(&theBuffer);
 	offset = 0;
-	offset = rlCopyADTToBuffer(obsAct->o, &theBuffer, offset);
-	offset = rlCopyADTToBuffer(obsAct->a, &theBuffer, offset);
+	offset = rlCopyADTToBuffer(obsAct->observation, &theBuffer, offset);
+	offset = rlCopyADTToBuffer(obsAct->action, &theBuffer, offset);
 }
 
 
 void onRLStep(int theConnection) {
 	 const reward_observation_action_terminal_t *roat = RL_step();
-	__RL_CHECK_STRUCT(roat->o);
-	__RL_CHECK_STRUCT(roat->a);
+	__RL_CHECK_STRUCT(roat->observation);
+	__RL_CHECK_STRUCT(roat->action);
 	unsigned int offset = 0;
 
 	rlBufferClear(&theBuffer);
 	offset = 0;
 	offset = rlBufferWrite(&theBuffer, offset, &roat->terminal, 1, sizeof(int));
-	offset = rlBufferWrite(&theBuffer, offset, &roat->r, 1, sizeof(double));
-	offset = rlCopyADTToBuffer(roat->o, &theBuffer, offset);
-	offset = rlCopyADTToBuffer(roat->a, &theBuffer, offset);
+	offset = rlBufferWrite(&theBuffer, offset, &roat->reward, 1, sizeof(double));
+	offset = rlCopyADTToBuffer(roat->observation, &theBuffer, offset);
+	offset = rlCopyADTToBuffer(roat->action, &theBuffer, offset);
 }
 
 void onRLReturn(int theConnection) {
