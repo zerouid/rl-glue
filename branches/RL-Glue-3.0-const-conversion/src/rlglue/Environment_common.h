@@ -38,13 +38,13 @@ extern "C" {
 
 	/* Environment Interface */
 	const char* env_init();
-	observation_t env_start();
-	reward_observation_t env_step(action_t a);
+	const observation_t *env_start();
+	const reward_observation_t *env_step(const action_t *a);
 	void env_cleanup();
-	void env_set_state(state_key_t sk);
-	void env_set_random_seed(random_seed_key_t rsk);
-	state_key_t env_get_state();
-	random_seed_key_t env_get_random_seed();
+	void env_set_state(const state_key_t *sk);
+	void env_set_random_seed(const random_seed_key_t *rsk);
+	const state_key_t *env_get_state();
+	const random_seed_key_t *env_get_random_seed();
 	const char* env_message(const char * message);
 
 #ifdef __cplusplus

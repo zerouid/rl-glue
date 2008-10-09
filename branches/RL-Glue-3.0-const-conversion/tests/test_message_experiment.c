@@ -26,6 +26,7 @@
 
 
 #include <stdio.h>
+#include <rlglue/utils/C/RLStruct_util.h>
 
 #include <rlglue/RL_glue.h>
 #include <string.h>

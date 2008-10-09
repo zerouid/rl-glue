@@ -29,10 +29,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <rlglue/Environment_common.h>
+#include <rlglue/utils/C/RLStruct_util.h>
 #include "useful_functions.h"
 
 
-observation_t o={0};
+observation_t *o=0;
 reward_observation_t ro={0};
 char* env_responseMessage=0;
 int env_stepCount=0;
@@ -40,41 +41,42 @@ int env_episodeCount=0;
 
 const char* env_init()
 {    
+	o=allocateRLStructPointer(0,0,0);
 	return "sample task spec";
 }
 
-observation_t env_start()
+const observation_t *env_start()
 {
 	env_episodeCount++;
 	env_stepCount=0;
-	clean_abstract_type(&o);
-	__RL_CHECK_STRUCT(&o)
+	clearRLStruct(o);
+	__RL_CHECK_STRUCT(o)
 	return o;
 }
 
-reward_observation_t env_step(action_t a)
+const reward_observation_t *env_step(const action_t *a)
 {
 	int terminal=0;
 	env_stepCount++;
-	clean_abstract_type(&o);
+	clearRLStruct(o);
 	    
         /*Short episode with big observations*/
         if(env_episodeCount%2==0){
-			__RL_CHECK_STRUCT(&o)
-            set_k_ints_in_abstract_type(&o, 50000);
-			__RL_CHECK_STRUCT(&o)
-            set_k_doubles_in_abstract_type(&o, 50000);
-			__RL_CHECK_STRUCT(&o)
+			__RL_CHECK_STRUCT(o)
+            set_k_ints_in_abstract_type(o, 50000);
+			__RL_CHECK_STRUCT(o)
+            set_k_doubles_in_abstract_type(o, 50000);
+			__RL_CHECK_STRUCT(o)
 
             if(env_stepCount==200)terminal=1;
         }
         /*Longer episode with smaller observations*/
         if(env_episodeCount%2==1){
-			__RL_CHECK_STRUCT(&o)
-            set_k_ints_in_abstract_type(&o, 5);
-		__RL_CHECK_STRUCT(&o)
-            set_k_doubles_in_abstract_type(&o, 5);
-		__RL_CHECK_STRUCT(&o)
+			__RL_CHECK_STRUCT(o)
+            set_k_ints_in_abstract_type(o, 5);
+		__RL_CHECK_STRUCT(o)
+            set_k_doubles_in_abstract_type(o, 5);
+		__RL_CHECK_STRUCT(o)
 
             if(env_stepCount==5000)terminal=1;
         }
@@ -83,34 +85,34 @@ reward_observation_t env_step(action_t a)
 	ro.o=o;
 	ro.r=1.0;
 	ro.terminal=terminal;
-	__RL_CHECK_STRUCT(&ro.o)
-    return ro;
+	__RL_CHECK_STRUCT(ro.o)
+    return &ro;
 }
 
 void env_cleanup()
 {
-  clean_abstract_type(&o);
+  clearRLStruct(o);
 }
 
-void env_set_state(state_key_t sk)
+void env_set_state(const state_key_t *sk)
 {
 }
      
-void env_set_random_seed(random_seed_key_t rsk)
+void env_set_random_seed(const random_seed_key_t *rsk)
 {
 }
 
-state_key_t env_get_state()
+const state_key_t *env_get_state()
 {
-	state_key_t theKey;
-	clean_abstract_type(&theKey);
+	state_key_t *theKey=0;
+	clearRLStruct(theKey);
 	return theKey;
 }
 
-random_seed_key_t env_get_random_seed()
+const random_seed_key_t *env_get_random_seed()
 {
-	random_seed_key_t theKey;
-	clean_abstract_type(&theKey);
+	random_seed_key_t *theKey=0;
+	clearRLStruct(theKey);
 	return theKey;
 }
 

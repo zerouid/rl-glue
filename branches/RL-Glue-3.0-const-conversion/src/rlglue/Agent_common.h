@@ -37,9 +37,9 @@ extern "C" {
 	* Agents must implement all of these functions.
 */
 void agent_init(const char* task_spec);
-action_t agent_start(observation_t o);
-action_t agent_step(reward_t r, observation_t o);
-void agent_end(reward_t r);  
+const action_t *agent_start(const observation_t *o);
+const action_t *agent_step(const reward_t r, const observation_t *o);
+void agent_end(const reward_t r);  
 void agent_cleanup();
 const char* agent_message(const char* message);
 

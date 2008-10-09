@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <rlglue/Environment_common.h>
+#include <rlglue/utils/C/RLStruct_util.h>
 
 #include "useful_functions.h"
 
@@ -39,18 +40,20 @@ const char* env_init()
 	return "";
 }
 
-observation_t env_start()
+const observation_t *env_start()
 {
-	observation_t o={0};
-	clean_abstract_type(&o);
+	observation_t *o=0;
+	clearRLStruct(o);
 	return o;
 }
 
-reward_observation_t env_step(action_t a)
+const reward_observation_t *env_step(const action_t *a)
 {
-	reward_observation_t ro={0};
-	clean_abstract_type(&ro.o);
-	return ro;
+	static reward_observation_t ro={0};
+	observation_t *o=0;
+	clearRLStruct(o);
+	ro.o=o;
+	return &ro;
 }
 
 void env_cleanup()
@@ -58,25 +61,25 @@ void env_cleanup()
 
 }
 
-void env_set_state(state_key_t sk)
+void env_set_state(const state_key_t *sk)
 {
 }
      
-void env_set_random_seed(random_seed_key_t rsk)
+void env_set_random_seed(const random_seed_key_t *rsk)
 {
 }
 
-state_key_t env_get_state()
+const state_key_t *env_get_state()
 {
-	state_key_t theKey={0};
-	clean_abstract_type(&theKey);
+	static state_key_t *theKey=0;
+	clearRLStruct(theKey);
 	return theKey;
 }
 
-random_seed_key_t env_get_random_seed()
+const random_seed_key_t *env_get_random_seed()
 {
-	random_seed_key_t theKey={0};
-	clean_abstract_type(&theKey);
+	static random_seed_key_t *theKey=0;
+	clearRLStruct(theKey);
 	return theKey;
 }
 

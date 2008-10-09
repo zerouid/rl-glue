@@ -54,8 +54,8 @@ int debug_glue_network=0;
 // int debug_glue_network=0;
 // #endif
 
-state_key_t theStateKey = {0};
-random_seed_key_t theRandomSeedKey = {0};
+static state_key_t *globalStateKey = 0;
+static random_seed_key_t *globalRandomSeedKey = 0;
 rlBuffer theBuffer = {0};
 int theConnection = 0;
 
@@ -98,29 +98,29 @@ void onRLInit(int theConnection) {
 
 void onRLStart(int theConnection) {
 	unsigned int offset = 0;
-	observation_action_t obsAct = RL_start();
-	__RL_CHECK_STRUCT(&obsAct.o)
-	__RL_CHECK_STRUCT(&obsAct.a)
+	const observation_action_t *obsAct = RL_start();
+	__RL_CHECK_STRUCT(obsAct->o)
+	__RL_CHECK_STRUCT(obsAct->a)
 
 	rlBufferClear(&theBuffer);
 	offset = 0;
-	offset = rlCopyADTToBuffer(&obsAct.o, &theBuffer, offset);
-	offset = rlCopyADTToBuffer(&obsAct.a, &theBuffer, offset);
+	offset = rlCopyADTToBuffer(obsAct->o, &theBuffer, offset);
+	offset = rlCopyADTToBuffer(obsAct->a, &theBuffer, offset);
 }
 
 
 void onRLStep(int theConnection) {
-	 reward_observation_action_terminal_t roat = RL_step();
-	__RL_CHECK_STRUCT(&roat.o)
-	__RL_CHECK_STRUCT(&roat.a)
+	 const reward_observation_action_terminal_t *roat = RL_step();
+	__RL_CHECK_STRUCT(roat->o);
+	__RL_CHECK_STRUCT(roat->a);
 	unsigned int offset = 0;
 
 	rlBufferClear(&theBuffer);
 	offset = 0;
-	offset = rlBufferWrite(&theBuffer, offset, &roat.terminal, 1, sizeof(terminal_t));
-	offset = rlBufferWrite(&theBuffer, offset, &roat.r, 1, sizeof(reward_t));
-	offset = rlCopyADTToBuffer(&roat.o, &theBuffer, offset);
-	offset = rlCopyADTToBuffer(&roat.a, &theBuffer, offset);
+	offset = rlBufferWrite(&theBuffer, offset, &roat->terminal, 1, sizeof(terminal_t));
+	offset = rlBufferWrite(&theBuffer, offset, &roat->r, 1, sizeof(reward_t));
+	offset = rlCopyADTToBuffer(roat->o, &theBuffer, offset);
+	offset = rlCopyADTToBuffer(roat->a, &theBuffer, offset);
 }
 
 void onRLReturn(int theConnection) {
@@ -164,36 +164,30 @@ void onRLEpisode(int theConnection) {
 
 void onRLSetState(int theConnection) {
 	unsigned int offset = 0;
-	offset = rlCopyBufferToADT(&theBuffer, offset, &theStateKey);
-
-	RL_set_state(theStateKey);
-
+	offset = rlCopyBufferToADT(&theBuffer, offset, globalStateKey);
+	RL_set_state(globalStateKey);
 	rlBufferClear(&theBuffer);
 }
 
 void onRLSetRandomSeed(int theConnection) {
 	unsigned int offset = 0;
-	offset = rlCopyBufferToADT(&theBuffer, offset, &theRandomSeedKey);
-
-	RL_set_random_seed(theRandomSeedKey);
-
+	offset = rlCopyBufferToADT(&theBuffer, offset, globalRandomSeedKey);
+	RL_set_random_seed(globalRandomSeedKey);
 	rlBufferClear(&theBuffer);
 }
 
 void onRLGetState(int theConnection) {
 	unsigned int offset = 0;
-	state_key_t theStateKey = RL_get_state();
-
+	const state_key_t *theStateKey = RL_get_state();
 	rlBufferClear(&theBuffer);
-	offset = rlCopyADTToBuffer(&theStateKey, &theBuffer, offset);
+	offset = rlCopyADTToBuffer(theStateKey, &theBuffer, offset);
 }
 
 void onRLGetRandomSeed(int theConnection) {
 	unsigned int offset = 0;
-	random_seed_key_t theRandomSeedKey = RL_get_random_seed();
-
+	const random_seed_key_t *theRandomSeedKey = RL_get_random_seed();
 	rlBufferClear(&theBuffer);
-	offset = rlCopyADTToBuffer(&theRandomSeedKey, &theBuffer, offset);
+	offset = rlCopyADTToBuffer(theRandomSeedKey, &theBuffer, offset);
 }
 
 void onRLCleanup(int theConnection) {
@@ -203,9 +197,8 @@ void onRLCleanup(int theConnection) {
 	RL_cleanup();
 
 	rlBufferClear(&theBuffer);
-
-	clearRLStruct(&theStateKey);  
-	clearRLStruct(&theRandomSeedKey);  
+	clearRLStruct(globalStateKey);  
+	clearRLStruct(globalRandomSeedKey);  
 }
 
 void onRLAgentMessage(int theConnection) {
