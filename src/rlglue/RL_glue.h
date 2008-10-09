@@ -39,8 +39,8 @@ extern "C" {
 	* that experiments should call.
 */
 const char* RL_init();
-observation_action_t RL_start();
-reward_observation_action_terminal_t RL_step();
+const observation_action_t *RL_start();
+const reward_observation_action_terminal_t *RL_step();
 void RL_cleanup();
 
 const char* RL_agent_message(const char* message);
@@ -49,11 +49,11 @@ const char* RL_env_message(const char* message);
 reward_t RL_return();
 int RL_num_steps();
 int RL_num_episodes();
-terminal_t RL_episode(unsigned int num_steps);
-void RL_set_state(state_key_t sk);
-void RL_set_random_seed(random_seed_key_t rsk);
-state_key_t RL_get_state();
-random_seed_key_t RL_get_random_seed();
+terminal_t RL_episode(const unsigned int num_steps);
+void RL_set_state(const state_key_t *sk);
+void RL_set_random_seed(const random_seed_key_t *rsk);
+const state_key_t *RL_get_state();
+const random_seed_key_t *RL_get_random_seed();
 
 #ifdef __cplusplus
 }

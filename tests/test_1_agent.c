@@ -36,32 +36,40 @@ This agent doesn't implement all the methods.. isn't that bad?
 #include <string.h>
 #include <rlglue/Agent_common.h>
 
+#include <rlglue/utils/C/RLStruct_util.h>
 #include "useful_functions.h"
-action_t action={0};
+action_t *action=0;
 char* agent_responseMessage=0;
 int agent_stepCount=0;
 
 
 
 void agent_init(const char * task_spec){
-	__RL_CHECK_STRUCT(&action)
+	__RL_CHECK_STRUCT(action)
 }
 
-action_t agent_start(observation_t o) {
+const action_t *agent_start(const observation_t *o) {
+	__RL_CHECK_STRUCT(o);
 	agent_stepCount=0;
-	copy_structure_to_structure(&action,&o);
-	__RL_CHECK_STRUCT(&action)
+
+	freeRLStructPointer(action);
+	action=duplicateRLStructToPointer(o);
+	__RL_CHECK_STRUCT(action)
+
 	return action;
 }
 
-action_t agent_step(reward_t reward, observation_t o) {
+const action_t *agent_step(const reward_t reward, const observation_t *o) {
+	__RL_CHECK_STRUCT(o);
 	agent_stepCount++;
-	copy_structure_to_structure(&action,&o);
-	__RL_CHECK_STRUCT(&action)
+
+	freeRLStructPointer(action);
+	action=duplicateRLStructToPointer(o);
+	__RL_CHECK_STRUCT(action)
 	return action;
 }
 
-void agent_end(reward_t reward) {
+void agent_end(const reward_t reward) {
 }
 
 void agent_cleanup() {

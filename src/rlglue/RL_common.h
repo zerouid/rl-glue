@@ -57,21 +57,21 @@ typedef rl_abstract_type_t random_seed_key_t;
 typedef rl_abstract_type_t state_key_t;
 
 typedef struct{
-  observation_t o;
-  action_t a;
+  const observation_t *o;
+  const action_t *a;
 } observation_action_t;
 
 typedef struct
 {
   reward_t r;
-  observation_t o;
+  const observation_t *o;
   terminal_t terminal;
 } reward_observation_t;
 
 typedef struct {
   reward_t r;
-  observation_t o;
-  action_t a;
+  const observation_t *o;
+  const action_t *a;
   terminal_t terminal;
 } reward_observation_action_terminal_t;
 

@@ -30,6 +30,7 @@
 #include <string.h>
 #include <assert.h>
 #include <rlglue/RL_glue.h>
+#include <rlglue/utils/C/RLStruct_util.h>
 
 
 #ifdef HAVE_SYS_TIME_H
