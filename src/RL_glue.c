@@ -66,8 +66,8 @@ const observation_action_t *RL_start() {
 	last_state = env_start();
 	last_action = agent_start(last_state);
 
-	oa.o = last_state;
-	oa.a = last_action;
+	oa.observation = last_state;
+	oa.action = last_action;
 
 /* **WORRYSOME** */
 	return &oa;
@@ -81,12 +81,12 @@ const reward_observation_action_terminal_t *RL_step() {
 
 	__RL_CHECK_STRUCT(last_action)
   	ro = env_step(last_action);
-	__RL_CHECK_STRUCT(ro->o)
-  	this_reward = ro->r;
-  	last_state = ro->o;
+	__RL_CHECK_STRUCT(ro->observation)
+  	this_reward = ro->reward;
+  	last_state = ro->observation;
   
-  	roa.r = ro->r;
-  	roa.o = ro->o;
+  	roa.reward = ro->reward;
+  	roa.observation = ro->observation;
   	roa.terminal = ro->terminal;
   
   	total_reward += this_reward;
@@ -101,7 +101,7 @@ const reward_observation_action_terminal_t *RL_step() {
 		num_steps+=1;
 	   last_action = agent_step(this_reward,last_state);
 	   __RL_CHECK_STRUCT(last_action)
-	   roa.a = last_action;
+	   roa.action = last_action;
 	 }
 
 /* **WORRYSOME** */

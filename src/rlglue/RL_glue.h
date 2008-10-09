@@ -49,11 +49,11 @@ const char* RL_env_message(const char* message);
 double RL_return();
 int RL_num_steps();
 int RL_num_episodes();
-int RL_episode(const unsigned int num_steps);
-void RL_set_state(const state_key_t *sk);
-void RL_set_random_seed(const random_seed_key_t *rsk);
-const state_key_t *RL_get_state();
-const random_seed_key_t *RL_get_random_seed();
+int RL_episode(unsigned int num_steps);
+void RL_set_state(const state_key_t* stateKey);
+void RL_set_random_seed(const random_seed_key_t* randomKey);
+const state_key_t* RL_get_state();
+const random_seed_key_t* RL_get_random_seed();
 
 #ifdef __cplusplus
 }

@@ -50,8 +50,8 @@ const char* env_init()
 		 this_observation.charArray   = 0;
 	*/
 	/* Setup the reward_observation variable */
-	this_reward_observation.o=&this_observation;
-	this_reward_observation.r=0;
+	this_reward_observation.observation=&this_observation;
+	this_reward_observation.reward=0;
 	this_reward_observation.terminal=0;
 
    return task_spec;
@@ -85,8 +85,8 @@ const reward_observation_t *env_step(const action_t *this_action)
 		the_reward=1;
 	}
 
-	this_reward_observation.o->intArray[0] = current_state;
-	this_reward_observation.r = the_reward;
+	this_reward_observation.observation->intArray[0] = current_state;
+	this_reward_observation.reward = the_reward;
 	this_reward_observation.terminal = episode_over;
 
 	return &this_reward_observation;

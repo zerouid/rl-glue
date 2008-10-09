@@ -56,7 +56,7 @@ const reward_observation_t *env_step(const action_t *a)
 {
 	static reward_observation_t ro={0};
 	clearRLStruct(o);
-	ro.o=o;
+	ro.observation=o;
 	return &ro;
 }
 

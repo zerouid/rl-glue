@@ -121,13 +121,13 @@ const reward_observation_t *env_step(const action_t *theAction) {
   /* Receive theObservation from the client environment */
   offset = 0;
   offset = rlBufferRead(&theBuffer, offset, &ro.terminal, 1, sizeof(int));
-  offset = rlBufferRead(&theBuffer, offset, &ro.r, 1, sizeof(double));
+  offset = rlBufferRead(&theBuffer, offset, &ro.reward, 1, sizeof(double));
 
 	if(theObservation==0)theObservation=allocateRLStructPointer(0,0,0);
   offset = rlCopyBufferToADT(&theBuffer, offset, theObservation);
   __RL_CHECK_STRUCT(theObservation)
 
-  ro.o = theObservation;
+  ro.observation = theObservation;
   return &ro;
 }
 
