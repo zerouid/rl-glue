@@ -164,6 +164,8 @@ void onRLEpisode(int theConnection) {
 
 void onRLSetState(int theConnection) {
 	unsigned int offset = 0;
+	
+	if(globalStateKey==0)globalStateKey=allocateRLStructPointer(0,0,0);
 	offset = rlCopyBufferToADT(&theBuffer, offset, globalStateKey);
 	RL_set_state(globalStateKey);
 	rlBufferClear(&theBuffer);
@@ -171,6 +173,7 @@ void onRLSetState(int theConnection) {
 
 void onRLSetRandomSeed(int theConnection) {
 	unsigned int offset = 0;
+	if(globalRandomSeedKey==0)globalRandomSeedKey=allocateRLStructPointer(0,0,0);
 	offset = rlCopyBufferToADT(&theBuffer, offset, globalRandomSeedKey);
 	RL_set_random_seed(globalRandomSeedKey);
 	rlBufferClear(&theBuffer);
@@ -198,7 +201,9 @@ void onRLCleanup(int theConnection) {
 
 	rlBufferClear(&theBuffer);
 	clearRLStruct(globalStateKey);  
+	globalStateKey=0;
 	clearRLStruct(globalRandomSeedKey);  
+	globalRandomSeedKey=0;
 }
 
 void onRLAgentMessage(int theConnection) {
