@@ -38,7 +38,7 @@ I'm a little worried that some of my changes in this file
  might go terribly wrong*/
 
 static const action_t *last_action=0;
-static reward_t total_reward = 0;
+static double total_reward = 0;
 static int num_steps       = 0;
 static int num_episodes    = 0;
 
@@ -76,7 +76,7 @@ const observation_action_t *RL_start() {
 const reward_observation_action_terminal_t *RL_step() {
 	static reward_observation_action_terminal_t roa={0};
 	const reward_observation_t *ro;
-  	reward_t this_reward=0;
+  	double this_reward=0;
 	const observation_t *last_state;
 
 	__RL_CHECK_STRUCT(last_action)
@@ -149,7 +149,7 @@ const char* RL_env_message(const char* message) {
 	return theEnvResponse;
 }
 
-terminal_t RL_episode(const unsigned int maxStepsThisEpisode) {
+int RL_episode(const unsigned int maxStepsThisEpisode) {
 	const reward_observation_action_terminal_t *rl_step_result=0;
 	int isTerminal=0;
 
@@ -165,7 +165,7 @@ terminal_t RL_episode(const unsigned int maxStepsThisEpisode) {
 	return isTerminal;
 }
 
-reward_t RL_return() {
+double RL_return() {
   return total_reward;
 }
 

@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
 	RL_init();
 	/* No cutoff */
-	terminal_t isTerminal = RL_episode(0);
+	int isTerminal = RL_episode(0);
 	check_fail(isTerminal!=1);
 	check_fail(RL_num_steps()!=5);
 	

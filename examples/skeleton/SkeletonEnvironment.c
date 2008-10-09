@@ -66,8 +66,8 @@ const observation_t *env_start()
 
 const reward_observation_t *env_step(const action_t *this_action)
 {
-	terminal_t episode_over=0;
-	reward_t the_reward=0;
+	int episode_over=0;
+	double the_reward=0;
 	
 	if(this_action->intArray[0]==0)
 		current_state--;
