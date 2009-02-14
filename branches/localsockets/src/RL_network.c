@@ -43,7 +43,7 @@ typedef int socklen_t;
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <sys/un.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #define SLEEPALIAS(n) sleep(n);
@@ -62,11 +62,12 @@ static rl_abstract_type_t emptyAbstractType={0, 0, 0, 0, 0, 0};
 
 /* Open and configure a socket */
 int rlOpen(short thePort) {
-  int flag = 1;
   int theSocket = 0;
 
-  theSocket = socket(PF_INET, SOCK_STREAM, 0);
-  setsockopt(theSocket, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int)); /* Disable Nagleing */
+  if ((theSocket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        perror("socket");
+        exit(1);
+    }
 
   return theSocket;
 }
@@ -74,8 +75,8 @@ int rlOpen(short thePort) {
 /* Calls accept on a socket */
 int rlAcceptConnection(int theSocket) {
   int theClient = 0;
-  struct sockaddr_in theClientAddress = {0};
-  socklen_t theSocketSize = sizeof(struct sockaddr_in);
+  struct sockaddr_un theClientAddress = {0};
+  socklen_t theSocketSize = sizeof(struct sockaddr_un);
   theClient = accept(theSocket, (struct sockaddr*)&theClientAddress, &theSocketSize);
   return theClient;
 }
@@ -83,47 +84,49 @@ int rlAcceptConnection(int theSocket) {
 /* Connect (TCP/IP) to the given address at the given port */
 int rlConnect(int theSocket, const char* theAddress, short thePort) {
   int theStatus = 0;
-  struct sockaddr_in theDestination;
-  theDestination.sin_family = AF_INET;
-  theDestination.sin_port = htons(thePort);
-  theDestination.sin_addr.s_addr = inet_addr(theAddress);
+  struct sockaddr_un theDestination;
+int len;
+  theDestination.sun_family = AF_UNIX;
+  strcpy(theDestination.sun_path, "RLGLUE_SOCKET1");
+
+/*  theDestination.sin_addr.s_addr = inet_addr(theAddress);
   memset(&theDestination.sin_zero, '\0', 8);
+*/
+len = strlen(theDestination.sun_path) + sizeof(theDestination.sun_family);
 
-  theStatus = connect(theSocket, 
-		      (struct sockaddr*)&theDestination, 
-		      sizeof(struct sockaddr));
-
+if (theStatus=connect(theSocket, (struct sockaddr *)&theDestination, len) == -1) {
+            perror("connect");
+            exit(1);
+        }
+		printf("Connected with status %d\n",theStatus);
   return theStatus;
 }
 
 /* Listen for an incoming connection on a given port.
    This function blocks until it receives a new connection */
 int rlListen(int theSocket, short thePort) {
-  struct sockaddr_in theServer;
+  struct sockaddr_un theServer;
   int theStatus = 0;
   int yes = 1;
+int len=0;
   
-  theServer.sin_family = AF_INET;
-  theServer.sin_port = htons(thePort);
-  theServer.sin_addr.s_addr = INADDR_ANY;
-  memset(&theServer.sin_zero, '\0', 8);
-  
-  /* We don't really care if this fails, it just lets us reuse the port quickly */
+  theServer.sun_family = AF_UNIX;
+  strcpy(theServer.sun_path, "RLGLUE_SOCKET1");
+
+  unlink(theServer.sun_path);
   setsockopt(theSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
-  theStatus = bind(theSocket, 
-		   (struct sockaddr*)&theServer, 
-		   sizeof(struct sockaddr));
+len = strlen(theServer.sun_path) + sizeof(theServer.sun_family);
+        if (bind(theSocket, (struct sockaddr *)&theServer, len) == -1) {
+            perror("bind");
+            exit(1);
+        }
 
-  if (theStatus == -1)
-	{
-		fprintf(stderr,"Could not open socket\n");
-		perror("bind");
-		exit(1);
-	}
-  
-  theStatus = listen(theSocket, 10);
-  if (theStatus == -1) return -1;
+        if (theStatus=listen(theSocket, 5) == -1) {
+            perror("listen");
+            exit(1);
+        }
+
 
   return theStatus;
 }
